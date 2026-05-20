@@ -63,6 +63,22 @@
       --navbar-h:          60px;
     }
 
+    [data-theme="dark"] {
+      --ms-text:           #f3f2f1;
+      --ms-text-soft:      #d0d0d0;
+      --ms-text-muted:     #b7b7b7;
+      --ms-bg:             #111827;
+      --ms-bg-alt:         #1f2937;
+      --ms-bg-tint:        #273447;
+      --ms-border:         #374151;
+      --ms-border-strong:  #4b5563;
+      --footer-bg:         #0a0f1a;
+      --footer-text:       #b3bccb;
+      --footer-title:      #ffffff;
+      --card-shadow:       0 6px 20px rgba(0, 0, 0, 0.35);
+      --card-shadow-hover: 0 10px 28px rgba(0, 0, 0, 0.45);
+    }
+
     * { box-sizing: border-box; }
 
     html {
@@ -99,7 +115,7 @@
       position: fixed;
       top: 0; left: 0; right: 0;
       height: var(--navbar-h);
-      background: #ffffff;
+      background: var(--ms-bg);
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
       z-index: 100;
       display: flex;
@@ -170,6 +186,26 @@
     }
     .navbar__github:hover { background: var(--ms-bg-tint); color: var(--ms-text); text-decoration: none; }
     .navbar__github svg { width: 18px; height: 18px; }
+
+    .theme-toggle {
+      font: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--ms-border-strong);
+      background: var(--ms-bg);
+      color: var(--ms-text-soft);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 36px;
+    }
+    .theme-toggle:hover {
+      background: var(--ms-bg-tint);
+      color: var(--ms-text);
+    }
 
     @media (max-width: 640px) {
       .navbar__links { display: none; }
@@ -638,6 +674,30 @@
       margin: 0 0 24px;
     }
 
+    .question-context {
+      margin: 0 0 22px;
+      border: 1px solid var(--ms-border);
+      border-radius: 8px;
+      background: var(--ms-bg-alt);
+      padding: 14px;
+    }
+    .question-context h4 {
+      margin: 0 0 8px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--ms-text-muted);
+    }
+    .question-context ul {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 14px;
+      color: var(--ms-text-soft);
+      line-height: 1.6;
+    }
+    .question-context li { margin: 3px 0; }
+    .question-context a { font-size: 14px; }
+
     .answers {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -874,6 +934,10 @@
         <a class="navbar__link" href="#docs">Docs</a>
       </div>
       <div class="navbar__right">
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch color theme">
+          <span id="themeIcon" aria-hidden="true">🌙</span>
+          <span id="themeLabel">Dark</span>
+        </button>
         <a class="navbar__github" href="https://github.com/billmcilhargey/m365-admin-license-navigator" target="_blank" rel="noopener" aria-label="GitHub repository">
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2.16c-3.2.7-3.87-1.37-3.87-1.37-.52-1.34-1.27-1.69-1.27-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.76 2.69 1.25 3.34.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.18 1.18a11.07 11.07 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.58.24 2.75.12 3.04.74.81 1.18 1.84 1.18 3.1 0 4.44-2.69 5.41-5.26 5.69.41.36.78 1.07.78 2.16v3.2c0 .31.21.66.8.55C20.21 21.39 23.5 17.08 23.5 12 23.5 5.65 18.35.5 12 .5Z"/></svg>
           GitHub
@@ -913,15 +977,6 @@
         </div>
       </div>
     </header>
-
-    <div class="disclaimer" role="note" aria-label="Important notice">
-      <span class="disclaimer__pill">Not official Microsoft guidance</span>
-      This is an <strong>independent community helper</strong> — not a Microsoft
-      product, not endorsed by Microsoft, and not a substitute for professional
-      licensing advice. It is a quick <strong>decision-support tool</strong> to
-      point you at the likely tier; always confirm final licensing with your
-      Microsoft account team or Cloud Solution Provider before you buy.
-    </div>
 
     <!-- ===================================================
          Why secondary admin accounts?
@@ -1151,11 +1206,32 @@
     // comparisons. First-match-wins ordering: most comprehensive license tier
     // first so a single "Yes" gives the highest applicable recommendation.
     const TREE = {
+      intro_overview: {
+        info: true,
+        badge: "Before you start",
+        badgeClass: "badge-info",
+        title: "Quick scope check for this licensing assessment",
+        sub: "Use this for a secondary (dedicated) admin account, then continue to the account-type selector.",
+        paragraphs: [
+          "This tool is an independent community helper and not official Microsoft licensing guidance. Use it to narrow the likely tier, then confirm with your Microsoft account team or CSP before purchase.",
+          "Best accuracy comes from evaluating a secondary admin account (separate from the user's daily mailbox/Teams account).",
+          "You can still continue for a primary daily-use admin account, but treat the result as a premium add-on recommendation on top of the required base service license.",
+          "Tip: keep a dedicated break-glass account strategy separate from normal day-to-day privileged accounts."
+        ],
+        docs: [
+          ["Microsoft Entra admin role best practices", "https://learn.microsoft.com/entra/identity/role-based-access-control/best-practices"],
+          ["Securing privileged access overview", "https://learn.microsoft.com/security/privileged-access-workgroup/overview"],
+          ["Emergency access accounts", "https://learn.microsoft.com/entra/identity/role-based-access-control/security-emergency-access"]
+        ],
+        actions: [
+          { label: "Next: choose account type →", target: "start_choice", tone: "primary" }
+        ]
+      },
       start_choice: {
         choice: true,
         eyebrow: "Setup · Account scope",
         question: "What type of admin account are you evaluating?",
-        help: "This tool is built for the Microsoft-recommended pattern: a secondary (dedicated) account used only for privileged work, separate from the user's regular mailbox/Teams identity. Pick the option that matches what you actually have.",
+        help: "Pick the account pattern you have today. If unsure, choose \"What's the difference?\" for examples and Microsoft references.",
         choices: [
           {
             label: "Secondary (dedicated) admin account",
@@ -1229,6 +1305,15 @@
         eyebrow: "Service usage",
         question: "Does this secondary admin account sign in to any Microsoft 365 user-facing service (Exchange mailbox, Teams, SharePoint, OneDrive, Office apps)?",
         help: "A properly dedicated secondary admin account should not be used to read mail, join Teams meetings, or open Office documents. If it does consume any of those services, it needs a service license — separate from any admin role — and you should consider splitting it back into a primary + secondary pair.",
+        examples: [
+          "Yes example: The admin reads Exchange email, joins Teams calls, or edits files in OneDrive.",
+          "No example: The admin only signs in for Entra/Intune/Security portals and never uses end-user workloads."
+        ],
+        techDocs: [
+          ["Exchange Online service descriptions", "https://learn.microsoft.com/office365/servicedescriptions/exchange-online-service-description/exchange-online-service-description"],
+          ["Microsoft Teams service description", "https://learn.microsoft.com/office365/servicedescriptions/teams-service-description/teams-service-description"],
+          ["SharePoint Online and OneDrive service descriptions", "https://learn.microsoft.com/office365/servicedescriptions/sharepoint-online-service-description/sharepoint-online-service-description"]
+        ],
         yes: "result_service",
         no: "q_service_principal"
       },
@@ -1236,6 +1321,15 @@
         eyebrow: "Account type",
         question: "Is this a non-interactive identity — service principal, managed identity, or workload identity with no human sign-in?",
         help: "Per Microsoft guidance, service principals and managed identities are typically excluded from user-targeted Conditional Access and don't consume user licenses. Use managed identities where possible.",
+        examples: [
+          "Yes example: Azure Automation or Function app uses a managed identity to call Graph/API with no person signing in.",
+          "No example: A named human admin account signs in interactively to admin centers."
+        ],
+        techDocs: [
+          ["Managed identities for Azure resources", "https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/overview"],
+          ["Workload identities FAQ", "https://learn.microsoft.com/entra/workload-id/workload-identities-faqs"],
+          ["Conditional Access for workload identities", "https://learn.microsoft.com/entra/identity/conditional-access/workload-identity"]
+        ],
         yes: "result_service_principal",
         no: "q_copilot"
       },
@@ -1243,6 +1337,15 @@
         eyebrow: "AI & agents",
         question: "Will this secondary admin use Microsoft 365 Copilot, build with Copilot Studio grounded in tenant data, or govern AI agents through Microsoft Agent 365 / Security Copilot interactive sessions?",
         help: "Microsoft 365 Copilot is an add-on to an eligible base plan. Microsoft 365 E7 (Frontier Suite, GA May 1, 2026) bundles E5 + Copilot + Entra Suite + Agent 365 in one license.",
+        examples: [
+          "Yes example: Admin actively uses Copilot chat in M365 apps or governs tenant-grounded agents.",
+          "No example: Admin does not access Copilot features and only performs non-AI admin tasks."
+        ],
+        techDocs: [
+          ["Microsoft 365 Copilot licensing", "https://learn.microsoft.com/microsoft-365/copilot/microsoft-365-copilot-licensing"],
+          ["Copilot Studio licensing concepts", "https://learn.microsoft.com/microsoft-copilot-studio/billing-licensing"],
+          ["M365 E7 announcement", "https://learn.microsoft.com/partner-center/announcements/2026-may"]
+        ],
         yes: "result_copilot_e7",
         no: "q_purview_e5"
       },
@@ -1250,6 +1353,15 @@
         eyebrow: "Compliance & Purview",
         question: "Is the secondary admin included in any Microsoft Purview E5-tier policy — Insider Risk Management, Communication Compliance, Adaptive Protection, endpoint DLP, premium eDiscovery, auto-labeling, Records Management, Customer Lockbox, Customer Key, Information Barriers, Privileged Access Management for Office, or Audit (Premium)?",
         help: "These Purview features require Microsoft 365 E5, the Microsoft 365 E5 Compliance add-on, or the Microsoft Purview Suite per user in scope — including any admin added as a test user.",
+        examples: [
+          "Yes example: Admin account is a test user in Insider Risk or covered by endpoint DLP policy scope.",
+          "No example: Admin only configures policies but is never in scoped user populations."
+        ],
+        techDocs: [
+          ["Insider Risk Management licensing", "https://learn.microsoft.com/purview/insider-risk-management-configure#subscriptions-and-licensing"],
+          ["Purview eDiscovery licensing", "https://learn.microsoft.com/purview/ediscovery-subscription-licensing"],
+          ["Audit (Premium)", "https://learn.microsoft.com/purview/audit-premium"]
+        ],
         yes: "result_e5_compliance",
         no: "q_defender"
       },
@@ -1257,6 +1369,15 @@
         eyebrow: "Defender XDR & security",
         question: "Does the secondary admin use Microsoft Defender XDR, Defender for Endpoint Plan 2, Defender for Identity, Defender for Cloud Apps, Defender for Office 365 Plan 2, or operate Microsoft Sentinel as a SOC analyst?",
         help: "Defender for Endpoint P2, Defender for Identity, Defender for Cloud Apps, Defender for Office 365 P2, and the broader Defender XDR experience are part of the Microsoft Defender Suite (formerly E5 Security), included with M365 E5 and E7. Sentinel is billed per-GB in Azure but its operators benefit from Defender Suite as well.",
+        examples: [
+          "Yes example: Admin triages incidents in Defender XDR or runs advanced hunting/SOC operations.",
+          "No example: Admin never uses Defender portals and only handles directory or device basics."
+        ],
+        techDocs: [
+          ["Microsoft Defender XDR", "https://learn.microsoft.com/defender-xdr/microsoft-365-defender"],
+          ["Defender for Endpoint plans", "https://learn.microsoft.com/defender-endpoint/microsoft-defender-endpoint"],
+          ["Microsoft Sentinel overview", "https://learn.microsoft.com/azure/sentinel/overview"]
+        ],
         yes: "result_e5_security",
         no: "q_intune_suite"
       },
@@ -1264,6 +1385,15 @@
         eyebrow: "Endpoint management",
         question: "Does the secondary admin use Microsoft Intune Suite features — Endpoint Privilege Management (EPM), Remote Help, Microsoft Tunnel for MAM, Cloud PKI, Enterprise App Management, or Advanced Endpoint Analytics?",
         help: "These are not in base Intune. They require the Microsoft Intune Suite add-on (or individual standalone add-ons), per user. Base Intune is included in M365 E3/E5/E7 and Business Premium.",
+        examples: [
+          "Yes example: Admin enables Endpoint Privilege Management or Remote Help in production.",
+          "No example: Admin only uses baseline Intune MDM/MAM and device compliance policies."
+        ],
+        techDocs: [
+          ["Intune Suite and add-ons", "https://learn.microsoft.com/mem/intune/fundamentals/intune-add-ons"],
+          ["Endpoint Privilege Management overview", "https://learn.microsoft.com/mem/intune/protect/epm-overview"],
+          ["Remote Help", "https://learn.microsoft.com/mem/intune/remote-actions/remote-help"]
+        ],
         yes: "result_intune_suite",
         no: "q_teams_premium"
       },
@@ -1271,6 +1401,15 @@
         eyebrow: "Teams Premium",
         question: "Does the secondary admin host or attend meetings that use Teams Premium features — Advanced webinars, Town halls premium, intelligent meeting recap, real-time translation, branded meetings, premium virtual appointments, or sensitivity-labeled meetings?",
         help: "Teams Premium is a per-user add-on (on top of any plan that includes Teams). It is not bundled with E3/E5 — but E7 (Frontier Suite) does not include it either as of GA. Buy separately for users who need premium meeting features.",
+        examples: [
+          "Yes example: Admin hosts advanced webinars or uses intelligent meeting recap in premium-enabled meetings.",
+          "No example: Admin joins standard Teams meetings without premium-specific capabilities."
+        ],
+        techDocs: [
+          ["Teams Premium licensing", "https://learn.microsoft.com/microsoftteams/teams-add-on-licensing/licensing-enhance-teams"],
+          ["Enhanced Teams experience", "https://learn.microsoft.com/microsoftteams/enhanced-teams-experience"],
+          ["Town halls in Teams", "https://learn.microsoft.com/microsoftteams/town-hall-overview"]
+        ],
         yes: "result_teams_premium",
         no: "q_pim"
       },
@@ -1278,6 +1417,15 @@
         eyebrow: "Privileged access (PIM)",
         question: "Is the secondary admin assigned an Entra ID or Azure role through PIM as eligible / time-bound — or does the account approve or review PIM activations or access reviews?",
         help: "Per the PIM licensing rules, an Entra ID P2 (or Entra ID Governance) license is required for every user who is eligible, time-bound, an approver, or a reviewer. Almost every well-run secondary admin account ends up here.",
+        examples: [
+          "Yes example: Admin activates Global Admin through PIM and another admin approves the activation.",
+          "No example: Admin has permanent active role assignment and no PIM workflows are used."
+        ],
+        techDocs: [
+          ["PIM licensing fundamentals", "https://learn.microsoft.com/entra/id-governance/licensing-fundamentals#privileged-identity-management"],
+          ["What is PIM", "https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-configure"],
+          ["Access reviews", "https://learn.microsoft.com/entra/id-governance/access-reviews-overview"]
+        ],
         yes: "result_p2_pim",
         no: "q_identity_protection"
       },
@@ -1285,6 +1433,15 @@
         eyebrow: "Identity Protection",
         question: "Is this secondary admin account in scope of Microsoft Entra ID Protection — risk-based Conditional Access, premium risk detections, or user / sign-in risk policies?",
         help: "Premium risk detections (atypical travel, password spray, malicious IP, verified threat actor IP, suspicious MFA approval, anomalous token, etc.) and risk-based Conditional Access require Entra ID P2 per user in scope.",
+        examples: [
+          "Yes example: Account is evaluated by sign-in risk policy and can be blocked/challenged based on risk.",
+          "No example: Tenant uses only baseline CA without Identity Protection risk conditions."
+        ],
+        techDocs: [
+          ["Identity Protection risks", "https://learn.microsoft.com/entra/id-protection/concept-identity-protection-risks"],
+          ["Risk-based sign-in CA policy", "https://learn.microsoft.com/entra/identity/conditional-access/policy-risk-based-sign-in"],
+          ["User-risk CA policy", "https://learn.microsoft.com/entra/identity/conditional-access/policy-risk-based-user"]
+        ],
         yes: "result_p2_idp",
         no: "q_id_governance"
       },
@@ -1292,6 +1449,15 @@
         eyebrow: "Identity Governance",
         question: "Does the secondary admin use Microsoft Entra ID Governance features beyond basic group management — Entitlement Management access packages, Lifecycle Workflows, machine-learning recommendations on access reviews, or Privileged Access Groups governance?",
         help: "These advanced governance features sit in the Entra ID Governance SKU (or the Entra Suite). Standard access reviews on basic groups are P2; lifecycle automation and access packages require Governance.",
+        examples: [
+          "Yes example: Admin builds joiner/mover/leaver lifecycle workflows or manages access packages.",
+          "No example: Admin manages static groups and basic role assignments only."
+        ],
+        techDocs: [
+          ["Entra ID Governance licensing", "https://learn.microsoft.com/entra/id-governance/licensing-fundamentals"],
+          ["Lifecycle workflows", "https://learn.microsoft.com/entra/id-governance/what-are-lifecycle-workflows"],
+          ["Entitlement Management overview", "https://learn.microsoft.com/entra/id-governance/entitlement-management-overview"]
+        ],
         yes: "result_id_governance",
         no: "q_entra_suite"
       },
@@ -1299,6 +1465,15 @@
         eyebrow: "Entra Suite (network + ID)",
         question: "Does the secondary admin operate Entra Suite features — Global Secure Access, Microsoft Entra Internet Access, Microsoft Entra Private Access, Microsoft Entra Verified ID issuance, or unified Conditional Access for network + identity?",
         help: "These cross-network identity capabilities are bundled in the Microsoft Entra Suite (or in M365 E7). They include P2 + ID Governance + Internet/Private Access + Verified ID.",
+        examples: [
+          "Yes example: Admin configures Internet Access/Private Access policies or manages Verified ID issuance.",
+          "No example: Tenant does not use Entra network access stack or Verified ID."
+        ],
+        techDocs: [
+          ["Global Secure Access", "https://learn.microsoft.com/entra/global-secure-access/overview-what-is-global-secure-access"],
+          ["Microsoft Entra Suite", "https://learn.microsoft.com/entra/fundamentals/entra-suite"],
+          ["Entra Verified ID overview", "https://learn.microsoft.com/entra/verified-id/decentralized-identifier-overview"]
+        ],
         yes: "result_entra_suite",
         no: "q_break_glass"
       },
@@ -1306,6 +1481,15 @@
         eyebrow: "Break-glass",
         question: "Is this a break-glass / emergency-access account that is explicitly excluded from Conditional Access, PIM, and risk policies?",
         help: "Microsoft recommends excluding emergency-access accounts from Conditional Access to avoid lockout. When excluded from PIM and Identity Protection, they don't trigger the P2 requirement.",
+        examples: [
+          "Yes example: Offline emergency GA account excluded from CA/PIM, used only during tenant lockout incidents.",
+          "No example: Normal day-to-day admin account that still goes through CA and PIM controls."
+        ],
+        techDocs: [
+          ["Emergency access accounts", "https://learn.microsoft.com/entra/identity/role-based-access-control/security-emergency-access"],
+          ["Conditional Access planning", "https://learn.microsoft.com/entra/identity/conditional-access/plan-conditional-access"],
+          ["PIM licensing fundamentals", "https://learn.microsoft.com/entra/id-governance/licensing-fundamentals#privileged-identity-management"]
+        ],
         yes: "result_break_glass",
         no: "result_no_license_admin"
       },
@@ -1551,7 +1735,7 @@
     const TOTAL_STEPS = Object.values(TREE).filter(n => !n.result && !n.choice && !n.info).length;
 
     const state = {
-      currentId: "start_choice",
+      currentId: "intro_overview",
       history: []
     };
 
@@ -1559,6 +1743,10 @@
     const $progress = document.getElementById("progressFill");
     const $stepLabel = document.getElementById("stepLabel");
     const $tenantBaseline = document.getElementById("tenantBaseline");
+    const $themeToggle = document.getElementById("themeToggle");
+    const $themeLabel = document.getElementById("themeLabel");
+    const $themeIcon = document.getElementById("themeIcon");
+    const $themeMeta = document.querySelector('meta[name="theme-color"]');
 
     function render() {
       const node = TREE[state.currentId];
@@ -1633,11 +1821,13 @@
       const back = state.history.length > 0
         ? `<button class="btn btn-back" onclick="goBack()">&larr; Back</button>`
         : "";
+      const context = renderQuestionContext(node);
       $app.innerHTML = `
         ${back}
         <div class="question-eyebrow">Step ${stepNumber} of ${TOTAL_STEPS} · ${escapeHtml(node.eyebrow || "")}</div>
         <h3 class="question-text">${escapeHtml(node.question)}</h3>
         ${node.help ? `<p class="question-help">${escapeHtml(node.help)}</p>` : ""}
+        ${context}
         <div class="answers">
           <button class="btn btn-yes" onclick="answer('yes')" aria-label="Yes — next question">
             Yes
@@ -1647,6 +1837,21 @@
             No
             <span class="key-hint">press N</span>
           </button>
+        </div>
+      `;
+    }
+
+    function renderQuestionContext(node) {
+      const examples = (node.examples || []).map(item => `<li>${escapeHtml(item)}</li>`).join("");
+      const techDocs = (node.techDocs || []).map(([label, url]) =>
+        `<li><a href="${escapeAttr(url)}" target="_blank" rel="noopener">${escapeHtml(label)} &nearr;</a></li>`
+      ).join("");
+      if (!examples && !techDocs) return "";
+
+      return `
+        <div class="question-context" role="note" aria-label="Examples and technical references">
+          ${examples ? `<h4>How to decide quickly</h4><ul>${examples}</ul>` : ""}
+          ${techDocs ? `<h4 style="margin-top:12px">Technical item docs</h4><ul>${techDocs}</ul>` : ""}
         </div>
       `;
     }
@@ -1704,6 +1909,30 @@
         return `<button class="${cls}" onclick="goTo('${escapeAttr(a.target)}', ${i})">${escapeHtml(a.label)}</button>`;
       }).join("");
       return `<div class="actions">${buttons}</div>`;
+    }
+
+    function applyTheme(theme) {
+      const html = document.documentElement;
+      if (theme === "dark") html.setAttribute("data-theme", "dark");
+      else html.removeAttribute("data-theme");
+
+      if ($themeLabel) $themeLabel.textContent = theme === "dark" ? "Light" : "Dark";
+      if ($themeIcon) $themeIcon.textContent = theme === "dark" ? "☀" : "🌙";
+      if ($themeMeta) $themeMeta.setAttribute("content", theme === "dark" ? "#0f172a" : "#0078d4");
+    }
+
+    function initTheme() {
+      const saved = localStorage.getItem("m365-admin-theme");
+      const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const theme = (saved === "light" || saved === "dark") ? saved : (prefersDark ? "dark" : "light");
+      applyTheme(theme);
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+      const next = current === "dark" ? "light" : "dark";
+      localStorage.setItem("m365-admin-theme", next);
+      applyTheme(next);
     }
 
     function questionStepNumber() {
@@ -2020,6 +2249,10 @@
       });
     }
 
+    if ($themeToggle) {
+      $themeToggle.addEventListener("click", toggleTheme);
+    }
+
     window.answer = answer;
     window.choose = choose;
     window.goTo = goTo;
@@ -2027,6 +2260,7 @@
     window.restart = restart;
     window.copySummary = copySummary;
 
+    initTheme();
     render();
   </script>
 </body>

@@ -7,7 +7,8 @@ CSS, and JavaScript) deployed to GitHub Pages. It has:
 
 - **No backend** and no server-side code.
 - **No application dependencies** (no `package.json`, no installed packages).
-- **No data collection, telemetry, cookies, local storage, or analytics.**
+- **No data collection, telemetry, cookies, or analytics.**
+- **Local storage is used only for the optional light/dark theme preference.**
 - **No authentication** or any handling of user secrets, tokens, or credentials.
 
 All decision-tree content is hard-coded in `index.html`. The site does not
@@ -16,9 +17,9 @@ that navigate between hard-coded nodes in the page.
 
 ## Supported versions
 
-Only the current `master` branch is supported. The deployed site at
-<https://billmcilhargey.github.io/m365-admin-licensing-decision-tree/>
-always reflects the latest commit on `master`.
+Only the current `main` branch is supported. The deployed site at
+<https://billmcilhargey.github.io/m365-admin-license-navigator/>
+always reflects the latest commit on `main`.
 
 ## Reporting a vulnerability
 
@@ -29,7 +30,7 @@ workflows — please **do not open a public issue**.
 
 Instead, use **GitHub's private vulnerability reporting**:
 
-1. Go to the repository's [Security tab](https://github.com/billmcilhargey/m365-admin-licensing-decision-tree/security).
+1. Go to the repository's [Security tab](https://github.com/billmcilhargey/m365-admin-license-navigator/security).
 2. Click **Report a vulnerability**.
 3. Include a clear description, reproduction steps, and the impact.
 

@@ -33,8 +33,9 @@ for (const [id, n] of Object.entries(TREE)) {
   }
 }
 
-// Reachability — start from the new entry node and follow every kind of edge.
+// Reachability — start from the configured entry node and follow every kind of edge.
 const reachable = new Set();
+const entryId = ids.has('intro_overview') ? 'intro_overview' : 'start_choice';
 (function walk(id) {
   if (!id || reachable.has(id)) return;
   reachable.add(id);
@@ -44,7 +45,7 @@ const reachable = new Set();
   if (n.info)   { for (const a of (n.actions || [])) walk(a.target); return; }
   if (n.result) { for (const a of (n.actions || [])) walk(a.target); return; }
   walk(n.yes); walk(n.no);
-})('start_choice');
+})(entryId);
 
 for (const id of ids) if (!reachable.has(id)) { console.error('Unreachable:', id); ok = false; }
 

@@ -2,9 +2,9 @@ name: Lint
 
 on:
   push:
-    branches: [master, main]
+    branches: [main]
   pull_request:
-    branches: [master, main]
+    branches: [main]
   workflow_dispatch:
 
 # Least-privilege: linting only needs read access to the repo content.

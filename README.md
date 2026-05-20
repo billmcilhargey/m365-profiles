@@ -43,8 +43,8 @@ Security / Compliance / Intune / Teams / Exchange Admin, etc. It has no
 mailbox to phish, no Teams chats, and no Office apps — so most of the time it
 doesn't consume a Microsoft 365 service license at all.
 
-When you load the site, the **first screen** asks you to confirm what kind of
-account you're evaluating:
+When you load the site, the **first screen** is a quick scope/disclaimer box,
+then you confirm what kind of account you're evaluating:
 
 1. **Secondary (dedicated) admin account** — recommended path, runs the full tree.
 2. **Primary daily-use account that also holds admin roles** — shows a warning
@@ -80,14 +80,15 @@ to [m365maps.com](https://m365maps.com/) for visual SKU comparisons.
 ## What's included
 
 - A single-file SPA (`index.html`) — no build step, no dependencies, no backend.
-- A **point-and-click intro gate** that asks what type of admin account you're
-  evaluating before running the tree.
+- A streamlined **intro flow**: scope/disclaimer card first, then account-type
+  selection before running the tree.
 - A **fully point-and-click flow** — each click takes you to the next screen,
   with keyboard shortcuts (`1`/`2`/`3` for intro choices, `Y` / `N` / `←` / `R`
   for the tree) for power users.
 - A Microsoft-inspired UI modeled on the look-and-feel of the
   [Microsoft Zero Trust Assessment](https://microsoft.github.io/zerotrustassessment/)
   site: fixed top navbar, navy → MS-blue hero gradient, dark footer.
+- A top-right **light/dark theme toggle** (saved locally in your browser).
 - **Mobile + desktop responsive** — large 52 px touch targets, single-column
   answers on small screens, fixed navbar with `scroll-margin-top` so anchored
   jumps don't get hidden, smooth scroll, reduced-motion support.
@@ -95,15 +96,17 @@ to [m365maps.com](https://m365maps.com/) for visual SKU comparisons.
   that adjusts every recommendation based on what you already own.
 - A **progress bar with step count**, back button, restart, **Copy summary**
   to clipboard, and a path trail of your answers.
-- 12 question nodes + 1 intro choice + 1 background info screen + 14 result
-  nodes, every edge verified reachable.
+- 12 question nodes + 1 intro overview + 1 intro choice + 1 background info
+  screen + 14 result nodes, every edge verified reachable.
+- Per-question **"How to decide quickly"** examples plus direct Microsoft
+  Learn links for technical items in each question.
 - Microsoft Learn + m365maps.com citations on every result page.
 - Skip-to-content link, `aria-live` region for results, visible focus rings.
 
 ## Decision tree coverage
 
-After the intro gate (account scope), the tree evaluates the **secondary admin
-account** against, in order:
+After the intro flow (scope + account type), the tree evaluates the
+**secondary admin account** against, in order:
 
 1. **Service usage** (Exchange / Teams / SharePoint / OneDrive / Office) —
    should be _none_ for a properly dedicated secondary admin
@@ -190,9 +193,9 @@ To turn Pages on:
 2. **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 3. The `Deploy to GitHub Pages` workflow runs on the next push — or you can
    trigger it on demand from **Actions → Deploy to GitHub Pages → Run
-  workflow** (the workflow declares `workflow_dispatch`).
+   workflow** (the workflow declares `workflow_dispatch`).
 4. For manual runs, you can optionally provide a `ref` (branch, tag, or commit
-  SHA) in the workflow form to deploy that exact revision.
+   SHA) in the workflow form to deploy that exact revision.
 5. After the first successful run, the site is live at the URL above.
 
 ### Custom domain (optional)
