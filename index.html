@@ -1,0 +1,2033 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>M365 Admin Licensing Decision Tree | Microsoft 365 Admin Licensing</title>
+  <meta name="description" content="Interactive decision tree to determine when a Microsoft 365 admin account requires a license — Entra ID Free, Entra ID P2, Entra ID Governance, Entra Suite, M365 E5, Defender Suite, Purview Suite, Intune Suite, Teams Premium, M365 Copilot, or the new M365 E7 (Frontier Suite)." />
+  <meta name="theme-color" content="#0078d4" />
+  <meta name="color-scheme" content="light dark" />
+
+  <!-- Security headers (defense-in-depth; GitHub Pages can't set HTTP headers) -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'none'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), interest-cohort=()" />
+
+  <!-- Open Graph / Twitter -->
+  <meta property="og:title" content="M365 Admin Licensing Decision Tree" />
+  <meta property="og:description" content="Point-and-click decision tree to decide if a Microsoft 365 admin account needs a license — Entra ID P2, E5, Copilot, Intune Suite, Teams Premium, or the new E7 Frontier Suite." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://billmcilhargey.github.io/m365-admin-licensing-decision-tree/" />
+  <meta name="twitter:card" content="summary" />
+
+  <!-- Inline SVG favicon — 4-color Microsoft squares -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='1' y='1' width='10' height='10' fill='%23f25022'/%3E%3Crect x='13' y='1' width='10' height='10' fill='%237fba00'/%3E%3Crect x='1' y='13' width='10' height='10' fill='%2300a4ef'/%3E%3Crect x='13' y='13' width='10' height='10' fill='%23ffb900'/%3E%3C/svg%3E" />
+
+  <style>
+    /* =================================================================
+       Theme tokens — modeled on microsoft/zerotrustassessment site
+       ================================================================= */
+    :root {
+      /* Microsoft brand */
+      --ms-blue:           #0078d4;
+      --ms-blue-dark:      #106ebe;
+      --ms-blue-darker:    #005a9e;
+      --ms-blue-darkest:   #003e72;
+      --ms-blue-light:     #deecf9;
+      --ms-blue-lighter:   #eff6fc;
+      --ms-navy:           #0a1628;
+      --ms-navy-mid:       #0f2b5b;
+
+      /* Neutrals */
+      --ms-text:           #201f1e;
+      --ms-text-soft:      #424242;
+      --ms-text-muted:     #605e5c;
+      --ms-bg:             #ffffff;
+      --ms-bg-alt:         #f8f9fb;
+      --ms-bg-tint:        #f3f6fa;
+      --ms-border:         #e1dfdd;
+      --ms-border-strong:  #c8c6c4;
+
+      /* Status */
+      --ms-success:        #107c10;
+      --ms-warning:        #f7630c;
+      --ms-error:          #a4262c;
+      --ms-purple:         #5c2d91;
+
+      /* Surfaces */
+      --footer-bg:         #303846;
+      --footer-text:       #c2c4ce;
+      --footer-title:      #ffffff;
+      --card-shadow:       0 4px 16px rgba(0, 0, 0, 0.06);
+      --card-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.10);
+      --navbar-h:          60px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      * { animation: none !important; transition: none !important; }
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Segoe UI Variable", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: var(--ms-text);
+      background: var(--ms-bg);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--ms-blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    :focus-visible {
+      outline: 2px solid var(--ms-blue);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+
+    /* =================================================================
+       Navbar (fixed top, like Docusaurus navbar)
+       ================================================================= */
+    .navbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--navbar-h);
+      background: #ffffff;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+    }
+
+    .navbar__inner {
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .navbar__brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--ms-text);
+      font-weight: 700;
+      font-size: 15px;
+    }
+    .navbar__brand:hover { text-decoration: none; color: var(--ms-text); }
+
+    .navbar__logo {
+      width: 26px;
+      height: 26px;
+      display: inline-grid;
+      grid-template: 1fr 1fr / 1fr 1fr;
+      gap: 2px;
+    }
+    .navbar__logo span { display: block; border-radius: 2px; }
+    .navbar__logo span:nth-child(1) { background: #f25022; }
+    .navbar__logo span:nth-child(2) { background: #7fba00; }
+    .navbar__logo span:nth-child(3) { background: #00a4ef; }
+    .navbar__logo span:nth-child(4) { background: #ffb900; }
+
+    .navbar__links {
+      display: flex;
+      gap: 4px;
+      flex: 1;
+    }
+    .navbar__link {
+      padding: 8px 12px;
+      border-radius: 6px;
+      color: var(--ms-text-soft);
+      font-weight: 500;
+      font-size: 14px;
+    }
+    .navbar__link:hover { background: var(--ms-bg-tint); color: var(--ms-blue); text-decoration: none; }
+
+    .navbar__right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .navbar__github {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 12px;
+      border-radius: 6px;
+      color: var(--ms-text-soft);
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .navbar__github:hover { background: var(--ms-bg-tint); color: var(--ms-text); text-decoration: none; }
+    .navbar__github svg { width: 18px; height: 18px; }
+
+    @media (max-width: 640px) {
+      .navbar__links { display: none; }
+      .navbar__inner { gap: 12px; }
+    }
+
+    /* Skip link for keyboard users */
+    .skip-link {
+      position: absolute;
+      left: -9999px;
+      top: 0;
+      padding: 8px 16px;
+      background: var(--ms-blue);
+      color: white;
+      z-index: 200;
+    }
+    .skip-link:focus { left: 8px; top: 8px; }
+
+    /* =================================================================
+       Page layout — push content below fixed navbar
+       ================================================================= */
+    .main-wrapper { padding-top: var(--navbar-h); }
+
+    /* Anchored scroll targets must clear the fixed navbar */
+    :target,
+    section[id],
+    [id^="q_"],
+    #assessment,
+    #how-it-works,
+    #licenses,
+    #docs {
+      scroll-margin-top: calc(var(--navbar-h) + 16px);
+    }
+
+    /* =================================================================
+       Hero — dark navy → MS blue gradient (matches ZTA hero)
+       ================================================================= */
+    .hero {
+      background: linear-gradient(135deg, var(--ms-navy) 0%, var(--ms-navy-mid) 40%, var(--ms-blue) 100%);
+      color: #ffffff;
+      text-align: center;
+      padding: 4.5rem 1.5rem 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(900px circle at 80% -10%, rgba(255,255,255,0.07), transparent 60%);
+      pointer-events: none;
+    }
+
+    .hero__inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .hero__tagline {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: rgba(255,255,255,0.92);
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .badge--new {
+      background: #ffb900;
+      color: #1a1a1a;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+
+    .hero__title {
+      font-size: clamp(1.9rem, 4.5vw, 3.2rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin: 0 auto 1rem;
+      max-width: 820px;
+    }
+
+    .hero__subtitle {
+      color: rgba(255,255,255,0.82);
+      font-size: clamp(0.98rem, 2vw, 1.18rem);
+      line-height: 1.65;
+      margin: 0 auto 1.25rem;
+      max-width: 720px;
+    }
+
+    .hero__note {
+      display: inline-block;
+      background: rgba(255, 185, 0, 0.18);
+      border: 1px solid rgba(255, 185, 0, 0.55);
+      color: #fff4d4;
+      font-size: 13px;
+      line-height: 1.55;
+      padding: 10px 16px;
+      border-radius: 6px;
+      margin: 0 auto 1.75rem;
+      max-width: 720px;
+      text-align: left;
+    }
+    .hero__note strong { color: #fff; }
+
+    .hero__ctas {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 14px 24px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 15px;
+      transition: transform 80ms ease, background 120ms ease, border-color 120ms ease, color 120ms ease;
+      border: 1px solid transparent;
+      min-height: 44px;
+    }
+    .cta:active { transform: translateY(1px); }
+    .cta:hover { text-decoration: none; }
+    .cta--primary {
+      background: #ffffff;
+      color: var(--ms-blue-darker);
+    }
+    .cta--primary:hover { background: var(--ms-blue-lighter); color: var(--ms-blue-darker); }
+    .cta--secondary {
+      background: transparent;
+      color: #ffffff;
+      border-color: rgba(255,255,255,0.5);
+    }
+    .cta--secondary:hover { background: rgba(255,255,255,0.1); border-color: #ffffff; }
+
+    /* =================================================================
+       Sections
+       ================================================================= */
+    .section {
+      padding: 64px 20px;
+    }
+    .section--alt {
+      background: var(--ms-bg-alt);
+      border-top: 1px solid var(--ms-border);
+      border-bottom: 1px solid var(--ms-border);
+    }
+    .section--accent {
+      background: linear-gradient(180deg, #f5fbff 0%, #ffffff 100%);
+      border-top: 1px solid var(--ms-border);
+      border-bottom: 1px solid var(--ms-border);
+    }
+    .section__inner {
+      max-width: 980px;
+      margin: 0 auto;
+    }
+    .section__header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .section__eyebrow {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ms-blue);
+      margin-bottom: 8px;
+    }
+    .section__title {
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin: 0 0 8px;
+    }
+    .section__desc {
+      color: var(--ms-text-muted);
+      font-size: 16px;
+      margin: 0 auto;
+      max-width: 640px;
+    }
+
+    /* =================================================================
+       Pillar / step row
+       ================================================================= */
+    .pillars {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+      margin-top: 24px;
+    }
+    .pillar {
+      padding: 16px;
+      border-radius: 8px;
+      background: white;
+      border: 1px solid var(--ms-border);
+      text-align: center;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ms-text-soft);
+      position: relative;
+    }
+    .pillar small {
+      display: block;
+      font-weight: 500;
+      color: var(--ms-text-muted);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    .pillar--highlight {
+      background: linear-gradient(135deg, var(--ms-blue-lighter), #ffffff);
+      border-color: var(--ms-blue);
+    }
+    .pillar--highlight::after {
+      content: "NEW";
+      position: absolute;
+      top: -8px;
+      right: 8px;
+      background: #ffb900;
+      color: #1a1a1a;
+      padding: 1px 6px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    /* =================================================================
+       "Why secondary" section
+       ================================================================= */
+    .why-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+    }
+    .why-card {
+      background: white;
+      border: 1px solid var(--ms-border);
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: var(--card-shadow);
+    }
+    .why-card h3 {
+      margin: 0 0 8px;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--ms-text);
+    }
+    .why-card p {
+      margin: 0;
+      font-size: 14px;
+      color: var(--ms-text-soft);
+      line-height: 1.55;
+    }
+    .why-card__icon {
+      font-size: 22px;
+      margin-bottom: 6px;
+    }
+    .why-callout {
+      margin-top: 20px;
+      padding: 16px 20px;
+      background: var(--ms-blue-lighter);
+      border-left: 4px solid var(--ms-blue);
+      border-radius: 6px;
+      font-size: 14px;
+      color: var(--ms-text);
+      line-height: 1.6;
+    }
+    .why-callout code {
+      background: white;
+      padding: 1px 6px;
+      border-radius: 3px;
+      border: 1px solid var(--ms-border);
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 13px;
+    }
+    .why-foot {
+      margin-top: 18px;
+      font-size: 13px;
+      color: var(--ms-text-muted);
+      text-align: center;
+    }
+
+    /* =================================================================
+       Multi-choice intro card
+       ================================================================= */
+    .choices {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .choice {
+      font: inherit;
+      cursor: pointer;
+      text-align: left;
+      padding: 18px 20px;
+      border-radius: 10px;
+      border: 1.5px solid var(--ms-border-strong);
+      background: white;
+      transition: background 120ms ease, border-color 120ms ease, transform 80ms ease;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 14px;
+      align-items: center;
+      min-height: 64px;
+    }
+    .choice:hover { border-color: var(--ms-blue); background: var(--ms-blue-lighter); }
+    .choice:active { transform: translateY(1px); }
+    .choice--primary { border-color: var(--ms-blue); background: var(--ms-blue-lighter); }
+    .choice--primary:hover { background: #cee5f5; }
+    .choice--warning { border-color: #ffb900; background: #fff8e6; }
+    .choice--warning:hover { background: #fff0c2; }
+    .choice--ghost { border-style: dashed; }
+    .choice__icon {
+      width: 36px; height: 36px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 999px;
+      background: var(--ms-bg-tint);
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--ms-blue-darker);
+    }
+    .choice--primary .choice__icon { background: var(--ms-blue); color: white; }
+    .choice--warning .choice__icon { background: #ffb900; color: #1a1a1a; }
+    .choice__text { display: block; }
+    .choice__label {
+      display: block;
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--ms-text);
+      margin-bottom: 2px;
+    }
+    .choice__sub {
+      display: block;
+      font-weight: 400;
+      font-size: 13px;
+      color: var(--ms-text-muted);
+      line-height: 1.45;
+    }
+    .choice__key {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 24px;
+      padding: 2px 6px;
+      border: 1px solid var(--ms-border-strong);
+      border-radius: 4px;
+      background: var(--ms-bg-tint);
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 12px;
+      color: var(--ms-text-muted);
+    }
+    @media (max-width: 520px) {
+      .choice { grid-template-columns: auto 1fr; }
+      .choice__key { display: none; }
+    }
+
+    /* =================================================================
+       Info screen
+       ================================================================= */
+    .info-paragraphs p {
+      margin: 0 0 12px;
+      color: var(--ms-text-soft);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    .info-paragraphs p:last-child { margin-bottom: 0; }
+
+    /* =================================================================
+       Decision tree card — the actual SPA
+       ================================================================= */
+    .assess-wrap {
+      max-width: 780px;
+      margin: 0 auto;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 0 14px;
+      padding: 12px 16px;
+      background: white;
+      border: 1px solid var(--ms-border);
+      border-radius: 8px;
+      flex-wrap: wrap;
+    }
+    .tenant-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--ms-text-muted);
+    }
+    .tenant-toggle select {
+      font: inherit;
+      padding: 7px 10px;
+      border-radius: 4px;
+      border: 1px solid var(--ms-border-strong);
+      background: white;
+      color: var(--ms-text);
+      min-height: 36px;
+    }
+    .progress-track {
+      flex: 1;
+      min-width: 120px;
+      max-width: 220px;
+      height: 6px;
+      background: var(--ms-bg-tint);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--ms-blue);
+      border-radius: 999px;
+      width: 0%;
+      transition: width 220ms ease;
+    }
+    .step-label {
+      font-size: 12px;
+      color: var(--ms-text-muted);
+      white-space: nowrap;
+      font-weight: 600;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 32px 28px;
+      box-shadow: var(--card-shadow);
+      border: 1px solid var(--ms-border);
+      animation: fade-in 220ms ease;
+    }
+
+    @keyframes fade-in {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .question-eyebrow {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ms-blue);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
+    }
+    .question-text {
+      font-size: clamp(18px, 2.4vw, 22px);
+      font-weight: 700;
+      margin: 0 0 8px;
+      line-height: 1.35;
+    }
+    .question-help {
+      color: var(--ms-text-muted);
+      font-size: 14px;
+      margin: 0 0 24px;
+    }
+
+    .answers {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .btn {
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 16px 18px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      transition: background 120ms ease, border-color 120ms ease, transform 80ms ease, color 120ms ease;
+      font-size: 16px;
+      min-height: 52px;
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn-yes { background: var(--ms-blue); color: white; }
+    .btn-yes:hover { background: var(--ms-blue-dark); }
+    .btn-no  { background: white; color: var(--ms-blue); border-color: var(--ms-blue); }
+    .btn-no:hover  { background: var(--ms-blue-light); }
+    .btn-secondary { background: white; color: var(--ms-text); border-color: var(--ms-border-strong); padding: 10px 14px; font-size: 14px; min-height: 40px; }
+    .btn-secondary:hover { background: var(--ms-bg-tint); }
+    .btn-back {
+      background: transparent;
+      color: var(--ms-text-muted);
+      border: none;
+      padding: 4px 0 12px;
+      font-size: 13px;
+      min-height: 0;
+    }
+    .btn-back:hover { color: var(--ms-blue); }
+
+    .key-hint {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      opacity: 0.75;
+      margin-top: 4px;
+      letter-spacing: 0.04em;
+    }
+    @media (max-width: 520px) {
+      .key-hint { display: none; }
+    }
+
+    .shortcuts {
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--ms-text-muted);
+      text-align: center;
+    }
+    .shortcuts kbd {
+      display: inline-block;
+      padding: 1px 6px;
+      border: 1px solid var(--ms-border-strong);
+      border-radius: 3px;
+      background: var(--ms-bg-tint);
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 11px;
+      margin: 0 2px;
+    }
+
+    /* Result */
+    .result-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .badge-success { background: #e6f4ea; color: var(--ms-success); }
+    .badge-warning { background: #fff4e5; color: var(--ms-warning); }
+    .badge-info    { background: var(--ms-blue-light); color: var(--ms-blue-darker); }
+    .badge-premium { background: #f1ebf7; color: var(--ms-purple); }
+
+    .result-title {
+      font-size: clamp(22px, 3vw, 28px);
+      font-weight: 700;
+      margin: 16px 0 6px;
+      letter-spacing: -0.01em;
+    }
+    .result-sub {
+      color: var(--ms-text-muted);
+      margin: 0 0 20px;
+      font-size: 15px;
+    }
+    .result-section {
+      background: var(--ms-bg-alt);
+      border-radius: 8px;
+      padding: 16px 18px;
+      margin-bottom: 14px;
+      border: 1px solid var(--ms-border);
+    }
+    .result-section h3 {
+      margin: 0 0 8px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--ms-text-muted);
+      font-weight: 700;
+    }
+    .result-section ul { margin: 0; padding-left: 20px; }
+    .result-section li { margin: 4px 0; }
+    .docs-list a { color: var(--ms-blue); font-size: 14px; }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .path-trail {
+      margin-top: 22px;
+      padding-top: 16px;
+      border-top: 1px solid var(--ms-border);
+      font-size: 13px;
+      color: var(--ms-text-muted);
+    }
+    .path-trail ol { margin: 8px 0 0; padding-left: 20px; }
+    .path-trail li { margin: 2px 0; }
+    .ans-yes { color: var(--ms-blue); font-weight: 700; }
+    .ans-no  { color: var(--ms-text-muted); font-weight: 700; }
+
+    /* =================================================================
+       Footer (dark, like Docusaurus footer--dark)
+       ================================================================= */
+    .footer {
+      background: var(--footer-bg);
+      color: var(--footer-text);
+      padding: 48px 20px 24px;
+    }
+    .footer__inner {
+      max-width: 1120px;
+      margin: 0 auto;
+    }
+    .footer__cols {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 32px;
+    }
+    .footer__col h4 {
+      margin: 0 0 12px;
+      color: var(--footer-title);
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .footer__col ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .footer__col li { margin: 6px 0; }
+    .footer__col a {
+      color: var(--footer-text);
+      font-size: 14px;
+    }
+    .footer__col a:hover { color: white; text-decoration: underline; }
+
+    .footer__bottom {
+      margin-top: 36px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: rgba(255,255,255,0.55);
+    }
+    .footer__bottom a { color: rgba(255,255,255,0.7); }
+    .footer__bottom a:hover { color: white; }
+
+    /* Disclaimer banner */
+    .disclaimer {
+      background: #fff8e6;
+      border-top: 2px solid #ffb900;
+      border-bottom: 2px solid #ffb900;
+      color: #5b4a00;
+      font-size: 14px;
+      text-align: center;
+      padding: 14px 16px;
+      line-height: 1.55;
+    }
+    .disclaimer__pill {
+      display: inline-block;
+      background: #ffb900;
+      color: #1a1a1a;
+      font-weight: 800;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-right: 8px;
+      vertical-align: 1px;
+    }
+    .disclaimer strong { color: #3d3000; }
+
+    @media (max-width: 520px) {
+      .answers { grid-template-columns: 1fr; }
+      .card { padding: 24px 18px; }
+      .hero { padding: 3rem 1.25rem 2rem; }
+      .section { padding: 48px 16px; }
+      .controls { padding: 10px 12px; }
+      .progress-track { max-width: none; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#assessment">Skip to assessment</a>
+
+  <!-- ===================================================
+       Navbar
+       =================================================== -->
+  <nav class="navbar" aria-label="Main">
+    <div class="navbar__inner">
+      <a class="navbar__brand" href="#top">
+        <span class="navbar__logo" aria-hidden="true">
+          <span></span><span></span><span></span><span></span>
+        </span>
+        <span>M365 Admin Licensing</span>
+      </a>
+      <div class="navbar__links">
+        <a class="navbar__link" href="#why-secondary">Why secondary</a>
+        <a class="navbar__link" href="#assessment">Assessment</a>
+        <a class="navbar__link" href="#how-it-works">How it works</a>
+        <a class="navbar__link" href="#licenses">License map</a>
+        <a class="navbar__link" href="#docs">Docs</a>
+      </div>
+      <div class="navbar__right">
+        <a class="navbar__github" href="https://github.com/billmcilhargey/m365-admin-licensing-decision-tree" target="_blank" rel="noopener" aria-label="GitHub repository">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2.16c-3.2.7-3.87-1.37-3.87-1.37-.52-1.34-1.27-1.69-1.27-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.76 2.69 1.25 3.34.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.18 1.18a11.07 11.07 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.58.24 2.75.12 3.04.74.81 1.18 1.84 1.18 3.1 0 4.44-2.69 5.41-5.26 5.69.41.36.78 1.07.78 2.16v3.2c0 .31.21.66.8.55C20.21 21.39 23.5 17.08 23.5 12 23.5 5.65 18.35.5 12 .5Z"/></svg>
+          GitHub
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="main-wrapper" id="top">
+
+    <!-- ===================================================
+         Hero
+         =================================================== -->
+    <header class="hero">
+      <div class="hero__inner">
+        <div class="hero__tagline">
+          <span class="badge--new">NEW</span>
+          Built for <strong>secondary (dedicated) admin accounts</strong> · Now covers M365 E7 — GA May 2026
+        </div>
+        <h1 class="hero__title">Does this secondary admin account need a license?</h1>
+        <p class="hero__subtitle">
+          An interactive decision tree for the Microsoft-recommended pattern of a
+          <strong>dedicated secondary admin account</strong> — separate from the user's
+          daily mailbox/Teams identity. We map it to the right tier (from
+          <strong>Entra ID Free</strong> all the way to <strong>M365 E7</strong>),
+          grounded in current Microsoft Learn documentation and cross-referenced with
+          <a href="https://m365maps.com/" target="_blank" rel="noopener" style="color:#fff;text-decoration:underline">m365maps.com</a>.
+        </p>
+        <p class="hero__note" role="note">
+          <strong>Note:</strong> this is <strong>not official Microsoft guidance</strong> —
+          it's an independent community <em>helper</em> to determine the likely licensing
+          tier. Always verify with your Microsoft account team before purchasing.
+        </p>
+        <div class="hero__ctas">
+          <a class="cta cta--primary" href="#assessment" id="startCta">Start the assessment →</a>
+          <a class="cta cta--secondary" href="https://github.com/billmcilhargey/m365-admin-licensing-decision-tree" target="_blank" rel="noopener">View on GitHub →</a>
+        </div>
+      </div>
+    </header>
+
+    <div class="disclaimer" role="note" aria-label="Important notice">
+      <span class="disclaimer__pill">Not official Microsoft guidance</span>
+      This is an <strong>independent community helper</strong> — not a Microsoft
+      product, not endorsed by Microsoft, and not a substitute for professional
+      licensing advice. It is a quick <strong>decision-support tool</strong> to
+      point you at the likely tier; always confirm final licensing with your
+      Microsoft account team or Cloud Solution Provider before you buy.
+    </div>
+
+    <!-- ===================================================
+         Why secondary admin accounts?
+         =================================================== -->
+    <section class="section section--accent" id="why-secondary" aria-labelledby="why-secondary-title">
+      <div class="section__inner">
+        <div class="section__header">
+          <div class="section__eyebrow">Why this exists</div>
+          <h2 class="section__title" id="why-secondary-title">Built for secondary (dedicated) admin accounts</h2>
+          <p class="section__desc">
+            Microsoft's privileged access strategy is built on <strong>separation of
+            duties</strong>: your daily-use identity (mailbox, Teams, Office) and
+            your administrative identity should be <em>two different accounts</em>.
+            This tool answers the licensing question for that <strong>second</strong> account.
+          </p>
+        </div>
+        <div class="why-grid">
+          <div class="why-card">
+            <div class="why-card__icon" aria-hidden="true">🛡️</div>
+            <h3>Smaller blast radius</h3>
+            <p>If a daily mailbox is phished, the attacker doesn't automatically get Global Admin. The admin account is a separate identity, sitting behind separate sign-in protections (FIDO2, PIM, risk-based CA).</p>
+          </div>
+          <div class="why-card">
+            <div class="why-card__icon" aria-hidden="true">💰</div>
+            <h3>Cheaper to license</h3>
+            <p>Most secondary admin accounts <em>never need a service license</em> — they don't have a mailbox or use Teams. <strong>Entra ID Free</strong> is enough until they enter a premium policy scope.</p>
+          </div>
+          <div class="why-card">
+            <div class="why-card__icon" aria-hidden="true">📘</div>
+            <h3>Aligned to Microsoft guidance</h3>
+            <p>"Use separate accounts for administrative privileges" is one of the top Microsoft Entra best practices and a core element of the <a href="https://learn.microsoft.com/security/privileged-access-workgroup/overview" target="_blank" rel="noopener">privileged access strategy</a>.</p>
+          </div>
+        </div>
+        <div class="why-callout" role="note">
+          <strong>What counts as a secondary admin account?</strong>
+          A separate cloud-only identity (typically <code>admin-firstname@tenant.onmicrosoft.com</code>)
+          that is used <em>only</em> for privileged work — Global Admin, Privileged
+          Role Admin, Identity Admin, Security Admin, Compliance Admin, Intune Admin,
+          Teams Admin, Exchange Admin, etc. It has no mailbox to phish, no Teams
+          chats, and no Office apps — so most of the time it doesn't consume a
+          Microsoft 365 service license at all.
+        </div>
+        <p class="why-foot">
+          Sources:
+          <a href="https://learn.microsoft.com/entra/identity/role-based-access-control/best-practices" target="_blank" rel="noopener">Microsoft Entra best practices for admin roles</a> ·
+          <a href="https://learn.microsoft.com/security/privileged-access-workgroup/overview" target="_blank" rel="noopener">Securing privileged access — overview</a> ·
+          <a href="https://learn.microsoft.com/security/privileged-access-workgroup/privileged-access-accounts" target="_blank" rel="noopener">Privileged access accounts</a>
+        </p>
+      </div>
+    </section>
+
+    <!-- ===================================================
+         Pillars overview
+         =================================================== -->
+    <section class="section section--alt" id="licenses" aria-labelledby="pillars-title">
+      <div class="section__inner">
+        <div class="section__header">
+          <div class="section__eyebrow">License map</div>
+          <h2 class="section__title" id="pillars-title">What we evaluate against</h2>
+          <p class="section__desc">
+            Each branch of the decision tree maps to one of these license tiers,
+            from Microsoft's own product documentation and the
+            <a href="https://m365maps.com/" target="_blank" rel="noopener">M365 Maps</a>
+            comparison set.
+          </p>
+        </div>
+        <div class="pillars" role="list">
+          <div class="pillar" role="listitem">Entra ID Free<small>Built-in admin</small></div>
+          <div class="pillar" role="listitem">Entra ID P1<small>M365 E3 / EMS E3</small></div>
+          <div class="pillar" role="listitem">Entra ID P2<small>PIM, ID Protection</small></div>
+          <div class="pillar" role="listitem">Entra ID Governance<small>Lifecycle workflows</small></div>
+          <div class="pillar" role="listitem">Entra Suite<small>GSA + Verified ID</small></div>
+          <div class="pillar" role="listitem">Defender Suite<small>E5 Security</small></div>
+          <div class="pillar" role="listitem">Purview Suite<small>E5 Compliance</small></div>
+          <div class="pillar" role="listitem">Intune Suite<small>EPM, Remote Help</small></div>
+          <div class="pillar" role="listitem">Teams Premium<small>Add-on</small></div>
+          <div class="pillar" role="listitem">M365 Copilot<small>Add-on</small></div>
+          <div class="pillar pillar--highlight" role="listitem">M365 E7<small>Frontier Suite</small></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================
+         How it works
+         =================================================== -->
+    <section class="section" id="how-it-works" aria-labelledby="how-title">
+      <div class="section__inner">
+        <div class="section__header">
+          <div class="section__eyebrow">How it works</div>
+          <h2 class="section__title" id="how-title">Three steps to a licensing answer</h2>
+          <p class="section__desc">
+            Click <strong>Yes</strong> or <strong>No</strong> to each question.
+            Each click takes you to the next screen until you reach a concrete
+            recommendation with Microsoft Learn citations.
+          </p>
+        </div>
+        <div class="pillars">
+          <div class="pillar"><strong>1. Describe the account</strong><small>Service use, identity type</small></div>
+          <div class="pillar"><strong>2. Map the policies</strong><small>PIM, Purview, Defender, Intune</small></div>
+          <div class="pillar"><strong>3. Get the SKU</strong><small>With doc citations</small></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================
+         The actual assessment SPA
+         =================================================== -->
+    <section class="section section--alt" id="assessment" aria-labelledby="assessment-title">
+      <div class="section__inner">
+        <div class="section__header">
+          <div class="section__eyebrow">Assessment</div>
+          <h2 class="section__title" id="assessment-title">Run the decision tree</h2>
+          <p class="section__desc">
+            Pick the tenant baseline you already own, then click through each
+            question. We'll first confirm what type of admin account you're
+            evaluating, then walk through 12 yes/no questions until you land on
+            a concrete licensing recommendation.
+          </p>
+        </div>
+
+        <div class="assess-wrap">
+          <div class="controls">
+            <label class="tenant-toggle">
+              Tenant baseline:
+              <select id="tenantBaseline" aria-label="Tenant baseline">
+                <option value="e3">Microsoft 365 E3</option>
+                <option value="e5">Microsoft 365 E5</option>
+                <option value="e7">Microsoft 365 E7 (Frontier)</option>
+                <option value="business">Microsoft 365 Business Premium</option>
+                <option value="f3">Microsoft 365 F3 (Frontline)</option>
+                <option value="none">No M365 plan yet</option>
+              </select>
+            </label>
+            <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progressFill"></div></div>
+            <span class="step-label" id="stepLabel">Step 1</span>
+          </div>
+
+          <div id="app" class="card" aria-live="polite" role="region" aria-label="Decision tree question"></div>
+
+          <p class="shortcuts" aria-hidden="true">
+            Keyboard: <kbd>1</kbd>/<kbd>2</kbd>/<kbd>3</kbd> pick a choice · <kbd>Y</kbd> Yes · <kbd>N</kbd> No · <kbd>←</kbd> Back · <kbd>R</kbd> Restart
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================
+         Docs / footer references
+         =================================================== -->
+    <section class="section" id="docs" aria-labelledby="docs-title">
+      <div class="section__inner">
+        <div class="section__header">
+          <div class="section__eyebrow">References</div>
+          <h2 class="section__title" id="docs-title">Microsoft documentation</h2>
+          <p class="section__desc">Every result links back to the page that justifies it.</p>
+        </div>
+        <ul style="max-width:720px;margin:0 auto;padding-left:20px;line-height:1.9;">
+          <li><a href="https://learn.microsoft.com/entra/fundamentals/licensing" target="_blank" rel="noopener">Microsoft Entra licensing overview</a></li>
+          <li><a href="https://learn.microsoft.com/entra/id-governance/licensing-fundamentals" target="_blank" rel="noopener">Entra ID Governance &amp; PIM licensing</a></li>
+          <li><a href="https://learn.microsoft.com/entra/id-protection/concept-identity-protection-risks" target="_blank" rel="noopener">Entra ID Protection risk detections</a></li>
+          <li><a href="https://learn.microsoft.com/entra/global-secure-access/overview-what-is-global-secure-access" target="_blank" rel="noopener">Entra Suite — Global Secure Access overview</a></li>
+          <li><a href="https://learn.microsoft.com/purview/insider-risk-management-configure#subscriptions-and-licensing" target="_blank" rel="noopener">Insider Risk Management licensing</a></li>
+          <li><a href="https://learn.microsoft.com/purview/ediscovery-subscription-licensing" target="_blank" rel="noopener">Microsoft Purview eDiscovery licensing</a></li>
+          <li><a href="https://learn.microsoft.com/defender-xdr/microsoft-365-defender" target="_blank" rel="noopener">Microsoft Defender XDR</a></li>
+          <li><a href="https://learn.microsoft.com/defender-office-365/mdo-about" target="_blank" rel="noopener">Defender for Office 365 plans</a></li>
+          <li><a href="https://learn.microsoft.com/mem/intune/fundamentals/intune-add-ons" target="_blank" rel="noopener">Microsoft Intune Suite &amp; add-ons</a></li>
+          <li><a href="https://learn.microsoft.com/microsoftteams/teams-add-on-licensing/licensing-enhance-teams" target="_blank" rel="noopener">Microsoft Teams Premium licensing</a></li>
+          <li><a href="https://learn.microsoft.com/microsoft-365/copilot/microsoft-365-copilot-licensing" target="_blank" rel="noopener">Microsoft 365 Copilot licensing</a></li>
+          <li><a href="https://learn.microsoft.com/partner-center/announcements/2026-may" target="_blank" rel="noopener">Microsoft 365 E7 (Frontier Suite) announcement</a></li>
+          <li><a href="https://learn.microsoft.com/power-platform/admin/global-service-administrators-can-administer-without-license" target="_blank" rel="noopener">Global / Power Platform admins can administer without a license</a></li>
+          <li><a href="https://learn.microsoft.com/entra/identity/role-based-access-control/security-emergency-access" target="_blank" rel="noopener">Emergency access (break-glass) accounts</a></li>
+          <li><a href="https://m365maps.com/" target="_blank" rel="noopener">M365 Maps — visual SKU comparison</a></li>
+        </ul>
+      </div>
+    </section>
+  </div>
+
+  <!-- ===================================================
+       Footer
+       =================================================== -->
+  <footer class="footer">
+    <div class="footer__inner">
+      <div class="footer__cols">
+        <div class="footer__col">
+          <h4>Project</h4>
+          <ul>
+            <li><a href="https://github.com/billmcilhargey/m365-admin-licensing-decision-tree" target="_blank" rel="noopener">GitHub repository</a></li>
+            <li><a href="https://github.com/billmcilhargey/m365-admin-licensing-decision-tree/issues" target="_blank" rel="noopener">Report an issue</a></li>
+            <li><a href="https://github.com/billmcilhargey/m365-admin-licensing-decision-tree/blob/master/LICENSE" target="_blank" rel="noopener">MIT License</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h4>Microsoft Docs</h4>
+          <ul>
+            <li><a href="https://learn.microsoft.com/entra/fundamentals/licensing" target="_blank" rel="noopener">Entra licensing</a></li>
+            <li><a href="https://learn.microsoft.com/entra/id-governance/licensing-fundamentals" target="_blank" rel="noopener">PIM &amp; Governance</a></li>
+            <li><a href="https://learn.microsoft.com/microsoft-365/copilot/microsoft-365-copilot-licensing" target="_blank" rel="noopener">M365 Copilot</a></li>
+            <li><a href="https://learn.microsoft.com/purview/insider-risk-management-configure" target="_blank" rel="noopener">Insider Risk Management</a></li>
+            <li><a href="https://learn.microsoft.com/mem/intune/fundamentals/intune-add-ons" target="_blank" rel="noopener">Intune Suite</a></li>
+            <li><a href="https://learn.microsoft.com/microsoftteams/teams-add-on-licensing/licensing-enhance-teams" target="_blank" rel="noopener">Teams Premium</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h4>Related tools</h4>
+          <ul>
+            <li><a href="https://microsoft.github.io/zerotrustassessment/" target="_blank" rel="noopener">Microsoft Zero Trust Assessment</a></li>
+            <li><a href="https://m365maps.com/" target="_blank" rel="noopener">M365 Maps</a></li>
+            <li><a href="https://learn.microsoft.com/entra/identity/role-based-access-control/security-emergency-access" target="_blank" rel="noopener">Emergency access accounts</a></li>
+            <li><a href="https://www.microsoft.com/security/business/microsoft-entra-pricing" target="_blank" rel="noopener">Microsoft Entra pricing</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <span>&copy; 2026 Bill McIlhargey · MIT Licensed · <strong>Independent community helper — not affiliated with Microsoft, not official Microsoft guidance.</strong></span>
+        <span>Built as guidance. Verify licensing with your Microsoft account team.</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===================================================
+       Decision tree logic
+       =================================================== -->
+  <script>
+    // ---------- Decision tree definition ----------
+    // Each node is either a question (with yes/no targets) or a result (terminal).
+    // Grounded in Microsoft Learn documentation and the m365maps.com SKU
+    // comparisons. First-match-wins ordering: most comprehensive license tier
+    // first so a single "Yes" gives the highest applicable recommendation.
+    const TREE = {
+      start_choice: {
+        choice: true,
+        eyebrow: "Setup · Account scope",
+        question: "What type of admin account are you evaluating?",
+        help: "This tool is built for the Microsoft-recommended pattern: a secondary (dedicated) account used only for privileged work, separate from the user's regular mailbox/Teams identity. Pick the option that matches what you actually have.",
+        choices: [
+          {
+            label: "Secondary (dedicated) admin account",
+            sublabel: "Recommended. Used only for privileged work — no mailbox, no Teams, no Office consumption.",
+            icon: "1",
+            tone: "primary",
+            target: "start"
+          },
+          {
+            label: "Primary daily-use account that also holds admin roles",
+            sublabel: "Same identity does email/Teams/Office AND privileged work. Microsoft does not recommend this.",
+            icon: "2",
+            tone: "warning",
+            target: "result_primary_account"
+          },
+          {
+            label: "What's the difference?",
+            sublabel: "Show me why secondary admin accounts matter and what counts as one.",
+            icon: "?",
+            tone: "ghost",
+            target: "info_secondary_admins"
+          }
+        ]
+      },
+      info_secondary_admins: {
+        info: true,
+        badge: "Background",
+        badgeClass: "badge-info",
+        title: "Why secondary (dedicated) admin accounts?",
+        sub: "Microsoft's privileged access strategy is built on separation of duties.",
+        paragraphs: [
+          "A secondary admin account is a separate cloud-only identity (typically admin-firstname@tenant.onmicrosoft.com) that is used only for privileged work — Global Admin, Privileged Role Admin, Identity / Security / Compliance / Intune / Teams / Exchange Admin, etc.",
+          "The user's primary account holds their mailbox, Teams chats, OneDrive, and Office apps. The secondary account holds the role assignments. Two identities = two blast radii. If the primary mailbox is phished, the attacker doesn't automatically get Global Admin.",
+          "Because the secondary account has no mailbox or Teams to consume, it doesn't need a Microsoft 365 service license. Most secondary admin accounts can run on Entra ID Free indefinitely — they only need a premium tier when they cross into PIM, Identity Protection, Defender XDR, Purview E5, Intune Suite, Teams Premium, Entra Suite, Copilot, or Agent 365.",
+          "Microsoft recommends at least two break-glass / emergency-access Global Administrator accounts on top of your day-to-day secondary admin accounts, stored offline with FIDO2 keys."
+        ],
+        docs: [
+          ["Microsoft Entra best practices for admin roles", "https://learn.microsoft.com/entra/identity/role-based-access-control/best-practices"],
+          ["Securing privileged access — overview", "https://learn.microsoft.com/security/privileged-access-workgroup/overview"],
+          ["Privileged access accounts", "https://learn.microsoft.com/security/privileged-access-workgroup/privileged-access-accounts"],
+          ["Emergency access accounts", "https://learn.microsoft.com/entra/identity/role-based-access-control/security-emergency-access"]
+        ],
+        actions: [
+          { label: "Continue with a secondary admin →", target: "start", tone: "primary" },
+          { label: "I have a primary account instead", target: "result_primary_account", tone: "secondary" },
+          { label: "← Back to account-scope choice", target: "start_choice", tone: "secondary" }
+        ]
+      },
+      result_primary_account: {
+        result: true,
+        badge: "Different licensing path",
+        badgeClass: "badge-warning",
+        title: "Primary daily-use account — licensing rules differ",
+        sub: "Microsoft recommends not mixing privileged work with a daily-use account. If you can, create a separate secondary admin account and restart this assessment.",
+        bullets: [
+          "Because this account consumes mail / Teams / Office, it always needs at least a base Microsoft 365 service license (E3, Business Premium, or F3 minimum).",
+          "On top of that base license, layer the highest applicable premium tier (E5 / Defender Suite / Purview Suite / Intune Suite / Teams Premium / Copilot / E7) the same way the secondary admin tree evaluates.",
+          "Strongly consider creating a dedicated secondary admin identity for the role work. The primary account keeps its standard user license; the secondary account often only needs Entra ID Free.",
+          "You can still run this tool — click 'Continue anyway' below and treat the result as the premium tier to add on top of the daily-use service license."
+        ],
+        docs: [
+          ["Why separate admin accounts matter", "https://learn.microsoft.com/entra/identity/role-based-access-control/best-practices"],
+          ["Securing privileged access", "https://learn.microsoft.com/security/privileged-access-workgroup/overview"]
+        ],
+        actions: [
+          { label: "Continue anyway → run the tree", target: "start", tone: "primary" },
+          { label: "← Back to intro", target: "start_choice", tone: "secondary" }
+        ]
+      },
+      start: {
+        eyebrow: "Service usage",
+        question: "Does this secondary admin account sign in to any Microsoft 365 user-facing service (Exchange mailbox, Teams, SharePoint, OneDrive, Office apps)?",
+        help: "A properly dedicated secondary admin account should not be used to read mail, join Teams meetings, or open Office documents. If it does consume any of those services, it needs a service license — separate from any admin role — and you should consider splitting it back into a primary + secondary pair.",
+        yes: "result_service",
+        no: "q_service_principal"
+      },
+      q_service_principal: {
+        eyebrow: "Account type",
+        question: "Is this a non-interactive identity — service principal, managed identity, or workload identity with no human sign-in?",
+        help: "Per Microsoft guidance, service principals and managed identities are typically excluded from user-targeted Conditional Access and don't consume user licenses. Use managed identities where possible.",
+        yes: "result_service_principal",
+        no: "q_copilot"
+      },
+      q_copilot: {
+        eyebrow: "AI & agents",
+        question: "Will this secondary admin use Microsoft 365 Copilot, build with Copilot Studio grounded in tenant data, or govern AI agents through Microsoft Agent 365 / Security Copilot interactive sessions?",
+        help: "Microsoft 365 Copilot is an add-on to an eligible base plan. Microsoft 365 E7 (Frontier Suite, GA May 1, 2026) bundles E5 + Copilot + Entra Suite + Agent 365 in one license.",
+        yes: "result_copilot_e7",
+        no: "q_purview_e5"
+      },
+      q_purview_e5: {
+        eyebrow: "Compliance & Purview",
+        question: "Is the secondary admin included in any Microsoft Purview E5-tier policy — Insider Risk Management, Communication Compliance, Adaptive Protection, endpoint DLP, premium eDiscovery, auto-labeling, Records Management, Customer Lockbox, Customer Key, Information Barriers, Privileged Access Management for Office, or Audit (Premium)?",
+        help: "These Purview features require Microsoft 365 E5, the Microsoft 365 E5 Compliance add-on, or the Microsoft Purview Suite per user in scope — including any admin added as a test user.",
+        yes: "result_e5_compliance",
+        no: "q_defender"
+      },
+      q_defender: {
+        eyebrow: "Defender XDR & security",
+        question: "Does the secondary admin use Microsoft Defender XDR, Defender for Endpoint Plan 2, Defender for Identity, Defender for Cloud Apps, Defender for Office 365 Plan 2, or operate Microsoft Sentinel as a SOC analyst?",
+        help: "Defender for Endpoint P2, Defender for Identity, Defender for Cloud Apps, Defender for Office 365 P2, and the broader Defender XDR experience are part of the Microsoft Defender Suite (formerly E5 Security), included with M365 E5 and E7. Sentinel is billed per-GB in Azure but its operators benefit from Defender Suite as well.",
+        yes: "result_e5_security",
+        no: "q_intune_suite"
+      },
+      q_intune_suite: {
+        eyebrow: "Endpoint management",
+        question: "Does the secondary admin use Microsoft Intune Suite features — Endpoint Privilege Management (EPM), Remote Help, Microsoft Tunnel for MAM, Cloud PKI, Enterprise App Management, or Advanced Endpoint Analytics?",
+        help: "These are not in base Intune. They require the Microsoft Intune Suite add-on (or individual standalone add-ons), per user. Base Intune is included in M365 E3/E5/E7 and Business Premium.",
+        yes: "result_intune_suite",
+        no: "q_teams_premium"
+      },
+      q_teams_premium: {
+        eyebrow: "Teams Premium",
+        question: "Does the secondary admin host or attend meetings that use Teams Premium features — Advanced webinars, Town halls premium, intelligent meeting recap, real-time translation, branded meetings, premium virtual appointments, or sensitivity-labeled meetings?",
+        help: "Teams Premium is a per-user add-on (on top of any plan that includes Teams). It is not bundled with E3/E5 — but E7 (Frontier Suite) does not include it either as of GA. Buy separately for users who need premium meeting features.",
+        yes: "result_teams_premium",
+        no: "q_pim"
+      },
+      q_pim: {
+        eyebrow: "Privileged access (PIM)",
+        question: "Is the secondary admin assigned an Entra ID or Azure role through PIM as eligible / time-bound — or does the account approve or review PIM activations or access reviews?",
+        help: "Per the PIM licensing rules, an Entra ID P2 (or Entra ID Governance) license is required for every user who is eligible, time-bound, an approver, or a reviewer. Almost every well-run secondary admin account ends up here.",
+        yes: "result_p2_pim",
+        no: "q_identity_protection"
+      },
+      q_identity_protection: {
+        eyebrow: "Identity Protection",
+        question: "Is this secondary admin account in scope of Microsoft Entra ID Protection — risk-based Conditional Access, premium risk detections, or user / sign-in risk policies?",
+        help: "Premium risk detections (atypical travel, password spray, malicious IP, verified threat actor IP, suspicious MFA approval, anomalous token, etc.) and risk-based Conditional Access require Entra ID P2 per user in scope.",
+        yes: "result_p2_idp",
+        no: "q_id_governance"
+      },
+      q_id_governance: {
+        eyebrow: "Identity Governance",
+        question: "Does the secondary admin use Microsoft Entra ID Governance features beyond basic group management — Entitlement Management access packages, Lifecycle Workflows, machine-learning recommendations on access reviews, or Privileged Access Groups governance?",
+        help: "These advanced governance features sit in the Entra ID Governance SKU (or the Entra Suite). Standard access reviews on basic groups are P2; lifecycle automation and access packages require Governance.",
+        yes: "result_id_governance",
+        no: "q_entra_suite"
+      },
+      q_entra_suite: {
+        eyebrow: "Entra Suite (network + ID)",
+        question: "Does the secondary admin operate Entra Suite features — Global Secure Access, Microsoft Entra Internet Access, Microsoft Entra Private Access, Microsoft Entra Verified ID issuance, or unified Conditional Access for network + identity?",
+        help: "These cross-network identity capabilities are bundled in the Microsoft Entra Suite (or in M365 E7). They include P2 + ID Governance + Internet/Private Access + Verified ID.",
+        yes: "result_entra_suite",
+        no: "q_break_glass"
+      },
+      q_break_glass: {
+        eyebrow: "Break-glass",
+        question: "Is this a break-glass / emergency-access account that is explicitly excluded from Conditional Access, PIM, and risk policies?",
+        help: "Microsoft recommends excluding emergency-access accounts from Conditional Access to avoid lockout. When excluded from PIM and Identity Protection, they don't trigger the P2 requirement.",
+        yes: "result_break_glass",
+        no: "result_no_license_admin"
+      },
+
+      // ---------- Results ----------
+      result_service: {
+        result: true,
+        badge: "License required",
+        badgeClass: "badge-warning",
+        title: "Service license required",
+        sub: "This account is a service-consuming user, not just an admin.",
+        bullets: [
+          "Assign at minimum a base Microsoft 365 plan that covers the services used (e.g. Microsoft 365 E3 or Business Premium; F1/F3 if frontline only).",
+          "If the same account also performs privileged admin work, upgrade to M365 E5 (includes Entra ID P2 + Purview E5 + Defender Suite).",
+          "For Copilot or Agent 365 usage, add the Microsoft 365 Copilot add-on or move to M365 E7 (Frontier Suite)."
+        ],
+        docs: [
+          ["Microsoft Entra licensing overview", "https://learn.microsoft.com/entra/fundamentals/licensing"],
+          ["Compare Microsoft 365 Enterprise plans", "https://www.microsoft.com/microsoft-365/enterprise/microsoft365-plans-and-pricing"],
+          ["M365 Maps — Enterprise plan comparison", "https://m365maps.com/Microsoft%20365%20Enterprise.htm"]
+        ]
+      },
+      result_service_principal: {
+        result: true,
+        badge: "No user license",
+        badgeClass: "badge-success",
+        title: "No user license required",
+        sub: "Use a managed identity or service principal — they don't consume Microsoft 365 user licenses.",
+        bullets: [
+          "Prefer managed identities for Azure workloads and replace service-account passwords where possible.",
+          "Service principals are excluded from user-targeted Conditional Access; use Conditional Access for workload identities instead.",
+          "For advanced workload protection (risk detection on service principals, CA for workload identities), license with Workload Identities Premium."
+        ],
+        docs: [
+          ["Managed identities for Azure resources", "https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/overview"],
+          ["Workload Identities", "https://learn.microsoft.com/entra/workload-id/workload-identities-faqs"],
+          ["Conditional Access for workload identities", "https://learn.microsoft.com/entra/identity/conditional-access/workload-identity"]
+        ]
+      },
+      result_copilot_e7: {
+        result: true,
+        badge: "Copilot add-on or E7",
+        badgeClass: "badge-info",
+        title: "Microsoft 365 Copilot add-on, or Microsoft 365 E7 (Frontier Suite)",
+        sub: "Required for Copilot, Copilot Studio agents grounded in tenant data, and Agent 365 governance.",
+        bullets: [
+          "Microsoft 365 Copilot is an add-on to an eligible base plan (E3, E5, Business Standard, Business Premium, etc.).",
+          "Microsoft 365 E7 (GA May 1, 2026) bundles M365 E5 + Microsoft 365 Copilot + Microsoft Entra Suite + Agent 365 in a single SKU — recommended when scaling agentic AI.",
+          "Pay-as-you-go (Copilot Credits) is also available for limited agent access without a full Copilot license.",
+          "E5 and E7 customers get Security Copilot capacity included at no extra cost."
+        ],
+        docs: [
+          ["Microsoft 365 Copilot licensing", "https://learn.microsoft.com/microsoft-365/copilot/microsoft-365-copilot-licensing"],
+          ["Microsoft 365 E7 (Frontier Suite) announcement", "https://learn.microsoft.com/partner-center/announcements/2026-may"],
+          ["Security Copilot for E5/E7 customers", "https://learn.microsoft.com/copilot/security/security-copilot-inclusion"],
+          ["M365 Maps — Copilot SKU comparison", "https://m365maps.com/Microsoft%20365%20Copilot.htm"]
+        ]
+      },
+      result_e5_compliance: {
+        result: true,
+        badge: "E5 / Purview required",
+        badgeClass: "badge-premium",
+        title: "Microsoft 365 E5 (or E5 Compliance / Purview Suite) required",
+        sub: "Per-user license for everyone in scope of the Purview policy — including admins added as test users.",
+        bullets: [
+          "Insider Risk Management, Communication Compliance, Adaptive Protection, endpoint DLP, premium eDiscovery, auto-labeling, Records Management, Customer Lockbox / Customer Key, Information Barriers, Privileged Access Management for Office, and Audit (Premium) all sit in the E5 / Purview Suite tier.",
+          "Every user covered by these policies (not just the admin running them) must be licensed.",
+          "E5 also gives you Entra ID P2, so it covers PIM and Identity Protection at the same time.",
+          "M365 E7 (Frontier Suite) includes E5 plus Copilot, Entra Suite, and Agent 365."
+        ],
+        docs: [
+          ["Insider Risk Management — subscriptions & licensing", "https://learn.microsoft.com/purview/insider-risk-management-configure#subscriptions-and-licensing"],
+          ["Microsoft Purview eDiscovery licensing", "https://learn.microsoft.com/purview/ediscovery-subscription-licensing"],
+          ["Audit (Premium) requirements", "https://learn.microsoft.com/purview/audit-premium"],
+          ["M365 Maps — E5 Compliance comparison", "https://m365maps.com/Microsoft%20365%20E5%20Compliance.htm"]
+        ]
+      },
+      result_e5_security: {
+        result: true,
+        badge: "E5 / Defender Suite required",
+        badgeClass: "badge-premium",
+        title: "Microsoft 365 E5 or Microsoft Defender Suite required",
+        sub: "Defender XDR experiences, Defender for Endpoint P2, and Defender for Office 365 P2 sit in the E5 Security / Defender Suite tier.",
+        bullets: [
+          "Defender for Endpoint Plan 2, Defender for Identity, Defender for Cloud Apps, Defender for Office 365 Plan 2, and the Defender XDR portal are part of the Microsoft Defender Suite.",
+          "The Defender Suite also includes Entra ID P2 — so this single tier also satisfies PIM and Identity Protection needs.",
+          "Microsoft Sentinel is billed in Azure per-GB and is not a user license, but Defender XDR + Sentinel together require Defender Suite for full unified SecOps.",
+          "Included as a baseline in M365 E5 and M365 E7."
+        ],
+        docs: [
+          ["Microsoft Defender XDR overview", "https://learn.microsoft.com/defender-xdr/microsoft-365-defender"],
+          ["Defender for Office 365 plans", "https://learn.microsoft.com/defender-office-365/mdo-about"],
+          ["Microsoft Entra licensing (Defender Suite)", "https://learn.microsoft.com/entra/fundamentals/licensing"],
+          ["M365 Maps — E5 Security comparison", "https://m365maps.com/Microsoft%20365%20E5%20Security.htm"]
+        ]
+      },
+      result_intune_suite: {
+        result: true,
+        badge: "Intune Suite add-on",
+        badgeClass: "badge-premium",
+        title: "Microsoft Intune Suite (or standalone Intune add-on)",
+        sub: "Premium endpoint management features are not in base Intune.",
+        bullets: [
+          "Endpoint Privilege Management (EPM), Remote Help, Microsoft Tunnel for MAM, Cloud PKI, Enterprise App Management, and Advanced Endpoint Analytics require the Microsoft Intune Suite add-on or individual standalone add-ons.",
+          "Base Intune is already included in M365 E3 / E5 / E7 / Business Premium / F3 — only buy the Suite for users who actually use the premium features.",
+          "Intune Suite does NOT include Entra ID P2 — if those admins are also in PIM, license them with P2 (or M365 E5/E7) separately.",
+          "Intune Suite is also included in M365 E5 + Intune Suite bundles in some agreements — check with your Microsoft account team."
+        ],
+        docs: [
+          ["Microsoft Intune Suite & add-ons", "https://learn.microsoft.com/mem/intune/fundamentals/intune-add-ons"],
+          ["Endpoint Privilege Management", "https://learn.microsoft.com/mem/intune/protect/epm-overview"],
+          ["M365 Maps — Intune add-ons", "https://m365maps.com/Microsoft%20Intune%20Suite.htm"]
+        ]
+      },
+      result_teams_premium: {
+        result: true,
+        badge: "Teams Premium add-on",
+        badgeClass: "badge-info",
+        title: "Microsoft Teams Premium required",
+        sub: "Per-user add-on on top of any plan that already includes Teams.",
+        bullets: [
+          "Teams Premium covers advanced webinars, town halls premium, intelligent meeting recap, real-time translation, branded meetings, sensitivity-labeled meetings, and premium virtual appointments.",
+          "It is NOT bundled with M365 E3 or E5. E7 (Frontier Suite) at GA does not include Teams Premium either — buy it as a separate add-on for users who need these features.",
+          "License only the users who organize or attend Teams Premium-protected events; ad-hoc attendees do not need it.",
+          "If the same admin is also in PIM / Identity Protection, layer Entra ID P2 on top — Teams Premium is feature-scoped, not identity-tier."
+        ],
+        docs: [
+          ["Teams Premium licensing", "https://learn.microsoft.com/microsoftteams/teams-add-on-licensing/licensing-enhance-teams"],
+          ["Teams Premium overview", "https://learn.microsoft.com/microsoftteams/enhanced-teams-experience"],
+          ["M365 Maps — Teams Premium SKU", "https://m365maps.com/Microsoft%20Teams%20Premium.htm"]
+        ]
+      },
+      result_p2_pim: {
+        result: true,
+        badge: "Entra ID P2 required",
+        badgeClass: "badge-premium",
+        title: "Microsoft Entra ID P2 required",
+        sub: "PIM eligible / time-bound / approver / reviewer roles all require P2 per user.",
+        bullets: [
+          "Each admin who is PIM-eligible needs an Entra ID P2 (or Entra ID Governance) license.",
+          "Approvers of activation requests and users who perform access reviews also count toward the license requirement.",
+          "P2 is included in: Microsoft 365 E5, Microsoft 365 E7, EMS E5, the Microsoft Defender Suite, the Microsoft Entra Suite, and Entra ID Governance.",
+          "Standalone Entra ID P2 is also available if you don't want to upgrade the full M365 plan."
+        ],
+        docs: [
+          ["PIM licensing fundamentals", "https://learn.microsoft.com/entra/id-governance/licensing-fundamentals#privileged-identity-management"],
+          ["What is Privileged Identity Management?", "https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-configure"],
+          ["M365 Maps — Entra ID P2", "https://m365maps.com/Microsoft%20Entra%20ID.htm"]
+        ]
+      },
+      result_p2_idp: {
+        result: true,
+        badge: "Entra ID P2 required",
+        badgeClass: "badge-premium",
+        title: "Microsoft Entra ID P2 required",
+        sub: "Identity Protection premium detections and risk-based Conditional Access need P2 per user in scope.",
+        bullets: [
+          "Premium detections (atypical / impossible travel, password spray, malicious IP, verified threat actor IP, suspicious MFA approval, anomalous token, etc.) only appear with P2.",
+          "Risk-based Conditional Access (user-risk + sign-in-risk policies) is a P2 capability.",
+          "P2 is included in M365 E5, M365 E7, EMS E5, the Microsoft Defender Suite, and the Microsoft Entra Suite."
+        ],
+        docs: [
+          ["What are risk detections?", "https://learn.microsoft.com/entra/id-protection/concept-identity-protection-risks"],
+          ["Risk-based sign-in Conditional Access policy", "https://learn.microsoft.com/entra/identity/conditional-access/policy-risk-based-sign-in"],
+          ["M365 Maps — Entra ID P2", "https://m365maps.com/Microsoft%20Entra%20ID.htm"]
+        ]
+      },
+      result_id_governance: {
+        result: true,
+        badge: "Entra ID Governance",
+        badgeClass: "badge-premium",
+        title: "Microsoft Entra ID Governance license required",
+        sub: "Lifecycle Workflows and Entitlement Management access packages sit above P2.",
+        bullets: [
+          "Entitlement Management (access packages with multi-stage approvals), Lifecycle Workflows, machine-learning recommendations on access reviews, and Privileged Access Groups governance require the Entra ID Governance SKU.",
+          "Entra ID Governance includes Entra ID P2 — one license covers both PIM and Governance.",
+          "Also included in the Microsoft Entra Suite and Microsoft 365 E7 (Frontier Suite).",
+          "Per Microsoft licensing: license each user who is a target, approver, or reviewer in a governance flow."
+        ],
+        docs: [
+          ["Entra ID Governance licensing", "https://learn.microsoft.com/entra/id-governance/licensing-fundamentals"],
+          ["Lifecycle Workflows overview", "https://learn.microsoft.com/entra/id-governance/what-are-lifecycle-workflows"],
+          ["Entitlement Management overview", "https://learn.microsoft.com/entra/id-governance/entitlement-management-overview"],
+          ["M365 Maps — Entra ID Governance", "https://m365maps.com/Microsoft%20Entra%20ID%20Governance.htm"]
+        ]
+      },
+      result_entra_suite: {
+        result: true,
+        badge: "Entra Suite required",
+        badgeClass: "badge-premium",
+        title: "Microsoft Entra Suite required",
+        sub: "Bundles P2 + ID Governance + Internet Access + Private Access + Verified ID.",
+        bullets: [
+          "The Microsoft Entra Suite is required for Global Secure Access (Internet Access + Private Access), Verified ID issuance, and unified network + identity Conditional Access.",
+          "It includes Entra ID P2 and Entra ID Governance — one license satisfies PIM, Identity Protection, Governance, and Entra Suite scenarios.",
+          "Microsoft 365 E7 (Frontier Suite) includes the Entra Suite outright — the simplest path if you also need Copilot.",
+          "License per-user for everyone in scope of Internet/Private Access policies."
+        ],
+        docs: [
+          ["What is Global Secure Access?", "https://learn.microsoft.com/entra/global-secure-access/overview-what-is-global-secure-access"],
+          ["Microsoft Entra Suite overview", "https://learn.microsoft.com/entra/fundamentals/entra-suite"],
+          ["Microsoft Entra Verified ID", "https://learn.microsoft.com/entra/verified-id/decentralized-identifier-overview"],
+          ["M365 Maps — Entra Suite", "https://m365maps.com/Microsoft%20Entra%20Suite.htm"]
+        ]
+      },
+      result_break_glass: {
+        result: true,
+        badge: "No license required",
+        badgeClass: "badge-success",
+        title: "No license required — break-glass account",
+        sub: "Microsoft recommends excluding emergency-access accounts from Conditional Access, PIM, and risk policies.",
+        bullets: [
+          "Keep the account excluded from CA, PIM, and Identity Protection to keep it license-free.",
+          "Monitor sign-ins with an Azure Monitor / Sentinel alert; rotate credentials and review usage on a schedule.",
+          "Recommended: at least two break-glass Global Administrator accounts, stored offline with FIDO2 keys.",
+          "If your tenant adds these accounts back to PIM later, an Entra ID P2 license becomes required."
+        ],
+        docs: [
+          ["Manage emergency access accounts", "https://learn.microsoft.com/entra/identity/role-based-access-control/security-emergency-access"],
+          ["Conditional Access best practices", "https://learn.microsoft.com/entra/identity/conditional-access/plan-conditional-access"]
+        ]
+      },
+      result_no_license_admin: {
+        result: true,
+        badge: "No license required",
+        badgeClass: "badge-success",
+        title: "No license required — admin-only account",
+        sub: "Global Administrators and Power Platform Administrators can administer without a license assigned.",
+        bullets: [
+          "Microsoft Entra ID Free already covers user/group management, basic reports, and SSO — no purchase needed.",
+          "Unlicensed admins land in 'Administrative access mode' for Dynamics 365 / Power Platform with no end-user access.",
+          "Add a license only if this admin needs to use a service (mailbox, Teams, etc.) or becomes in-scope for PIM, ID Protection, Purview E5, or Defender Suite policies.",
+          "Still required: phishing-resistant MFA on every privileged role (free with security defaults / CA)."
+        ],
+        docs: [
+          ["Microsoft Entra ID Free", "https://learn.microsoft.com/azure/cost-management-billing/manage/microsoft-entra-id-free"],
+          ["Global / Power Platform admins can administer without a license", "https://learn.microsoft.com/power-platform/admin/global-service-administrators-can-administer-without-license"]
+        ]
+      }
+    };
+
+    // Only question nodes contribute to the step counter — choice/info nodes are setup/learn-more.
+    const TOTAL_STEPS = Object.values(TREE).filter(n => !n.result && !n.choice && !n.info).length;
+
+    const state = {
+      currentId: "start_choice",
+      history: []
+    };
+
+    const $app = document.getElementById("app");
+    const $progress = document.getElementById("progressFill");
+    const $stepLabel = document.getElementById("stepLabel");
+    const $tenantBaseline = document.getElementById("tenantBaseline");
+
+    function render() {
+      const node = TREE[state.currentId];
+      if (!node) {
+        $app.innerHTML = `<p>Unknown step. <button class="btn btn-secondary" onclick="restart()">Restart</button></p>`;
+        return;
+      }
+      if (node.choice) renderChoice(node);
+      else if (node.info) renderInfo(node);
+      else if (node.result) renderResult(node);
+      else renderQuestion(node);
+      updateProgress(node);
+      // Auto-focus the primary answer so keyboard users can press Enter immediately.
+      const focusTarget = $app.querySelector(".choice--primary, .btn-yes, .btn-secondary, .choice");
+      if (focusTarget) focusTarget.focus({ preventScroll: true });
+    }
+
+    function renderChoice(node) {
+      const back = state.history.length > 0
+        ? `<button class="btn btn-back" onclick="goBack()">&larr; Back</button>`
+        : "";
+      const items = (node.choices || []).map((c, i) => `
+        <button class="choice ${c.tone ? "choice--" + c.tone : ""}" onclick="choose(${i})" aria-label="${escapeAttr(c.label)}">
+          <span class="choice__icon">${escapeHtml(c.icon || String(i + 1))}</span>
+          <span class="choice__text">
+            <span class="choice__label">${escapeHtml(c.label)}</span>
+            ${c.sublabel ? `<span class="choice__sub">${escapeHtml(c.sublabel)}</span>` : ""}
+          </span>
+          <span class="choice__key" aria-hidden="true">${i + 1}</span>
+        </button>
+      `).join("");
+      $app.innerHTML = `
+        ${back}
+        <div class="question-eyebrow">${escapeHtml(node.eyebrow || "Setup")}</div>
+        <h3 class="question-text">${escapeHtml(node.question)}</h3>
+        ${node.help ? `<p class="question-help">${escapeHtml(node.help)}</p>` : ""}
+        <div class="choices" role="group" aria-label="${escapeAttr(node.question)}">${items}</div>
+      `;
+    }
+
+    function renderInfo(node) {
+      const back = state.history.length > 0
+        ? `<button class="btn btn-back" onclick="goBack()">&larr; Back</button>`
+        : "";
+      const paragraphsHtml = (node.paragraphs || []).map(p => `<p>${escapeHtml(p)}</p>`).join("");
+      const docsHtml = (node.docs || []).map(([label, url]) =>
+        `<li><a href="${escapeAttr(url)}" target="_blank" rel="noopener">${escapeHtml(label)} &nearr;</a></li>`
+      ).join("");
+      const actionsHtml = renderActions(node.actions);
+      $app.innerHTML = `
+        ${back}
+        <article>
+          ${node.badge ? `<span class="result-badge ${node.badgeClass || ""}">${escapeHtml(node.badge)}</span>` : ""}
+          <h3 class="result-title">${escapeHtml(node.title)}</h3>
+          ${node.sub ? `<p class="result-sub">${escapeHtml(node.sub)}</p>` : ""}
+
+          <div class="result-section info-paragraphs">${paragraphsHtml}</div>
+
+          ${docsHtml ? `
+          <div class="result-section docs-list">
+            <h3>Microsoft documentation</h3>
+            <ul>${docsHtml}</ul>
+          </div>` : ""}
+
+          ${actionsHtml}
+        </article>
+      `;
+    }
+
+    function renderQuestion(node) {
+      const stepNumber = questionStepNumber();
+      const back = state.history.length > 0
+        ? `<button class="btn btn-back" onclick="goBack()">&larr; Back</button>`
+        : "";
+      $app.innerHTML = `
+        ${back}
+        <div class="question-eyebrow">Step ${stepNumber} of ${TOTAL_STEPS} · ${escapeHtml(node.eyebrow || "")}</div>
+        <h3 class="question-text">${escapeHtml(node.question)}</h3>
+        ${node.help ? `<p class="question-help">${escapeHtml(node.help)}</p>` : ""}
+        <div class="answers">
+          <button class="btn btn-yes" onclick="answer('yes')" aria-label="Yes — next question">
+            Yes
+            <span class="key-hint">press Y</span>
+          </button>
+          <button class="btn btn-no"  onclick="answer('no')" aria-label="No — next question">
+            No
+            <span class="key-hint">press N</span>
+          </button>
+        </div>
+      `;
+    }
+
+    function renderResult(node) {
+      const tenant = $tenantBaseline.value;
+      const tenantNote = tenantHint(node, tenant);
+      const docsHtml = (node.docs || []).map(([label, url]) =>
+        `<li><a href="${escapeAttr(url)}" target="_blank" rel="noopener">${escapeHtml(label)} &nearr;</a></li>`
+      ).join("");
+      const bulletsHtml = (node.bullets || []).map(b => `<li>${escapeHtml(b)}</li>`).join("");
+      // If the node defines custom actions, those REPLACE the default Start over / Change / Copy row.
+      const actionsHtml = node.actions
+        ? renderActions(node.actions)
+        : `
+          <div class="actions">
+            <button class="btn btn-yes" onclick="restart()">Start over</button>
+            <button class="btn btn-secondary" onclick="goBack()">&larr; Change last answer</button>
+            <button class="btn btn-secondary" onclick="copySummary()">Copy summary</button>
+          </div>`;
+      $app.innerHTML = `
+        <article>
+          <span class="result-badge ${node.badgeClass}">${escapeHtml(node.badge)}</span>
+          <h3 class="result-title">${escapeHtml(node.title)}</h3>
+          <p class="result-sub">${escapeHtml(node.sub)}</p>
+
+          <div class="result-section">
+            <h3>What to do</h3>
+            <ul>${bulletsHtml}</ul>
+          </div>
+
+          ${tenantNote ? `
+          <div class="result-section">
+            <h3>Tenant context</h3>
+            <p style="margin:0">${tenantNote}</p>
+          </div>` : ""}
+
+          ${docsHtml ? `
+          <div class="result-section docs-list">
+            <h3>Microsoft documentation &amp; M365 Maps</h3>
+            <ul>${docsHtml}</ul>
+          </div>` : ""}
+
+          ${actionsHtml}
+
+          ${renderPathTrail()}
+        </article>
+      `;
+    }
+
+    function renderActions(actions) {
+      if (!actions || !actions.length) return "";
+      const buttons = actions.map((a, i) => {
+        const cls = a.tone === "primary" ? "btn btn-yes" : "btn btn-secondary";
+        return `<button class="${cls}" onclick="goTo('${escapeAttr(a.target)}', ${i})">${escapeHtml(a.label)}</button>`;
+      }).join("");
+      return `<div class="actions">${buttons}</div>`;
+    }
+
+    function questionStepNumber() {
+      // Count only history entries whose source node was a question (yes/no), then +1 for current.
+      const completed = state.history.filter(h => {
+        const visited = TREE[h.id];
+        return visited && !visited.choice && !visited.info && !visited.result;
+      }).length;
+      return completed + 1;
+    }
+
+    function renderPathTrail() {
+      if (state.history.length === 0) return "";
+      const items = state.history.map(h => {
+        if (h.kind === "choice") {
+          return `<li>${escapeHtml(h.questionText)} &mdash; <span class="ans-yes">${escapeHtml(h.answer)}</span></li>`;
+        }
+        const cls = h.answer === "yes" ? "ans-yes" : "ans-no";
+        return `<li>${escapeHtml(h.questionText)} &mdash; <span class="${cls}">${String(h.answer).toUpperCase()}</span></li>`;
+      }).join("");
+      return `<div class="path-trail"><strong>Your answers</strong><ol>${items}</ol></div>`;
+    }
+
+    function tenantHint(node, tenant) {
+      const tenantNames = {
+        e3: "Microsoft 365 E3",
+        e5: "Microsoft 365 E5",
+        e7: "Microsoft 365 E7 (Frontier Suite)",
+        business: "Microsoft 365 Business Premium",
+        f3: "Microsoft 365 F3 (Frontline)",
+        none: "no M365 plan"
+      };
+      const name = tenantNames[tenant];
+      const id = currentResultId(node);
+      if (!id) return "";
+      const map = {
+        result_p2_pim: {
+          e3: `Your <strong>${name}</strong> tenant ships with Entra ID P1, not P2. Buy standalone Entra ID P2 (or Entra ID Governance) for each eligible admin, approver, and reviewer.`,
+          e5: `<strong>${name}</strong> already includes Entra ID P2 — assign an E5 license to each eligible admin / approver / reviewer (or use a standalone P2 to save cost).`,
+          e7: `<strong>${name}</strong> already includes Entra ID P2 via E5, plus the Entra Suite — fully covered.`,
+          business: `<strong>${name}</strong> ships with Entra ID P1. Add the Microsoft Defender Suite for Business Premium (which includes Entra ID P2), or buy standalone Entra ID P2.`,
+          f3: `<strong>${name}</strong> ships with Entra ID P1. For frontline admins doing PIM, layer standalone P2 on top.`,
+          none: `Without a base M365 plan, buy standalone Entra ID P2 per eligible / approver / reviewer admin.`
+        },
+        result_p2_idp: {
+          e3: `<strong>${name}</strong> ships with P1 (sign-in risk / user risk are limited). Upgrade impacted admins to E5/E7 or buy standalone Entra ID P2.`,
+          e5: `<strong>${name}</strong> covers this — Entra ID P2 is included with every E5 license.`,
+          e7: `<strong>${name}</strong> covers this — Entra ID P2 is included with every E7 license.`,
+          business: `<strong>${name}</strong> ships with P1. Add the Microsoft Defender Suite for Business Premium or standalone Entra ID P2.`,
+          f3: `<strong>${name}</strong> ships with P1. Add standalone Entra ID P2 for frontline admins in scope of risk-based CA.`,
+          none: `Standalone Entra ID P2 covers Identity Protection on its own.`
+        },
+        result_id_governance: {
+          e3: `<strong>${name}</strong> does not include Entra ID Governance. Add the standalone Entra ID Governance SKU (which includes P2) or upgrade to the Entra Suite / E7.`,
+          e5: `<strong>${name}</strong> includes P2 but not the full Governance SKU. Add Entra ID Governance per user, or upgrade to the Entra Suite or E7.`,
+          e7: `<strong>${name}</strong> includes the Entra Suite — Governance is covered.`,
+          business: `<strong>${name}</strong> does not include Governance — add the standalone SKU per impacted user.`,
+          f3: `Frontline admins rarely need Governance — verify before licensing. If needed, add standalone Entra ID Governance.`,
+          none: `Buy standalone Entra ID Governance (P2 included) per affected user.`
+        },
+        result_entra_suite: {
+          e3: `<strong>${name}</strong> does not include the Entra Suite. Add the Entra Suite per user, or upgrade impacted users to M365 E7.`,
+          e5: `<strong>${name}</strong> includes P2 + Defender Suite + Purview Suite but NOT the full Entra Suite. Add the Entra Suite or upgrade to E7.`,
+          e7: `<strong>${name}</strong> includes the Entra Suite — covered.`,
+          business: `<strong>${name}</strong> does not include the Entra Suite. Add it per user or move impacted users to E7.`,
+          f3: `Frontline plans don't include the Entra Suite. Add per user only where Internet/Private Access is required.`,
+          none: `Buy the Entra Suite (or M365 E7) per affected user.`
+        },
+        result_e5_compliance: {
+          e3: `<strong>${name}</strong> does not include the Purview Suite. Add the Microsoft 365 E5 Compliance add-on, the Purview Suite, or upgrade to E5/E7.`,
+          e5: `<strong>${name}</strong> already includes the Purview Suite — assign the E5 license to every user in scope of the policy (not only the admin).`,
+          e7: `<strong>${name}</strong> already includes the Purview Suite — assign to every user in scope of the policy.`,
+          business: `<strong>${name}</strong> does not include the Purview Suite. Add the Defender + Purview Suite for Business Premium, or move to E5/E7.`,
+          f3: `<strong>${name}</strong> does not include premium Purview. Move impacted users to E5/E7 or add the Compliance add-on.`,
+          none: `Move to M365 E5/E7 or buy standalone E5 Compliance per impacted user.`
+        },
+        result_e5_security: {
+          e3: `<strong>${name}</strong> does not include the Defender Suite. Add Microsoft Defender Suite (formerly E5 Security) or upgrade to E5/E7.`,
+          e5: `<strong>${name}</strong> includes the Defender Suite — no extra purchase needed.`,
+          e7: `<strong>${name}</strong> includes the Defender Suite — no extra purchase needed.`,
+          business: `<strong>${name}</strong> ships with Defender for Business. Add the Microsoft Defender Suite for Business Premium for full XDR / DfE P2.`,
+          f3: `<strong>${name}</strong> includes Defender for Endpoint P1. Upgrade impacted SOC admins to E5/E7 or add the Defender Suite.`,
+          none: `Move to M365 E5/E7 or buy the standalone Defender Suite per impacted user.`
+        },
+        result_intune_suite: {
+          e3: `<strong>${name}</strong> includes base Intune only. Add the Microsoft Intune Suite per user who uses EPM / Remote Help / Tunnel for MAM / Cloud PKI.`,
+          e5: `<strong>${name}</strong> includes base Intune. Add the Microsoft Intune Suite or individual standalone add-ons per user.`,
+          e7: `<strong>${name}</strong> includes base Intune. Add the Microsoft Intune Suite per user — E7 does not bundle it as of GA.`,
+          business: `<strong>${name}</strong> includes Intune (MDM/MAM). Add the Microsoft Intune Suite per user who needs premium features.`,
+          f3: `<strong>${name}</strong> includes base Intune (MDM/MAM). Add the Intune Suite or individual add-ons per impacted frontline admin.`,
+          none: `Buy Microsoft Intune Plan 1 or 2 plus the Microsoft Intune Suite add-on.`
+        },
+        result_teams_premium: {
+          e3: `<strong>${name}</strong> includes Teams but not Premium features. Add Teams Premium per user who needs them.`,
+          e5: `<strong>${name}</strong> includes Teams but not Premium features. Add Teams Premium per user who needs them.`,
+          e7: `<strong>${name}</strong> at GA does NOT include Teams Premium. Add it per user who needs premium meeting features.`,
+          business: `<strong>${name}</strong> includes Teams. Add Teams Premium per user who needs premium meeting features.`,
+          f3: `<strong>${name}</strong> includes Teams. Add Teams Premium only if frontline managers need premium meeting / webinar features.`,
+          none: `Buy Teams Essentials / Teams Phone bundle plus Teams Premium per impacted user.`
+        },
+        result_copilot_e7: {
+          e3: `Add the Microsoft 365 Copilot add-on to your <strong>${name}</strong> license, or upgrade to M365 E7 for the full Copilot + Agent 365 bundle.`,
+          e5: `Add the Microsoft 365 Copilot add-on to your <strong>${name}</strong> license, or upgrade to M365 E7 to also pick up Agent 365 and the Entra Suite.`,
+          e7: `<strong>${name}</strong> already bundles Microsoft 365 Copilot and Agent 365 — covered.`,
+          business: `<strong>${name}</strong> is eligible for Microsoft 365 Copilot Business or the standard Microsoft 365 Copilot add-on.`,
+          f3: `<strong>${name}</strong> is eligible for Microsoft 365 Copilot — add the per-user add-on for frontline workers using Copilot.`,
+          none: `Buy a base M365 plan (E3/E5/Business Standard/Business Premium) and add the Microsoft 365 Copilot add-on — or move directly to M365 E7.`
+        },
+        result_service: {
+          e3: `<strong>${name}</strong> gives you Exchange / Teams / SharePoint / OneDrive — sufficient as a baseline service license.`,
+          e5: `<strong>${name}</strong> is sufficient as a baseline service license and also covers Entra ID P2 + Purview E5 + Defender Suite.`,
+          e7: `<strong>${name}</strong> is more than sufficient — it covers services, P2, Purview, Defender, Copilot, and Agent 365.`,
+          business: `<strong>${name}</strong> covers core services for up to 300 seats. Add the Microsoft Defender Suite / Purview Suite for Business Premium for advanced features.`,
+          f3: `<strong>${name}</strong> covers frontline service usage (limited mailbox, Teams, web Office). Move to E3/E5 for full desktop Office and full Exchange.`,
+          none: `Pick a base M365 plan that matches the services this admin actually uses (E3 / E5 / Business Premium / F3).`
+        }
+      };
+      return (map[id] && map[id][tenant]) || "";
+    }
+
+    function currentResultId(node) {
+      for (const [k, v] of Object.entries(TREE)) {
+        if (v === node) return k;
+      }
+      return null;
+    }
+
+    function updateProgress(node) {
+      if (node.result) {
+        $progress.style.width = "100%";
+        $stepLabel.textContent = "Result";
+        return;
+      }
+      if (node.choice) {
+        $progress.style.width = "4%";
+        $stepLabel.textContent = "Setup";
+        return;
+      }
+      if (node.info) {
+        $progress.style.width = "6%";
+        $stepLabel.textContent = "Learn more";
+        return;
+      }
+      const step = questionStepNumber();
+      const pct = Math.min(100, Math.round((step - 1) / TOTAL_STEPS * 100) + 8);
+      $progress.style.width = pct + "%";
+      $stepLabel.textContent = `Step ${step} of ${TOTAL_STEPS}`;
+    }
+
+    function answer(value) {
+      const node = TREE[state.currentId];
+      if (!node || node.result || node.choice || node.info) return;
+      state.history.push({
+        id: state.currentId,
+        kind: "q",
+        answer: value,
+        questionText: node.question
+      });
+      state.currentId = node[value];
+      render();
+    }
+
+    function choose(index) {
+      const node = TREE[state.currentId];
+      if (!node || !node.choice) return;
+      const c = (node.choices || [])[index];
+      if (!c) return;
+      state.history.push({
+        id: state.currentId,
+        kind: "choice",
+        answer: c.label,
+        questionText: node.question
+      });
+      state.currentId = c.target;
+      render();
+    }
+
+    function goTo(targetId, _i) {
+      const node = TREE[state.currentId];
+      if (!node) return;
+      // For info / result custom-action navigation: record a lightweight trail entry so Back works.
+      state.history.push({
+        id: state.currentId,
+        kind: node.info ? "info" : (node.result ? "result-jump" : "nav"),
+        answer: "→",
+        questionText: node.title || node.question || ""
+      });
+      state.currentId = targetId;
+      render();
+    }
+
+    function goBack() {
+      const last = state.history.pop();
+      state.currentId = last ? last.id : "start_choice";
+      render();
+    }
+
+    function restart() {
+      state.currentId = "start_choice";
+      state.history = [];
+      render();
+    }
+
+    function copySummary() {
+      const node = TREE[state.currentId];
+      if (!node || !node.result) { flash("Copy summary is only available on a result screen"); return; }
+      const tenant = $tenantBaseline.options[$tenantBaseline.selectedIndex].text;
+      const lines = [
+        `M365 Admin Licensing decision (secondary admin account)`,
+        `Tenant baseline: ${tenant}`,
+        ``,
+        `Result: ${node.title}`,
+        `${node.sub}`,
+        ``,
+        `Recommendations:`,
+        ...(node.bullets || []).map(b => `  - ${b}`),
+        ``,
+        `Path:`,
+        ...state.history.map(h => {
+          if (h.kind === "choice") return `  - ${h.questionText} -> ${h.answer}`;
+          if (h.kind === "info" || h.kind === "nav" || h.kind === "result-jump") return `  - (${h.questionText} -> continue)`;
+          return `  - ${h.questionText} -> ${String(h.answer).toUpperCase()}`;
+        })
+      ];
+      const text = lines.join("\n");
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => flash("Summary copied to clipboard"));
+      } else {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand("copy"); flash("Summary copied to clipboard"); }
+        catch (e) { flash("Copy failed"); }
+        ta.remove();
+      }
+    }
+
+    function flash(message) {
+      const el = document.createElement("div");
+      el.textContent = message;
+      el.style.cssText = `
+        position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+        background: #201f1e; color: white; padding: 10px 16px; border-radius: 6px;
+        font-size: 13px; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      `;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 1800);
+    }
+
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+    function escapeAttr(s) { return escapeHtml(s); }
+
+    $tenantBaseline.addEventListener("change", () => {
+      if (TREE[state.currentId] && TREE[state.currentId].result) render();
+    });
+
+    // Keyboard shortcuts — only when assessment is visible and user isn't typing in a field.
+    document.addEventListener("keydown", (e) => {
+      const target = e.target;
+      const tag = (target && target.tagName) || "";
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+      const node = TREE[state.currentId];
+      if (!node) return;
+
+      const key = e.key.toLowerCase();
+
+      // Choice node: 1 / 2 / 3 pick one of the choices.
+      if (node.choice && /^[1-9]$/.test(e.key)) {
+        const idx = parseInt(e.key, 10) - 1;
+        if (idx >= 0 && idx < (node.choices || []).length) {
+          e.preventDefault();
+          choose(idx);
+          return;
+        }
+      }
+
+      // Question node: Y / N (also 1 / 2 as fallback).
+      if (!node.result && !node.choice && !node.info) {
+        if (key === "y" || key === "1") { e.preventDefault(); answer("yes"); return; }
+        if (key === "n" || key === "2") { e.preventDefault(); answer("no"); return; }
+      }
+
+      // Common navigation.
+      if (key === "arrowleft" || key === "backspace") {
+        if (state.history.length > 0) {
+          e.preventDefault();
+          goBack();
+        }
+      } else if (key === "r") {
+        e.preventDefault();
+        restart();
+      }
+    });
+
+    // Smooth-scroll the Start CTA + nudge focus into the assessment card.
+    const startCta = document.getElementById("startCta");
+    if (startCta) {
+      startCta.addEventListener("click", () => {
+        // Delay focus until after the smooth scroll has begun so it doesn't fight the scroll.
+        setTimeout(() => {
+          const focusTarget = $app.querySelector(".choice--primary, .btn-yes, .choice");
+          if (focusTarget) focusTarget.focus({ preventScroll: true });
+        }, 350);
+      });
+    }
+
+    window.answer = answer;
+    window.choose = choose;
+    window.goTo = goTo;
+    window.goBack = goBack;
+    window.restart = restart;
+    window.copySummary = copySummary;
+
+    render();
+  </script>
+</body>
+</html>

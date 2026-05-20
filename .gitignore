@@ -1,0 +1,34 @@
+# Secrets — never commit these
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+.secrets
+
+# Node / npm (this repo has no package.json; entries are a safety net)
+node_modules/
+package-lock.json
+npm-debug.log*
+yarn-error.log
+.pnp.*
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/*.log
+*.swp
+*.swo
+*~
+
+# Lint / link-check caches
+.cache/
+.htmlhint-cache
+.lycheecache
+
+# Local-server output
+*.log

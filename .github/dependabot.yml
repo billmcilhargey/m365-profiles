@@ -1,0 +1,19 @@
+# Dependabot keeps GitHub Actions versions up to date.
+# This repo has no application dependencies (vanilla HTML / CSS / JS, no package.json),
+# so we only watch the GitHub Actions ecosystem.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "08:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"
