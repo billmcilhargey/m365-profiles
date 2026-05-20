@@ -1,9 +1,9 @@
 # M365 Admin Licensing Decision Tree
 
-[![Deploy to GitHub Pages](https://github.com/billmcilhargey/m365-admin-licensing-decision-tree/actions/workflows/pages.yml/badge.svg)](https://github.com/billmcilhargey/m365-admin-licensing-decision-tree/actions/workflows/pages.yml)
-[![Lint](https://github.com/billmcilhargey/m365-admin-licensing-decision-tree/actions/workflows/lint.yml/badge.svg)](https://github.com/billmcilhargey/m365-admin-licensing-decision-tree/actions/workflows/lint.yml)
+[![Deploy to GitHub Pages](https://github.com/billmcilhargey/m365-admin-license-navigator/actions/workflows/pages.yml/badge.svg)](https://github.com/billmcilhargey/m365-admin-license-navigator/actions/workflows/pages.yml)
+[![Lint](https://github.com/billmcilhargey/m365-admin-license-navigator/actions/workflows/lint.yml/badge.svg)](https://github.com/billmcilhargey/m365-admin-license-navigator/actions/workflows/lint.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Live site](https://img.shields.io/badge/Live%20site-GitHub%20Pages-0078d4)](https://billmcilhargey.github.io/m365-admin-licensing-decision-tree/)
+[![Live site](https://img.shields.io/badge/Live%20site-GitHub%20Pages-0078d4)](https://billmcilhargey.github.io/m365-admin-license-navigator/)
 [![Stack](https://img.shields.io/badge/Stack-Vanilla%20HTML%20%2F%20CSS%20%2F%20JS-success)](index.html)
 [![Covers](https://img.shields.io/badge/Covers-M365%20E7%20%28May%202026%29-orange)](https://learn.microsoft.com/partner-center/announcements/2026-may)
 
@@ -13,7 +13,7 @@
 > Entra Suite, M365 E5, Defender Suite, Purview Suite, Intune Suite, Teams
 > Premium, Microsoft 365 Copilot, or the new **M365 E7 Frontier Suite**).
 
-**Live site:** <https://billmcilhargey.github.io/m365-admin-licensing-decision-tree/>
+**Live site:** <https://billmcilhargey.github.io/m365-admin-license-navigator/>
 
 > ⚠️ **Not official Microsoft guidance.** This is an **independent community
 > helper** — not a Microsoft product, not endorsed by Microsoft, and not a
@@ -152,8 +152,8 @@ Two workflows ship with the repo:
 
 | Workflow | Trigger | What it does |
 | --- | --- | --- |
-| [`pages.yml`](.github/workflows/pages.yml) | push to `master`/`main`, manual | Publishes the repo root to GitHub Pages via `actions/deploy-pages@v4` |
-| [`lint.yml`](.github/workflows/lint.yml) | push + PR + manual | Runs **HTMLHint**, **markdownlint-cli2**, and **Lychee** link checker |
+| [`pages.yml`](.github/workflows/pages.yml) | push to `main`, manual (`workflow_dispatch`) | Publishes the repo root to GitHub Pages via `actions/deploy-pages@v4` |
+| [`lint.yml`](.github/workflows/lint.yml) | push + PR to `main`, manual (`workflow_dispatch`) | Runs **HTMLHint**, **markdownlint-cli2**, and **Lychee** link checker |
 
 Configs:
 
@@ -164,16 +164,57 @@ Configs:
 
 ## Enable GitHub Pages
 
-1. Push to `master` (or `main`).
+This repo deploys to a **GitHub Pages project site** under the owner's
+`github.io` subdomain. The recommended (and default) URL is:
+
+> **<https://billmcilhargey.github.io/m365-admin-license-navigator/>**
+
+Recommended GitHub subdomain strategy:
+
+- Keep the canonical GitHub Pages host as `billmcilhargey.github.io`.
+- Publish this project as a project site at
+  `billmcilhargey.github.io/m365-admin-license-navigator/`.
+- If you later want a shorter branded URL, layer a custom domain on top,
+  while keeping GitHub Pages as the origin.
+
+That URL is wired into [`sitemap.xml`](sitemap.xml), [`robots.txt`](robots.txt),
+the Open Graph `og:url` meta tag in [`index.html`](index.html), and the
+"Live site" badge above. If you fork the repo under a different owner, search
+and replace `billmcilhargey.github.io/m365-admin-license-navigator` with your
+own `<owner>.github.io/<repo-name>` (or with the user/organization page URL
+`<owner>.github.io` if you rename the repo to `<owner>.github.io`).
+
+To turn Pages on:
+
+1. Push to `main`.
 2. **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-3. The `Deploy to GitHub Pages` workflow runs on the next push and publishes
-   to `https://<your-user>.github.io/m365-admin-licensing-decision-tree/`.
+3. The `Deploy to GitHub Pages` workflow runs on the next push — or you can
+   trigger it on demand from **Actions → Deploy to GitHub Pages → Run
+  workflow** (the workflow declares `workflow_dispatch`).
+4. For manual runs, you can optionally provide a `ref` (branch, tag, or commit
+  SHA) in the workflow form to deploy that exact revision.
+5. After the first successful run, the site is live at the URL above.
+
+### Custom domain (optional)
+
+If you want to serve the site from a custom domain (for example
+`licensing.example.com`):
+
+1. Add a `CNAME` file at the repo root containing only the bare hostname
+   (no scheme, no trailing slash) — e.g. `licensing.example.com`.
+2. Create a `CNAME` DNS record at your DNS provider pointing
+   `licensing.example.com` to `billmcilhargey.github.io`.
+3. In **Settings → Pages**, enter the custom domain and tick **Enforce HTTPS**
+   once the certificate has provisioned.
+4. Update the same URL references listed above (`sitemap.xml`, `robots.txt`,
+   `og:url`, README badges) to point at your custom domain so SEO and link
+   previews stay correct.
 
 ## Run it locally
 
 ```bash
-git clone https://github.com/billmcilhargey/m365-admin-licensing-decision-tree.git
-cd m365-admin-licensing-decision-tree
+git clone https://github.com/billmcilhargey/m365-admin-license-navigator.git
+cd m365-admin-license-navigator
 # open index.html in your browser, or:
 python3 -m http.server 8080
 # then visit http://localhost:8080
