@@ -18,7 +18,7 @@ that navigate between hard-coded nodes in the page.
 ## Supported versions
 
 Only the current `main` branch is supported. The deployed site at
-<https://billmcilhargey.github.io/m365-admin-license-navigator/>
+<https://billmcilhargey.github.io/m365-profiles/>
 always reflects the latest commit on `main`.
 
 ## Reporting a vulnerability
@@ -30,7 +30,7 @@ workflows — please **do not open a public issue**.
 
 Instead, use **GitHub's private vulnerability reporting**:
 
-1. Go to the repository's [Security tab](https://github.com/billmcilhargey/m365-admin-license-navigator/security).
+1. Go to the repository's [Security tab](https://github.com/billmcilhargey/m365-profiles/security).
 2. Click **Report a vulnerability**.
 3. Include a clear description, reproduction steps, and the impact.
 

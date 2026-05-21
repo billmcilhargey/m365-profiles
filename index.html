@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>M365 Admin Licensing Decision Tree | Microsoft 365 Admin Licensing</title>
-  <meta name="description" content="Interactive decision tree to determine when a Microsoft 365 admin account requires a license — Entra ID Free, Entra ID P2, Entra ID Governance, Entra Suite, M365 E5, Defender Suite, Purview Suite, Intune Suite, Teams Premium, M365 Copilot, or the new M365 E7 (Frontier Suite)." />
+  <title>M365 Profiles — Microsoft 365 Licensing Decision Tree</title>
+  <meta name="description" content="Interactive decision tree that matches a Microsoft 365 identity profile — privileged admin, information / knowledge worker, frontline (F1/F3), education (A1/A3/A5), government (GCC/GCC High/DoD), nonprofit, SMB, or External ID guest — to the right license: Entra ID Free / P1 / P2, Governance, Entra Suite, M365 E3/E5/Business Premium/F1/F3/A1/A3/A5/G3/G5, Defender Suite, Purview Suite, Intune Suite, Teams Premium, M365 Copilot, or M365 E7 (Frontier Suite)." />
   <meta name="theme-color" content="#0078d4" />
   <meta name="color-scheme" content="light dark" />
 
@@ -14,10 +14,10 @@
   <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), interest-cohort=()" />
 
   <!-- Open Graph / Twitter -->
-  <meta property="og:title" content="M365 Admin Licensing Decision Tree" />
-  <meta property="og:description" content="Point-and-click decision tree to decide if a Microsoft 365 admin account needs a license — Entra ID P2, E5, Copilot, Intune Suite, Teams Premium, or the new E7 Frontier Suite." />
+  <meta property="og:title" content="M365 Profiles — Microsoft 365 Licensing Decision Tree" />
+  <meta property="og:description" content="Point-and-click decision tree that matches a Microsoft 365 identity profile — privileged admin, information worker, frontline, education, government, nonprofit, SMB, or External ID guest — to the right license tier." />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://billmcilhargey.github.io/m365-admin-license-navigator/" />
+  <meta property="og:url" content="https://billmcilhargey.github.io/m365-profiles/" />
   <meta name="twitter:card" content="summary" />
 
   <!-- Inline SVG favicon — 4-color Microsoft squares -->
@@ -497,7 +497,7 @@
     }
 
     /* =================================================================
-       "Why secondary" section
+       "Why privileged" section
        ================================================================= */
     .why-grid {
       display: grid;
@@ -981,10 +981,10 @@
         <span class="navbar__logo" aria-hidden="true">
           <span></span><span></span><span></span><span></span>
         </span>
-        <span>M365 Admin Licensing</span>
+        <span>M365 Profiles</span>
       </a>
       <div class="navbar__links">
-        <a class="navbar__link" href="#why-secondary">Why secondary</a>
+        <a class="navbar__link" href="#why-privileged">Why privileged</a>
         <a class="navbar__link" href="#assessment">Assessment</a>
         <a class="navbar__link" href="#how-it-works">How it works</a>
         <a class="navbar__link" href="#licenses">License map</a>
@@ -995,7 +995,7 @@
           <span id="themeIcon" aria-hidden="true">🌙</span>
           <span id="themeLabel">Dark</span>
         </button>
-        <a class="navbar__github" href="https://github.com/billmcilhargey/m365-admin-license-navigator" target="_blank" rel="noopener" aria-label="GitHub repository">
+        <a class="navbar__github" href="https://github.com/billmcilhargey/m365-profiles" target="_blank" rel="noopener" aria-label="GitHub repository">
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2.16c-3.2.7-3.87-1.37-3.87-1.37-.52-1.34-1.27-1.69-1.27-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.76 2.69 1.25 3.34.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.18 1.18a11.07 11.07 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.58.24 2.75.12 3.04.74.81 1.18 1.84 1.18 3.1 0 4.44-2.69 5.41-5.26 5.69.41.36.78 1.07.78 2.16v3.2c0 .31.21.66.8.55C20.21 21.39 23.5 17.08 23.5 12 23.5 5.65 18.35.5 12 .5Z"/></svg>
           GitHub
         </a>
@@ -1012,15 +1012,15 @@
       <div class="hero__inner">
         <div class="hero__tagline">
           <span class="badge--new">NEW</span>
-          Built for <strong>secondary (dedicated) admin accounts</strong> · Now covers M365 E7 — GA May 2026
+          Eight identity profiles · M365 E7 (Frontier Suite) GA May 2026
         </div>
-        <h1 class="hero__title">Does this secondary admin account need a license?</h1>
+        <h1 class="hero__title">Which Microsoft 365 license does this identity need?</h1>
         <p class="hero__subtitle">
-          An interactive decision tree for the Microsoft-recommended pattern of a
-          <strong>dedicated secondary admin account</strong> — separate from the user's
-          daily mailbox/Teams identity. We map it to the right tier (from
-          <strong>Entra ID Free</strong> all the way to <strong>M365 E7</strong>),
-          grounded in current Microsoft Learn documentation and cross-referenced with
+          An interactive decision tree that matches a Microsoft 365 <strong>identity profile</strong>
+          — privileged admin, information / knowledge worker, frontline (F1 / F3),
+          education (A1 / A3 / A5), government (GCC / GCC High / DoD), nonprofit, SMB, or External ID guest —
+          to the right tier, from <strong>Entra ID Free</strong> through <strong>M365 E7</strong>.
+          Grounded in Microsoft Learn and cross-referenced with
           <a href="https://m365maps.com/" target="_blank" rel="noopener" style="color:#fff;text-decoration:underline">m365maps.com</a>.
         </p>
         <p class="hero__note" role="note">
@@ -1030,24 +1030,25 @@
         </p>
         <div class="hero__ctas">
           <a class="cta cta--primary" href="#assessment" id="startCta">Start the assessment →</a>
-          <a class="cta cta--secondary" href="https://github.com/billmcilhargey/m365-admin-license-navigator" target="_blank" rel="noopener">View on GitHub →</a>
+          <a class="cta cta--secondary" href="https://github.com/billmcilhargey/m365-profiles" target="_blank" rel="noopener">View on GitHub →</a>
         </div>
       </div>
     </header>
 
     <!-- ===================================================
-         Why secondary admin accounts?
+         Why privileged admin accounts? (the deepest sub-tree)
          =================================================== -->
-    <section class="section section--accent" id="why-secondary" aria-labelledby="why-secondary-title">
+    <section class="section section--accent" id="why-privileged" aria-labelledby="why-privileged-title">
       <div class="section__inner">
         <div class="section__header">
-          <div class="section__eyebrow">Why this exists</div>
-          <h2 class="section__title" id="why-secondary-title">Built for secondary (dedicated) admin accounts</h2>
+          <div class="section__eyebrow">Why the privileged-admin path exists</div>
+          <h2 class="section__title" id="why-privileged-title">The deepest sub-tree: privileged (dedicated) admin accounts</h2>
           <p class="section__desc">
             Microsoft's privileged access strategy is built on <strong>separation of
-            duties</strong>: your daily-use identity (mailbox, Teams, Office) and
-            your administrative identity should be <em>two different accounts</em>.
-            This tool answers the licensing question for that <strong>second</strong> account.
+            duties</strong>: a user's daily-use identity (mailbox, Teams, Office)
+            and their administrative identity should be <em>two different accounts</em>.
+            Of M365 Profiles' eight identity paths, the privileged-admin path is
+            the most license-sensitive — and the only one fully built out as a 12-step Yes/No tree.
           </p>
         </div>
         <div class="why-grid">
@@ -1059,7 +1060,7 @@
           <div class="why-card">
             <div class="why-card__icon" aria-hidden="true">💰</div>
             <h3>Cheaper to license</h3>
-            <p>Most secondary admin accounts <em>never need a service license</em> — they don't have a mailbox or use Teams. <strong>Entra ID Free</strong> is enough until they enter a premium policy scope.</p>
+            <p>Most privileged admin accounts <em>never need a service license</em> — they don't have a mailbox or use Teams. <strong>Entra ID Free</strong> is enough until they enter a premium policy scope.</p>
           </div>
           <div class="why-card">
             <div class="why-card__icon" aria-hidden="true">📘</div>
@@ -1068,7 +1069,7 @@
           </div>
         </div>
         <div class="why-callout" role="note">
-          <strong>What counts as a secondary admin account?</strong>
+          <strong>What counts as a privileged admin account?</strong>
           A separate cloud-only identity (typically <code>admin-firstname@tenant.onmicrosoft.com</code>)
           that is used <em>only</em> for privileged work — Global Admin, Privileged
           Role Admin, Identity Admin, Security Admin, Compliance Admin, Intune Admin,
@@ -1125,15 +1126,15 @@
           <div class="section__eyebrow">How it works</div>
           <h2 class="section__title" id="how-title">Three steps to a licensing answer</h2>
           <p class="section__desc">
-            Click <strong>Yes</strong> or <strong>No</strong> to each question.
-            Each click takes you to the next screen until you reach a concrete
-            recommendation with Microsoft Learn citations.
+            Pick the identity profile, then click <strong>Yes</strong> or <strong>No</strong>
+            (privileged-admin path) or read the curated guidance screen (other profiles).
+            Every recommendation links back to Microsoft Learn.
           </p>
         </div>
         <div class="pillars">
-          <div class="pillar"><strong>1. Describe the account</strong><small>Service use, identity type</small></div>
-          <div class="pillar"><strong>2. Map the policies</strong><small>PIM, Purview, Defender, Intune</small></div>
-          <div class="pillar"><strong>3. Get the SKU</strong><small>With doc citations</small></div>
+          <div class="pillar"><strong>1. Pick a profile</strong><small>Admin, info worker, frontline, edu, gov, nonprofit, SMB, guest</small></div>
+          <div class="pillar"><strong>2. Answer or read</strong><small>12-step tree (admin) or curated guidance (other profiles)</small></div>
+          <div class="pillar"><strong>3. Get the SKU</strong><small>With Microsoft Learn and m365maps.com citations</small></div>
         </div>
       </div>
     </section>
@@ -1147,10 +1148,10 @@
           <div class="section__eyebrow">Assessment</div>
           <h2 class="section__title" id="assessment-title">Run the decision tree</h2>
           <p class="section__desc">
-            Pick the tenant baseline you already own, then click through each
-            question. We'll first confirm what type of admin account you're
-            evaluating, then walk through 12 yes/no questions until you land on
-            a concrete licensing recommendation.
+            Pick the tenant baseline you already own, then choose the identity
+            profile you're licensing. The privileged-admin path runs a 12-step
+            Yes/No tree; the other seven profiles land on a curated guidance
+            screen with citations.
           </p>
         </div>
 
@@ -1159,12 +1160,34 @@
             <label class="tenant-toggle">
               Tenant baseline:
               <select id="tenantBaseline" aria-label="Tenant baseline">
-                <option value="e3">Microsoft 365 E3</option>
-                <option value="e5">Microsoft 365 E5</option>
-                <option value="e7">Microsoft 365 E7 (Frontier)</option>
-                <option value="business">Microsoft 365 Business Premium</option>
-                <option value="f3">Microsoft 365 F3 (Frontline)</option>
-                <option value="none">No M365 plan yet</option>
+                <optgroup label="Commercial — Enterprise">
+                  <option value="e3">Microsoft 365 E3</option>
+                  <option value="e5">Microsoft 365 E5</option>
+                  <option value="e7">Microsoft 365 E7 (Frontier)</option>
+                </optgroup>
+                <optgroup label="Commercial — Business (≤300 seats)">
+                  <option value="business">Microsoft 365 Business Premium</option>
+                  <option value="business_standard">Microsoft 365 Business Standard</option>
+                </optgroup>
+                <optgroup label="Frontline">
+                  <option value="f1">Microsoft 365 F1</option>
+                  <option value="f3">Microsoft 365 F3</option>
+                </optgroup>
+                <optgroup label="Education (academic eligibility)">
+                  <option value="a1">Microsoft 365 A1</option>
+                  <option value="a3">Microsoft 365 A3</option>
+                  <option value="a5">Microsoft 365 A5</option>
+                </optgroup>
+                <optgroup label="US Government (GCC / GCC High / DoD)">
+                  <option value="g3">Microsoft 365 G3</option>
+                  <option value="g5">Microsoft 365 G5</option>
+                </optgroup>
+                <optgroup label="Nonprofit (validated eligibility)">
+                  <option value="npo_e3">Microsoft 365 E3 — Nonprofit Staff Pricing</option>
+                </optgroup>
+                <optgroup label="Other">
+                  <option value="none">No M365 plan yet</option>
+                </optgroup>
               </select>
             </label>
             <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progressFill"></div></div>
@@ -1220,9 +1243,9 @@
         <div class="footer__col">
           <h4>Project</h4>
           <ul>
-            <li><a href="https://github.com/billmcilhargey/m365-admin-license-navigator" target="_blank" rel="noopener">GitHub repository</a></li>
-            <li><a href="https://github.com/billmcilhargey/m365-admin-license-navigator/issues" target="_blank" rel="noopener">Report an issue</a></li>
-            <li><a href="https://github.com/billmcilhargey/m365-admin-license-navigator/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a></li>
+            <li><a href="https://github.com/billmcilhargey/m365-profiles" target="_blank" rel="noopener">GitHub repository</a></li>
+            <li><a href="https://github.com/billmcilhargey/m365-profiles/issues" target="_blank" rel="noopener">Report an issue</a></li>
+            <li><a href="https://github.com/billmcilhargey/m365-profiles/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a></li>
           </ul>
         </div>
         <div class="footer__col">
@@ -1257,23 +1280,22 @@
        Decision tree logic
        =================================================== -->
   <script>
-    // ---------- Decision tree definition ----------
-    // Each node is either a question (with yes/no targets) or a result (terminal).
-    // Grounded in Microsoft Learn documentation and the m365maps.com SKU
-    // comparisons. First-match-wins ordering: most comprehensive license tier
-    // first so a single "Yes" gives the highest applicable recommendation.
+    // Decision tree definition. Each node is a question (yes/no), choice (n-way),
+    // info screen, or terminal result. Tree shape is validated by
+    // scripts/validate-tree.js — the `// Only question nodes` sentinel below is
+    // consumed by that validator's regex; do not remove it.
     const TREE = {
       intro_overview: {
         info: true,
         badge: "Before you start",
         badgeClass: "badge-info",
         title: "Quick scope check for this licensing assessment",
-        sub: "Use this for a secondary (dedicated) admin account, then continue to the account-type selector.",
+        sub: "M365 Profiles helps you match an identity — privileged admin, information / knowledge worker, frontline worker, education, or government — to the right Microsoft 365 license.",
         paragraphs: [
           "This tool is an independent community helper and not official Microsoft licensing guidance. Use it to narrow the likely tier, then confirm with your Microsoft account team or CSP before purchase.",
-          "Best accuracy comes from evaluating a secondary admin account (separate from the user's daily mailbox/Teams account).",
-          "You can still continue for a primary daily-use admin account, but treat the result as a premium add-on recommendation on top of the required base service license.",
-          "Tip: keep a dedicated break-glass account strategy separate from normal day-to-day privileged accounts."
+          "Pick the profile that best describes the identity you are licensing — privileged (dedicated) admin, primary daily-use admin, information / knowledge worker, frontline worker (F1 / F3), education (faculty / student, A1 / A3 / A5), or government (GCC / GCC High / DoD).",
+          "Best accuracy comes from evaluating one profile at a time. Re-run the tool for each persona in your tenant.",
+          "Tip: keep a dedicated break-glass account strategy separate from normal day-to-day privileged accounts, and confirm sovereign-cloud feature parity (Copilot, Entra Suite, Defender) before assuming GCC High / DoD coverage."
         ],
         docs: [
           ["Microsoft Entra admin role best practices", "https://learn.microsoft.com/entra/identity/role-based-access-control/best-practices"],
@@ -1286,13 +1308,13 @@
       },
       start_choice: {
         choice: true,
-        eyebrow: "Setup · Account scope",
-        question: "What type of admin account are you evaluating?",
-        help: "Pick the account pattern you have today. If unsure, choose \"What's the difference?\" for examples and Microsoft references.",
+        eyebrow: "Setup · Identity profile",
+        question: "Which Microsoft 365 profile are you licensing?",
+        help: "Pick the persona that best describes the identity. Each path uses Microsoft Learn and m365maps.com sources to recommend a license. If unsure, choose \"What's the difference?\" for the privileged-admin background.",
         choices: [
           {
-            label: "Secondary (dedicated) admin account",
-            sublabel: "Recommended. Used only for privileged work — no mailbox, no Teams, no Office consumption.",
+            label: "Privileged (dedicated) admin account",
+            sublabel: "Industry standard for separation of duties. Used only for privileged work — no mailbox, no Teams, no Office consumption. Runs the full admin licensing tree.",
             icon: "1",
             tone: "primary",
             target: "start"
@@ -1305,25 +1327,74 @@
             target: "result_primary_account"
           },
           {
+            label: "Information / knowledge worker (end user)",
+            sublabel: "Office, Teams, Outlook, OneDrive, SharePoint user on a desktop or laptop. Choose between M365 E3 / E5 / Business Premium, plus Copilot / E7.",
+            icon: "3",
+            tone: "primary",
+            target: "result_profile_info_worker"
+          },
+          {
+            label: "Frontline worker (F1 / F3)",
+            sublabel: "Shift / deskless / field worker — retail, manufacturing, healthcare, hospitality. Shared device, limited mailbox, Teams-first. Must meet Microsoft's frontline eligibility criteria.",
+            icon: "4",
+            tone: "primary",
+            target: "result_profile_frontline"
+          },
+          {
+            label: "Education (faculty / student)",
+            sublabel: "Qualifying academic institution. A1 / A3 / A5 SKUs for faculty and students — different entitlements and pricing than commercial.",
+            icon: "5",
+            tone: "primary",
+            target: "result_profile_edu"
+          },
+          {
+            label: "Government (GCC / GCC High / DoD)",
+            sublabel: "US public-sector sovereign clouds. Eligibility, data residency, and feature parity differ from commercial — confirm Copilot, Entra Suite, and Defender availability before buying.",
+            icon: "6",
+            tone: "primary",
+            target: "result_profile_gov"
+          },
+          {
+            label: "Nonprofit (validated eligibility)",
+            sublabel: "Charitable / nonprofit org enrolled in Microsoft Nonprofits. Discounted Business Premium / E3 / E5 SKUs and a limited grant tier of Business Premium per qualifying org.",
+            icon: "7",
+            tone: "primary",
+            target: "result_profile_nonprofit"
+          },
+          {
+            label: "Small / mid-size business (≤ 300 seats)",
+            sublabel: "Commercial business with no more than 300 seats. Business Basic / Standard / Premium SKUs — hard seat cap and feature deltas vs Enterprise.",
+            icon: "8",
+            tone: "primary",
+            target: "result_profile_smb"
+          },
+          {
+            label: "External ID / B2B guest",
+            sublabel: "Partner / vendor / contractor invited as a guest. Consumes monthly active users (MAU) under Entra External ID — not a per-user license.",
+            icon: "9",
+            tone: "primary",
+            target: "result_profile_external_id"
+          },
+          {
             label: "What's the difference?",
-            sublabel: "Show me why secondary admin accounts matter and what counts as one.",
+            sublabel: "Show me why privileged admin accounts matter and what counts as one.",
             icon: "?",
             tone: "ghost",
-            target: "info_secondary_admins"
+            target: "info_privileged_admins"
           }
         ]
       },
-      info_secondary_admins: {
+      info_privileged_admins: {
         info: true,
         badge: "Background",
         badgeClass: "badge-info",
-        title: "Why secondary (dedicated) admin accounts?",
+        title: "Why privileged (dedicated) admin accounts?",
         sub: "Microsoft's privileged access strategy is built on separation of duties.",
         paragraphs: [
-          "A secondary admin account is a separate cloud-only identity (typically admin-firstname@tenant.onmicrosoft.com) that is used only for privileged work — Global Admin, Privileged Role Admin, Identity / Security / Compliance / Intune / Teams / Exchange Admin, etc.",
-          "The user's primary account holds their mailbox, Teams chats, OneDrive, and Office apps. The secondary account holds the role assignments. Two identities = two blast radii. If the primary mailbox is phished, the attacker doesn't automatically get Global Admin.",
-          "Because the secondary account has no mailbox or Teams to consume, it doesn't need a Microsoft 365 service license. Most secondary admin accounts can run on Entra ID Free indefinitely — they only need a premium tier when they cross into PIM, Identity Protection, Defender XDR, Purview E5, Intune Suite, Teams Premium, Entra Suite, Copilot, or Agent 365.",
-          "Microsoft recommends at least two break-glass / emergency-access Global Administrator accounts on top of your day-to-day secondary admin accounts, stored offline with FIDO2 keys."
+          "A privileged admin account is a separate cloud-only identity (typically admin-firstname@tenant.onmicrosoft.com) that is used only for privileged work — Global Admin, Privileged Role Admin, Identity / Security / Compliance / Intune / Teams / Exchange Admin, etc.",
+          "The user's primary account holds their mailbox, Teams chats, OneDrive, and Office apps. The privileged account holds the role assignments. Two identities = two blast radii. If the primary mailbox is phished, the attacker doesn't automatically get Global Admin.",
+          "Because the privileged account has no mailbox or Teams to consume, it doesn't need a Microsoft 365 service license. Most privileged admin accounts can run on Entra ID Free indefinitely — they only need a premium tier when they cross into PIM, Identity Protection, Defender XDR, Purview E5, Intune Suite, Teams Premium, Entra Suite, Copilot, or Agent 365.",
+          "Microsoft recommends at least two break-glass / emergency-access Global Administrator accounts on top of your day-to-day privileged admin accounts, stored offline with FIDO2 keys."
         ],
         docs: [
           ["Microsoft Entra best practices for admin roles", "https://learn.microsoft.com/entra/identity/role-based-access-control/best-practices"],
@@ -1332,7 +1403,7 @@
           ["Emergency access accounts", "https://learn.microsoft.com/entra/identity/role-based-access-control/security-emergency-access"]
         ],
         actions: [
-          { label: "Continue with a secondary admin →", target: "start", tone: "primary" },
+          { label: "Continue with a privileged admin →", target: "start", tone: "primary" },
           { label: "I have a primary account instead", target: "result_primary_account", tone: "secondary" },
           { label: "← Back to account-scope choice", target: "start_choice", tone: "secondary" }
         ]
@@ -1342,11 +1413,11 @@
         badge: "Different licensing path",
         badgeClass: "badge-warning",
         title: "Primary daily-use account — licensing rules differ",
-        sub: "Microsoft recommends not mixing privileged work with a daily-use account. If you can, create a separate secondary admin account and restart this assessment.",
+        sub: "Microsoft recommends not mixing privileged work with a daily-use account. If you can, create a separate privileged admin account and restart this assessment.",
         bullets: [
           "Because this account consumes mail / Teams / Office, it always needs at least a base Microsoft 365 service license (E3, Business Premium, or F3 minimum).",
-          "On top of that base license, layer the highest applicable premium tier (E5 / Defender Suite / Purview Suite / Intune Suite / Teams Premium / Copilot / E7) the same way the secondary admin tree evaluates.",
-          "Strongly consider creating a dedicated secondary admin identity for the role work. The primary account keeps its standard user license; the secondary account often only needs Entra ID Free.",
+          "On top of that base license, layer the highest applicable premium tier (E5 / Defender Suite / Purview Suite / Intune Suite / Teams Premium / Copilot / E7) the same way the privileged admin tree evaluates.",
+          "Strongly consider creating a dedicated privileged admin identity for the role work. The primary account keeps its standard user license; the privileged account often only needs Entra ID Free.",
           "You can still run this tool — click 'Continue anyway' below and treat the result as the premium tier to add on top of the daily-use service license."
         ],
         docs: [
@@ -1360,8 +1431,8 @@
       },
       start: {
         eyebrow: "Service usage",
-        question: "Does this secondary admin account sign in to any Microsoft 365 user-facing service (Exchange mailbox, Teams, SharePoint, OneDrive, Office apps)?",
-        help: "A properly dedicated secondary admin account should not be used to read mail, join Teams meetings, or open Office documents. If it does consume any of those services, it needs a service license — separate from any admin role — and you should consider splitting it back into a primary + secondary pair.",
+        question: "Does this privileged admin account sign in to any Microsoft 365 user-facing service (Exchange mailbox, Teams, SharePoint, OneDrive, Office apps)?",
+        help: "A properly dedicated privileged admin account should not be used to read mail, join Teams meetings, or open Office documents. If it does consume any of those services, it needs a service license — separate from any admin role — and you should consider splitting it back into a primary + privileged pair.",
         examples: [
           "Yes example: The admin reads Exchange email, joins Teams calls, or edits files in OneDrive.",
           "No example: The admin only signs in for Entra/Intune/Security portals and never uses end-user workloads."
@@ -1392,7 +1463,7 @@
       },
       q_copilot: {
         eyebrow: "AI & agents",
-        question: "Will this secondary admin use Microsoft 365 Copilot, build with Copilot Studio grounded in tenant data, or govern AI agents through Microsoft Agent 365 / Security Copilot interactive sessions?",
+        question: "Will this privileged admin use Microsoft 365 Copilot, build with Copilot Studio grounded in tenant data, or govern AI agents through Microsoft Agent 365 / Security Copilot interactive sessions?",
         help: "Microsoft 365 Copilot is an add-on to an eligible base plan. Microsoft 365 E7 (Frontier Suite, GA May 1, 2026) bundles E5 + Copilot + Entra Suite + Agent 365 in one license.",
         examples: [
           "Yes example: Admin actively uses Copilot chat in M365 apps or governs tenant-grounded agents.",
@@ -1408,7 +1479,7 @@
       },
       q_purview_e5: {
         eyebrow: "Compliance & Purview",
-        question: "Is the secondary admin included in any Microsoft Purview E5-tier policy — Insider Risk Management, Communication Compliance, Adaptive Protection, endpoint DLP, premium eDiscovery, auto-labeling, Records Management, Customer Lockbox, Customer Key, Information Barriers, Privileged Access Management for Office, or Audit (Premium)?",
+        question: "Is the privileged admin included in any Microsoft Purview E5-tier policy — Insider Risk Management, Communication Compliance, Adaptive Protection, endpoint DLP, premium eDiscovery, auto-labeling, Records Management, Customer Lockbox, Customer Key, Information Barriers, Privileged Access Management for Office, or Audit (Premium)?",
         help: "These Purview features require Microsoft 365 E5, the Microsoft 365 E5 Compliance add-on, or the Microsoft Purview Suite per user in scope — including any admin added as a test user.",
         examples: [
           "Yes example: Admin account is a test user in Insider Risk or covered by endpoint DLP policy scope.",
@@ -1424,7 +1495,7 @@
       },
       q_defender: {
         eyebrow: "Defender XDR & security",
-        question: "Does the secondary admin use Microsoft Defender XDR, Defender for Endpoint Plan 2, Defender for Identity, Defender for Cloud Apps, Defender for Office 365 Plan 2, or operate Microsoft Sentinel as a SOC analyst?",
+        question: "Does the privileged admin use Microsoft Defender XDR, Defender for Endpoint Plan 2, Defender for Identity, Defender for Cloud Apps, Defender for Office 365 Plan 2, or operate Microsoft Sentinel as a SOC analyst?",
         help: "Defender for Endpoint P2, Defender for Identity, Defender for Cloud Apps, Defender for Office 365 P2, and the broader Defender XDR experience are part of the Microsoft Defender Suite (formerly E5 Security), included with M365 E5 and E7. Sentinel is billed per-GB in Azure but its operators benefit from Defender Suite as well.",
         examples: [
           "Yes example: Admin triages incidents in Defender XDR or runs advanced hunting/SOC operations.",
@@ -1440,7 +1511,7 @@
       },
       q_intune_suite: {
         eyebrow: "Endpoint management",
-        question: "Does the secondary admin use Microsoft Intune Suite features — Endpoint Privilege Management (EPM), Remote Help, Microsoft Tunnel for MAM, Cloud PKI, Enterprise App Management, or Advanced Endpoint Analytics?",
+        question: "Does the privileged admin use Microsoft Intune Suite features — Endpoint Privilege Management (EPM), Remote Help, Microsoft Tunnel for MAM, Cloud PKI, Enterprise App Management, or Advanced Endpoint Analytics?",
         help: "These are not in base Intune. They require the Microsoft Intune Suite add-on (or individual standalone add-ons), per user. Base Intune is included in M365 E3/E5/E7 and Business Premium.",
         examples: [
           "Yes example: Admin enables Endpoint Privilege Management or Remote Help in production.",
@@ -1456,7 +1527,7 @@
       },
       q_teams_premium: {
         eyebrow: "Teams Premium",
-        question: "Does the secondary admin host or attend meetings that use Teams Premium features — Advanced webinars, Town halls premium, intelligent meeting recap, real-time translation, branded meetings, premium virtual appointments, or sensitivity-labeled meetings?",
+        question: "Does the privileged admin host or attend meetings that use Teams Premium features — Advanced webinars, Town halls premium, intelligent meeting recap, real-time translation, branded meetings, premium virtual appointments, or sensitivity-labeled meetings?",
         help: "Teams Premium is a per-user add-on (on top of any plan that includes Teams). It is not bundled with E3/E5 — but E7 (Frontier Suite) does not include it either as of GA. Buy separately for users who need premium meeting features.",
         examples: [
           "Yes example: Admin hosts advanced webinars or uses intelligent meeting recap in premium-enabled meetings.",
@@ -1472,8 +1543,8 @@
       },
       q_pim: {
         eyebrow: "Privileged access (PIM)",
-        question: "Is the secondary admin assigned an Entra ID or Azure role through PIM as eligible / time-bound — or does the account approve or review PIM activations or access reviews?",
-        help: "Per the PIM licensing rules, an Entra ID P2 (or Entra ID Governance) license is required for every user who is eligible, time-bound, an approver, or a reviewer. Almost every well-run secondary admin account ends up here.",
+        question: "Is the privileged admin assigned an Entra ID or Azure role through PIM as eligible / time-bound — or does the account approve or review PIM activations or access reviews?",
+        help: "Per the PIM licensing rules, an Entra ID P2 (or Entra ID Governance) license is required for every user who is eligible, time-bound, an approver, or a reviewer. Almost every well-run privileged admin account ends up here.",
         examples: [
           "Yes example: Admin activates Global Admin through PIM and another admin approves the activation.",
           "No example: Admin has permanent active role assignment and no PIM workflows are used."
@@ -1488,7 +1559,7 @@
       },
       q_identity_protection: {
         eyebrow: "Identity Protection",
-        question: "Is this secondary admin account in scope of Microsoft Entra ID Protection — risk-based Conditional Access, premium risk detections, or user / sign-in risk policies?",
+        question: "Is this privileged admin account in scope of Microsoft Entra ID Protection — risk-based Conditional Access, premium risk detections, or user / sign-in risk policies?",
         help: "Premium risk detections (atypical travel, password spray, malicious IP, verified threat actor IP, suspicious MFA approval, anomalous token, etc.) and risk-based Conditional Access require Entra ID P2 per user in scope.",
         examples: [
           "Yes example: Account is evaluated by sign-in risk policy and can be blocked/challenged based on risk.",
@@ -1504,7 +1575,7 @@
       },
       q_id_governance: {
         eyebrow: "Identity Governance",
-        question: "Does the secondary admin use Microsoft Entra ID Governance features beyond basic group management — Entitlement Management access packages, Lifecycle Workflows, machine-learning recommendations on access reviews, or Privileged Access Groups governance?",
+        question: "Does the privileged admin use Microsoft Entra ID Governance features beyond basic group management — Entitlement Management access packages, Lifecycle Workflows, machine-learning recommendations on access reviews, or Privileged Access Groups governance?",
         help: "These advanced governance features sit in the Entra ID Governance SKU (or the Entra Suite). Standard access reviews on basic groups are P2; lifecycle automation and access packages require Governance.",
         examples: [
           "Yes example: Admin builds joiner/mover/leaver lifecycle workflows or manages access packages.",
@@ -1520,7 +1591,7 @@
       },
       q_entra_suite: {
         eyebrow: "Entra Suite (network + ID)",
-        question: "Does the secondary admin operate Entra Suite features — Global Secure Access, Microsoft Entra Internet Access, Microsoft Entra Private Access, Microsoft Entra Verified ID issuance, or unified Conditional Access for network + identity?",
+        question: "Does the privileged admin operate Entra Suite features — Global Secure Access, Microsoft Entra Internet Access, Microsoft Entra Private Access, Microsoft Entra Verified ID issuance, or unified Conditional Access for network + identity?",
         help: "These cross-network identity capabilities are bundled in the Microsoft Entra Suite (or in M365 E7). They include P2 + ID Governance + Internet/Private Access + Verified ID.",
         examples: [
           "Yes example: Admin configures Internet Access/Private Access policies or manages Verified ID issuance.",
@@ -1785,6 +1856,192 @@
           ["Microsoft Entra ID Free", "https://learn.microsoft.com/azure/cost-management-billing/manage/microsoft-entra-id-free"],
           ["Global / Power Platform admins can administer without a license", "https://learn.microsoft.com/power-platform/admin/global-service-administrators-can-administer-without-license"]
         ]
+      },
+      result_profile_info_worker: {
+        result: true,
+        badge: "Information / knowledge worker",
+        badgeClass: "badge-premium",
+        title: "Information / knowledge worker — M365 E3 / E5 (or Business Premium ≤ 300 seats)",
+        sub: "Standard desktop / laptop end user who consumes Exchange, Teams, SharePoint, OneDrive, and Office apps. Choose the tier by the security and compliance posture you actually deploy.",
+        bullets: [
+          "Baseline: Microsoft 365 E3 — Office apps, Exchange Online (P2), Teams, SharePoint, OneDrive, Intune, Entra ID P1, Defender for Office 365 P1, AIP P1.",
+          "Step up to Microsoft 365 E5 when you need Defender XDR, Defender for Endpoint P2, Defender for Identity, Defender for Cloud Apps, Purview E5 (IRM, CC, eDiscovery Premium, Audit Premium, Customer Lockbox), Entra ID P2, Power BI Pro, and PSTN-ready Teams Phone.",
+          "Use Microsoft 365 Business Premium for organizations ≤ 300 seats that want Defender for Business + Intune + Entra ID P1 + Defender for Office 365 P1 at a lower per-user cost — note the seat cap and feature deltas vs. E3.",
+          "Add Microsoft 365 Copilot (per-user) when the worker uses Copilot in Word/Excel/PowerPoint/Outlook/Teams or tenant-grounded Copilot Studio agents.",
+          "Microsoft 365 E7 (Frontier Suite, GA May 1, 2026) bundles E5 + Copilot + Entra Suite + Agent 365 in a single license — evaluate vs. E5 + Copilot add-on.",
+          "Add-ons to consider per role: Teams Premium (meeting features), Intune Suite (EPM, Remote Help, Cloud PKI), Entra Suite (Global Secure Access / Internet Access / Private Access / Verified ID), Power BI Premium Per User, Visio / Project."
+        ],
+        docs: [
+          ["Compare Microsoft 365 Enterprise plans (E3 / E5 / F)", "https://www.microsoft.com/microsoft-365/business/compare-all-plans"],
+          ["Microsoft 365 Business Premium overview", "https://learn.microsoft.com/microsoft-365/business-premium/"],
+          ["M365 service descriptions index", "https://learn.microsoft.com/office365/servicedescriptions/office-365-service-descriptions-technet-library"],
+          ["Microsoft 365 Copilot licensing", "https://learn.microsoft.com/microsoft-365/copilot/microsoft-365-copilot-licensing"],
+          ["M365 E7 (Frontier Suite) announcement", "https://learn.microsoft.com/partner-center/announcements/2026-may"],
+          ["m365maps.com — visual SKU comparisons", "https://m365maps.com/"]
+        ],
+        actions: [
+          { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
+        ]
+      },
+      result_profile_frontline: {
+        result: true,
+        badge: "Frontline worker",
+        badgeClass: "badge-premium",
+        title: "Frontline worker — Microsoft 365 F1 / F3 (eligibility-gated)",
+        sub: "Shift, deskless, and field workers — retail associates, manufacturing operators, hospitality staff, healthcare clinicians, first responders, field engineers. Frontline SKUs are eligibility-gated and capped by Microsoft.",
+        bullets: [
+          "F1 — entry tier: Teams, SharePoint (browse), Yammer / Viva Engage, Stream, Office for the web (view-only), Intune, Entra ID P1 — no mailbox. For light Teams-first deskless workers.",
+          "F3 — full frontline: F1 + 2 GB Exchange Online mailbox, Office mobile apps (commercial use), Defender for Office 365 P1, AIP P1, Power Apps / Power Automate for F3 use rights.",
+          "Eligibility (Microsoft Product Terms): workers who do not primarily work at a desk, are not assigned a personal computer for work, often share a device, and whose primary job functions are deskless. Confirm the per-tenant frontline-license cap with your reseller / Microsoft account team.",
+          "Frontline add-ons: Teams Phone with Calling Plan (per user), Teams Premium for Frontline (when GA), Defender for Endpoint P1 (frontline-specific tier), Microsoft Viva Communications & Communities for Frontline, Microsoft 365 Copilot for Frontline (where licensed).",
+          "Do NOT use F SKUs for information workers, executives, IT admins, or anyone with a dedicated desk and PC — Microsoft reserves audit rights and the wrong assignment is a compliance risk.",
+          "Frontline-specific solutions to plan around: Shifts in Teams, Walkie Talkie, Tasks (Planner + To Do), Approvals, Updates, Virtual Appointments, RealWear / shared Android device enrollment, Shared Device mode for Teams."
+        ],
+        docs: [
+          ["Microsoft 365 for frontline workers — overview", "https://learn.microsoft.com/microsoft-365/frontline/flw-overview"],
+          ["Compare frontline plans (F1 vs F3)", "https://learn.microsoft.com/microsoft-365/frontline/flw-licensing-options"],
+          ["Frontline worker license eligibility", "https://learn.microsoft.com/microsoft-365/frontline/flw-licensing-options#frontline-worker-license-eligibility"],
+          ["Deploy Microsoft 365 for frontline workers", "https://learn.microsoft.com/microsoft-365/frontline/flw-deploy-overview"],
+          ["Microsoft 365 Copilot for frontline workers", "https://learn.microsoft.com/microsoft-365/frontline/flw-copilot"],
+          ["m365maps.com — Frontline maps (F1 / F3)", "https://m365maps.com/"]
+        ],
+        actions: [
+          { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
+        ]
+      },
+      result_profile_edu: {
+        result: true,
+        badge: "Education",
+        badgeClass: "badge-premium",
+        title: "Education — Microsoft 365 A1 / A3 / A5 (qualifying academic institution)",
+        sub: "Faculty and students at qualifying academic institutions. A-SKUs are eligibility-gated and priced separately from commercial; faculty and student SKUs have different entitlements.",
+        bullets: [
+          "A1 — included with qualifying education tenants: Office for the web, Teams for Education, SharePoint, OneDrive (with capped storage), basic Intune for Education, Entra ID P1 (faculty) / Entra ID Free (student).",
+          "A3 — desktop Office apps, Exchange Online, Intune, Entra ID P1, AIP P1, Defender for Office P1, Power BI Pro for faculty. The most common paid education baseline.",
+          "A5 — A3 + Defender XDR, Defender for Endpoint, Defender for Identity, Defender for Cloud Apps, Purview E5 (eDiscovery Premium, IRM, Audit Premium), Entra ID P2, Power BI Pro, Teams Phone (faculty).",
+          "Eligibility (Microsoft Education Product Terms): accredited academic institution, K-12 or higher education. Verify with the Microsoft Education account team; Microsoft audits eligibility.",
+          "Education-specific add-ons: Microsoft 365 Copilot for Education (Faculty / Student where available), Minecraft Education, Reading Coach / Reflect / Insights, Microsoft 365 A5 Compliance / A5 Security as standalone bumps from A3.",
+          "Do NOT mix A SKUs with commercial E SKUs in the same tenant for the same population — feature deltas (e.g., Class Teams, Reflect, Education Insights) only light up on A SKUs.",
+          "Frontline + Education: schools with shared lab devices or maintenance / facilities staff may layer F1 / F3 for non-faculty deskless staff — confirm with the Microsoft Education team."
+        ],
+        docs: [
+          ["Microsoft 365 Education plans", "https://www.microsoft.com/education/products/microsoft-365"],
+          ["Compare M365 Education plans (A1 / A3 / A5)", "https://www.microsoft.com/education/products/office"],
+          ["Microsoft 365 Education service description", "https://learn.microsoft.com/office365/servicedescriptions/office-365-platform-service-description/office-365-education"],
+          ["Microsoft 365 Copilot for Education", "https://learn.microsoft.com/microsoft-365-copilot/microsoft-365-copilot-education"],
+          ["Education academic eligibility", "https://www.microsoft.com/education/how-to-buy/academic-eligibility"],
+          ["m365maps.com — Education maps", "https://m365maps.com/"]
+        ],
+        actions: [
+          { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
+        ]
+      },
+      result_profile_gov: {
+        result: true,
+        badge: "Government (sovereign cloud)",
+        badgeClass: "badge-warning",
+        title: "US Government — GCC, GCC High, or DoD (sovereign clouds)",
+        sub: "Microsoft 365 for US public sector. Eligibility, data residency, accreditation (FedRAMP High / DoD IL2 / IL4 / IL5 / IL6), and feature parity differ from commercial — always validate before buying.",
+        bullets: [
+          "GCC (Government Community Cloud) — runs on Azure Commercial regions with government screening. FedRAMP High. For US federal, state, local, and tribal governments and their contractors handling CUI but not ITAR. Closest feature parity to commercial Microsoft 365.",
+          "GCC High — runs on Azure Government regions. FedRAMP High + DoD IL4/IL5. For DIB / DFARS / ITAR / EAR-regulated workloads. Smaller feature set than commercial; some services (e.g., parts of Copilot, Entra Suite, Power Platform) lag or are unavailable.",
+          "DoD — exclusive to US Department of Defense. DoD IL5 (and IL6 for classified separately). Most restricted feature parity; confirm every workload with Microsoft FedCiv account team.",
+          "Eligibility (Microsoft Government Product Terms): federal / state / local / tribal governments, US DoD, and contractors meeting DFARS 7012 / ITAR / CMMC requirements. Microsoft validates eligibility before tenant provisioning.",
+          "Plan equivalents: Microsoft 365 G1 / G3 / G5 (and F1 / F3 for frontline) mirror commercial E1 / E3 / E5 / F1 / F3 with sovereign deltas. A5-equivalent education SKUs exist for qualifying US public-sector education institutions.",
+          "Cross-tenant collaboration with commercial M365 tenants is restricted in GCC High / DoD — plan B2B / cross-cloud guest access carefully (cross-cloud B2B trust, Teams external access policies).",
+          "Always verify: (1) Copilot availability in your cloud, (2) Defender XDR feature parity, (3) Entra Suite / Global Secure Access availability, (4) Purview Premium eDiscovery and Customer Lockbox availability, (5) Teams Phone Calling Plans availability per region."
+        ],
+        docs: [
+          ["Microsoft 365 Government — overview & plans", "https://learn.microsoft.com/microsoft-365/enterprise/microsoft-365-us-government"],
+          ["Compare Microsoft 365 Government plans (GCC / GCC High / DoD)", "https://www.microsoft.com/microsoft-365/government"],
+          ["GCC vs GCC High vs DoD feature differences", "https://learn.microsoft.com/microsoft-365/enterprise/microsoft-365-us-government-gcc-high"],
+          ["Microsoft Defender for Government", "https://learn.microsoft.com/defender-xdr/usgov"],
+          ["Microsoft Purview for US Government", "https://learn.microsoft.com/purview/purview-fairfax"],
+          ["Microsoft 365 Copilot for Government", "https://learn.microsoft.com/microsoft-365-copilot/microsoft-365-copilot-government"],
+          ["Entra ID Government", "https://learn.microsoft.com/entra/identity/authentication/howto-mfa-mfasettings#government-cloud"],
+          ["m365maps.com — Government maps", "https://m365maps.com/"]
+        ],
+        actions: [
+          { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
+        ]
+      },
+      result_profile_nonprofit: {
+        result: true,
+        badge: "Nonprofit",
+        badgeClass: "badge-premium",
+        title: "Nonprofit — discounted / granted SKUs under Microsoft Nonprofits",
+        sub: "Qualifying charitable organizations enrolled in the Microsoft Nonprofits program get discounted SKUs and, for the smallest orgs, a limited grant tier of Business Premium. Eligibility is validated annually.",
+        bullets: [
+          "Microsoft 365 Business Premium grant — up to 300 free seats per validated nonprofit (where available). After the grant cap, additional seats use Business Premium Nonprofit Staff Pricing.",
+          "Nonprofit Staff Pricing — discounted commercial SKUs: M365 Business Basic / Standard / Premium for ≤ 300 seats, and M365 E3 / E5 / F3 for enterprise nonprofits with no seat cap.",
+          "Donated grants vs. discounted: Microsoft splits offers into \"granted\" (no cost, limited seats / SKUs) and \"discounted\" (Nonprofit Staff Pricing). Both require active Microsoft Nonprofits enrollment.",
+          "Eligibility (Microsoft Nonprofits): public-benefit / charitable / nongovernmental org with recognized legal status in its country (e.g., 501(c)(3) in the US). Excludes governmental orgs, hospital systems, schools / universities (use Education SKUs), and political / advocacy orgs.",
+          "Renewal: Microsoft re-validates eligibility annually via TechSoup (US) or equivalent partners. Lapsed validation deactivates the grant tier and reverts the org to standard commercial pricing.",
+          "Common add-ons that are NOT free under the grant: Microsoft 365 Copilot, Teams Phone, Power BI Premium, Defender Suite for Business Premium — all priced at Nonprofit Staff Pricing rates."
+        ],
+        docs: [
+          ["Microsoft for Nonprofits — products & pricing", "https://www.microsoft.com/nonprofits"],
+          ["Microsoft 365 Business Premium grant eligibility", "https://learn.microsoft.com/microsoft-365/nonprofit/microsoft-365-business-premium-grant"],
+          ["Microsoft Nonprofits eligibility guidelines", "https://www.microsoft.com/nonprofits/eligibility"],
+          ["Microsoft 365 for nonprofits — get started", "https://learn.microsoft.com/microsoft-365/nonprofit/"],
+          ["m365maps.com — visual SKU comparisons", "https://m365maps.com/"]
+        ],
+        actions: [
+          { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
+        ]
+      },
+      result_profile_smb: {
+        result: true,
+        badge: "Small / mid-size business",
+        badgeClass: "badge-premium",
+        title: "Small / mid-size business (≤ 300 seats) — Microsoft 365 Business Basic / Standard / Premium",
+        sub: "Commercial organizations with a hard 300-seat cap across Business SKUs. Above 300 seats you must move to the Enterprise (E) family.",
+        bullets: [
+          "Microsoft 365 Business Basic — Exchange Online (50 GB), Teams, SharePoint, OneDrive, Office for the web only. No desktop Office apps. Lowest cost.",
+          "Microsoft 365 Business Standard — Business Basic + desktop Office apps (Word, Excel, PowerPoint, Outlook, OneNote, Access [Win only]) + Publisher [Win only] + Bookings + Loop. Still NO security / compliance / device-management premium tooling.",
+          "Microsoft 365 Business Premium — Business Standard + Microsoft Defender for Business + Intune (MDM/MAM) + Entra ID P1 + Defender for Office 365 P1 + AIP P1. The right baseline for any SMB serious about security.",
+          "Hard 300-seat cap (across ALL Business SKUs combined). At 301 seats Microsoft requires you to switch the whole tenant to Enterprise SKUs — plan the cutover before you reach 280 seats.",
+          "Mixing Business + Enterprise SKUs in the same tenant is supported but messy — different policy templates light up, and some Enterprise-only features (Defender XDR, Purview E5, Entra ID P2) won't work for Business-licensed users.",
+          "Upgrade paths to consider per role: Microsoft 365 Copilot Business (Copilot + Microsoft 365 Chat for SMB), Microsoft Defender Suite for Business Premium (adds Entra ID P2 + Defender XDR + Purview Suite), Teams Phone with Calling Plan."
+        ],
+        docs: [
+          ["Compare Microsoft 365 Business plans (Basic / Standard / Premium)", "https://www.microsoft.com/microsoft-365/business/compare-all-plans"],
+          ["Microsoft 365 Business Premium overview", "https://learn.microsoft.com/microsoft-365/business-premium/"],
+          ["Microsoft 365 Business 300-seat limit and how to switch to Enterprise", "https://learn.microsoft.com/microsoft-365/commerce/subscriptions/upgrade-to-different-plan"],
+          ["Microsoft Defender Suite for Business Premium", "https://learn.microsoft.com/defender-xdr/microsoft-defender-suite-for-business-premium"],
+          ["Microsoft 365 Copilot Business", "https://learn.microsoft.com/microsoft-365/copilot/microsoft-365-copilot-licensing"],
+          ["m365maps.com — Business maps", "https://m365maps.com/"]
+        ],
+        actions: [
+          { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
+        ]
+      },
+      result_profile_external_id: {
+        result: true,
+        badge: "External ID / B2B guest",
+        badgeClass: "badge-info",
+        title: "External ID / B2B guest — billed by Monthly Active Users (MAU), not per-user license",
+        sub: "Guests, partners, vendors, and contractors invited into your tenant are licensed under Entra External ID's MAU model — not a per-seat M365 license.",
+        bullets: [
+          "Monthly Active Users (MAU) — Entra External ID counts unique guest users who authenticate at least once in a calendar month. Microsoft grants the first 50,000 MAU free per tenant; beyond that, billed monthly.",
+          "Premium features (P1 / P2) — risk-based CA, Identity Protection, PIM, Verified ID for external users are priced per MAU at the corresponding premium rate. Free tier covers basic B2B collaboration only.",
+          "Inbound vs outbound — \"B2B Collaboration\" (a guest from another Entra tenant is invited into yours) is the common pattern. \"B2B Direct Connect\" (Teams shared channels) uses cross-tenant access policies and is also free at the basic tier.",
+          "External ID for customers (CIAM) — separate product / pricing for customer-facing apps (sign-up, sign-in, social IdPs). Different from B2B and billed differently — see the External ID pricing page.",
+          "Guest accounts do NOT need an M365 service license to consume Teams / SharePoint shared with them. They use the inviting tenant's licensed resources (subject to per-service guest-access caps).",
+          "What you DO license per-guest: any M365 service the guest uses heavily as their own (rare — usually means a real licensed user account, not a guest), and any premium Entra External ID feature (P1/P2/Verified ID) you want enforced against the guest population.",
+          "Governance: use Entra ID Governance access reviews + entitlement management to expire guests automatically. Without governance, guest sprawl is a real audit / data-exfil risk."
+        ],
+        docs: [
+          ["Microsoft Entra External ID — overview", "https://learn.microsoft.com/entra/external-id/external-identities-overview"],
+          ["External ID pricing & billing model (MAU)", "https://learn.microsoft.com/entra/external-id/external-identities-pricing"],
+          ["B2B collaboration overview", "https://learn.microsoft.com/entra/external-id/what-is-b2b"],
+          ["B2B Direct Connect (shared channels)", "https://learn.microsoft.com/entra/external-id/b2b-direct-connect-overview"],
+          ["External ID for customers (CIAM)", "https://learn.microsoft.com/entra/external-id/customers/overview-customers-ciam"],
+          ["Govern guest access with access reviews", "https://learn.microsoft.com/entra/id-governance/manage-guest-access-with-access-reviews"]
+        ],
+        actions: [
+          { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
+        ]
       }
     };
 
@@ -1822,9 +2079,7 @@
     }
 
     function renderChoice(node) {
-      const back = state.history.length > 0
-        ? `<button class="btn btn-back" onclick="goBack()">&larr; Back</button>`
-        : "";
+      const back = backButton();
       const items = (node.choices || []).map((c, i) => `
         <button class="choice ${c.tone ? "choice--" + c.tone : ""}" onclick="choose(${i})" aria-label="${escapeAttr(c.label)}">
           <span class="choice__icon">${escapeHtml(c.icon || String(i + 1))}</span>
@@ -1845,13 +2100,9 @@
     }
 
     function renderInfo(node) {
-      const back = state.history.length > 0
-        ? `<button class="btn btn-back" onclick="goBack()">&larr; Back</button>`
-        : "";
+      const back = backButton();
       const paragraphsHtml = (node.paragraphs || []).map(p => `<p>${escapeHtml(p)}</p>`).join("");
-      const docsHtml = (node.docs || []).map(([label, url]) =>
-        `<li><a href="${escapeAttr(url)}" target="_blank" rel="noopener">${escapeHtml(label)} &nearr;</a></li>`
-      ).join("");
+      const docsHtml = linkListHtml(node.docs);
       const actionsHtml = renderActions(node.actions);
       $app.innerHTML = `
         ${back}
@@ -1875,9 +2126,7 @@
 
     function renderQuestion(node) {
       const stepNumber = questionStepNumber();
-      const back = state.history.length > 0
-        ? `<button class="btn btn-back" onclick="goBack()">&larr; Back</button>`
-        : "";
+      const back = backButton();
       const context = renderQuestionContext(node);
       $app.innerHTML = `
         ${back}
@@ -1900,9 +2149,7 @@
 
     function renderQuestionContext(node) {
       const examples = (node.examples || []).map(item => `<li>${escapeHtml(item)}</li>`).join("");
-      const techDocs = (node.techDocs || []).map(([label, url]) =>
-        `<li><a href="${escapeAttr(url)}" target="_blank" rel="noopener">${escapeHtml(label)} &nearr;</a></li>`
-      ).join("");
+      const techDocs = linkListHtml(node.techDocs);
       if (!examples && !techDocs) return "";
 
       return `
@@ -1916,9 +2163,7 @@
     function renderResult(node) {
       const tenant = $tenantBaseline.value;
       const tenantNote = tenantHint(node, tenant);
-      const docsHtml = (node.docs || []).map(([label, url]) =>
-        `<li><a href="${escapeAttr(url)}" target="_blank" rel="noopener">${escapeHtml(label)} &nearr;</a></li>`
-      ).join("");
+      const docsHtml = linkListHtml(node.docs);
       const bulletsHtml = (node.bullets || []).map(b => `<li>${escapeHtml(b)}</li>`).join("");
       // If the node defines custom actions, those REPLACE the default Start over / Change / Copy row.
       const actionsHtml = node.actions
@@ -1961,9 +2206,9 @@
 
     function renderActions(actions) {
       if (!actions || !actions.length) return "";
-      const buttons = actions.map((a, i) => {
+      const buttons = actions.map(a => {
         const cls = a.tone === "primary" ? "btn btn-yes" : "btn btn-secondary";
-        return `<button class="${cls}" onclick="goTo('${escapeAttr(a.target)}', ${i})">${escapeHtml(a.label)}</button>`;
+        return `<button class="${cls}" onclick="goTo('${escapeAttr(a.target)}')">${escapeHtml(a.label)}</button>`;
       }).join("");
       return `<div class="actions">${buttons}</div>`;
     }
@@ -2014,17 +2259,52 @@
     }
 
     function tenantHint(node, tenant) {
+      // User-facing label for the selected SKU. Used inside the advice text and Copy-summary.
       const tenantNames = {
         e3: "Microsoft 365 E3",
         e5: "Microsoft 365 E5",
         e7: "Microsoft 365 E7 (Frontier Suite)",
         business: "Microsoft 365 Business Premium",
+        business_standard: "Microsoft 365 Business Standard",
+        f1: "Microsoft 365 F1 (Frontline, no mailbox)",
         f3: "Microsoft 365 F3 (Frontline)",
+        a1: "Microsoft 365 A1 (Education)",
+        a3: "Microsoft 365 A3 (Education)",
+        a5: "Microsoft 365 A5 (Education)",
+        g3: "Microsoft 365 G3 (Government)",
+        g5: "Microsoft 365 G5 (Government)",
+        npo_e3: "Microsoft 365 E3 — Nonprofit Staff Pricing",
         none: "no M365 plan"
       };
-      const name = tenantNames[tenant];
+      // Map newer/derived SKUs to whichever commercial baseline has equivalent licensing advice.
+      // null = handled separately below because the SKU is genuinely different in shape.
+      const aliasFor = {
+        e3: "e3", e5: "e5", e7: "e7",
+        business: "business",
+        business_standard: null,
+        f1: null,
+        f3: "f3",
+        a1: null,
+        a3: "e3", a5: "e5",
+        g3: "e3", g5: "e5",
+        npo_e3: "e3",
+        none: "none"
+      };
+      const name = tenantNames[tenant] || tenant;
       const id = currentResultId(node);
       if (!id) return "";
+
+      // Short-circuit advice for SKUs whose security/admin tooling baseline doesn't match any existing row.
+      if (tenant === "business_standard") {
+        return `<strong>${name}</strong> ships Office + Exchange + Teams + SharePoint but does NOT include Defender, Intune, Purview, or Entra ID Premium. For privileged-admin tooling you'll either need to move the tenant to Business Premium (still ≤ 300 seats) or buy each premium SKU (Entra ID P1/P2, Defender, Purview, Intune, Teams Premium) standalone per impacted admin.`;
+      }
+      if (tenant === "f1") {
+        return `<strong>${name}</strong> has no mailbox and no Office desktop apps — F1 is rarely correct for an account doing privileged admin work. Move the admin to F3 plus standalone add-ons, or to E3 / E5 for full tooling.`;
+      }
+      if (tenant === "a1") {
+        return `<strong>${name}</strong> covers Office for the web + Teams + SharePoint for education tenants but ships with very little admin tooling. For a privileged-admin identity in an education tenant, move to A3 / A5 or layer standalone Entra ID P1/P2 + Defender + Purview as needed.`;
+      }
+
       const map = {
         result_p2_pim: {
           e3: `Your <strong>${name}</strong> tenant ships with Entra ID P1, not P2. Buy standalone Entra ID P2 (or Entra ID Governance) for each eligible admin, approver, and reviewer.`,
@@ -2107,7 +2387,27 @@
           none: `Pick a base M365 plan that matches the services this admin actually uses (E3 / E5 / Business Premium / F3).`
         }
       };
-      return (map[id] && map[id][tenant]) || "";
+
+      const baseKey = aliasFor[tenant];
+      let advice = (baseKey && map[id] && map[id][baseKey]) || "";
+      if (!advice) return "";
+
+      // Re-label the leading "<strong>Microsoft 365 ...</strong>" with the actual selected SKU name
+      // so A3/A5/G3/G5/NPO advice reads naturally even though it reuses E3/E5 wording.
+      if (baseKey !== tenant) {
+        advice = advice.replace(/<strong>Microsoft 365 [^<]+<\/strong>/, `<strong>${name}</strong>`);
+      }
+
+      // Layered caveats: append once, only when relevant.
+      if (tenant === "g3" || tenant === "g5") {
+        advice += ` <em>Sovereign-cloud caveat:</em> verify availability in GCC, GCC High, and DoD before buying — Copilot, Entra Suite, parts of Defender XDR, and Teams Premium often lag commercial GA dates.`;
+      } else if (tenant === "a3" || tenant === "a5") {
+        advice += ` <em>Education caveat:</em> faculty vs. student entitlements differ; verify academic eligibility (Microsoft Education Product Terms) and consider A5 Compliance / A5 Security standalone bumps if you only need parts of the suite.`;
+      } else if (tenant === "npo_e3") {
+        advice += ` <em>Nonprofit caveat:</em> Microsoft Nonprofits eligibility must be re-validated annually; grant tier (up to 300 seats Business Premium) and Nonprofit Staff Pricing have different entitlement rules.`;
+      }
+
+      return advice;
     }
 
     function currentResultId(node) {
@@ -2167,10 +2467,10 @@
       render();
     }
 
-    function goTo(targetId, _i) {
+    function goTo(targetId) {
       const node = TREE[state.currentId];
       if (!node) return;
-      // For info / result custom-action navigation: record a lightweight trail entry so Back works.
+      // Record a lightweight trail entry so Back works from info / result custom-action navigation.
       state.history.push({
         id: state.currentId,
         kind: node.info ? "info" : (node.result ? "result-jump" : "nav"),
@@ -2198,7 +2498,7 @@
       if (!node || !node.result) { flash("Copy summary is only available on a result screen"); return; }
       const tenant = $tenantBaseline.options[$tenantBaseline.selectedIndex].text;
       const lines = [
-        `M365 Admin Licensing decision (secondary admin account)`,
+        `M365 Profiles — licensing decision`,
         `Tenant baseline: ${tenant}`,
         ``,
         `Result: ${node.title}`,
@@ -2249,6 +2549,24 @@
         .replace(/'/g, "&#39;");
     }
     function escapeAttr(s) { return escapeHtml(s); }
+
+    // Render the "← Back" button — visible only after the user has navigated
+    // away from the entry node. Used by every render* function.
+    function backButton() {
+      return state.history.length > 0
+        ? `<button class="btn btn-back" onclick="goBack()">&larr; Back</button>`
+        : "";
+    }
+
+    // Render a `<li><a>...</a></li>` list from an array of [label, url] pairs.
+    // Returns "" when the array is empty/missing so callers can safely inline
+    // it under a conditional heading. Used for docs, techDocs, and citations.
+    function linkListHtml(items) {
+      if (!items || !items.length) return "";
+      return items.map(([label, url]) =>
+        `<li><a href="${escapeAttr(url)}" target="_blank" rel="noopener">${escapeHtml(label)} &nearr;</a></li>`
+      ).join("");
+    }
 
     $tenantBaseline.addEventListener("change", () => {
       if (TREE[state.currentId] && TREE[state.currentId].result) render();

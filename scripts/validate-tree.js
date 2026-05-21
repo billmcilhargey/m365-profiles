@@ -1,64 +1,182 @@
-const fs = require('fs');
-const html = fs.readFileSync('index.html', 'utf8');
-const m = html.match(/const TREE = (\{[\s\S]*?\});\s*\n\s*\/\/ Only question nodes/);
-if (!m) { console.error('TREE not found'); process.exit(1); }
-const TREE = eval('(' + m[1] + ')');
-const ids = new Set(Object.keys(TREE));
-let ok = true;
+#!/usr/bin/env node
+/**
+ * validate-tree.js
+ * -----------------------------------------------------------------------------
+ * Sanity-check the decision-tree definition embedded in index.html.
+ *
+ * The site is a single-file SPA: the TREE object lives inline in index.html
+ * between `const TREE = { ... };` and a `// Only question nodes` sentinel
+ * comment. This script extracts that object, validates every edge resolves
+ * to a real node id, checks reachability from the configured entry node, and
+ * prints a one-line summary suitable for CI logs.
+ *
+ * Run locally:
+ *   node scripts/validate-tree.js
+ *
+ * Exits 1 on any broken edge or unreachable node so CI fails loudly.
+ * -----------------------------------------------------------------------------
+ */
 
-// Validate edges based on node type.
-for (const [id, n] of Object.entries(TREE)) {
-  if (n.choice) {
-    for (const c of (n.choices || [])) {
-      if (!ids.has(c.target)) { console.error('Broken choice edge:', id, '->', c.label, '->', c.target); ok = false; }
-    }
-    continue;
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+
+// ---------------------------------------------------------------------------
+// Configuration — adjust these if the SPA's TREE shape or location changes.
+// ---------------------------------------------------------------------------
+
+/** Path (relative to repo root) to the file that contains the TREE literal. */
+const SOURCE_FILE = 'index.html';
+
+/**
+ * Regex that captures the TREE object literal. The trailing sentinel comment
+ * must remain in index.html — it bounds the match so we don't slurp the rest
+ * of the script.
+ */
+const TREE_REGEX = /const TREE = (\{[\s\S]*?\});\s*\n\s*\/\/ Only question nodes/;
+
+/**
+ * Candidate entry nodes, in priority order. The first one that exists in TREE
+ * becomes the reachability root. Keep `intro_overview` first so production
+ * matches the SPA's runtime entry; `start_choice` is the historical fallback.
+ */
+const ENTRY_NODE_CANDIDATES = ['intro_overview', 'start_choice'];
+
+/** Process exit codes. */
+const EXIT_OK = 0;
+const EXIT_BROKEN_WIRING = 1;
+const EXIT_TREE_NOT_FOUND = 2;
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Load the TREE object from index.html by regex-extract + eval. Eval is safe
+ * here because the source is repo-controlled and only runs in CI / dev.
+ */
+function loadTree(filePath) {
+  const html = fs.readFileSync(filePath, 'utf8');
+  const match = html.match(TREE_REGEX);
+  if (!match) {
+    console.error(`TREE literal not found in ${filePath}`);
+    process.exit(EXIT_TREE_NOT_FOUND);
   }
-  if (n.info) {
-    for (const a of (n.actions || [])) {
-      if (!ids.has(a.target)) { console.error('Broken info action edge:', id, '->', a.label, '->', a.target); ok = false; }
-    }
-    continue;
-  }
-  if (n.result) {
-    // Results may have optional custom actions.
-    for (const a of (n.actions || [])) {
-      if (!ids.has(a.target)) { console.error('Broken result action edge:', id, '->', a.label, '->', a.target); ok = false; }
-    }
-    continue;
-  }
-  // Default: yes/no question.
-  for (const ans of ['yes', 'no']) {
-    if (!ids.has(n[ans])) { console.error('Broken edge:', id, '->', ans, '->', n[ans]); ok = false; }
+  // eslint-disable-next-line no-eval
+  return eval('(' + match[1] + ')');
+}
+
+/**
+ * Classify a node by its shape. Order matters: choice / info / result are
+ * explicit flags; anything else is a yes/no question.
+ */
+function nodeKind(node) {
+  if (node.choice) return 'choice';
+  if (node.info)   return 'info';
+  if (node.result) return 'result';
+  return 'question';
+}
+
+/**
+ * Return every outgoing edge from a node as `{ label, target }` objects. This
+ * is the single source of truth for "what does this node point at?" — both
+ * the wiring check and the reachability walk consume it.
+ */
+function outgoingEdges(node) {
+  switch (nodeKind(node)) {
+    case 'choice':
+      return (node.choices || []).map(c => ({ label: c.label, target: c.target }));
+    case 'info':
+    case 'result':
+      // Result nodes only have edges if they define custom actions.
+      return (node.actions || []).map(a => ({ label: a.label, target: a.target }));
+    case 'question':
+      return [
+        { label: 'yes', target: node.yes },
+        { label: 'no',  target: node.no  },
+      ];
+    default:
+      return [];
   }
 }
 
-// Reachability — start from the configured entry node and follow every kind of edge.
-const reachable = new Set();
-const entryId = ids.has('intro_overview') ? 'intro_overview' : 'start_choice';
-(function walk(id) {
-  if (!id || reachable.has(id)) return;
-  reachable.add(id);
-  const n = TREE[id];
-  if (!n) return;
-  if (n.choice) { for (const c of (n.choices || [])) walk(c.target); return; }
-  if (n.info)   { for (const a of (n.actions || [])) walk(a.target); return; }
-  if (n.result) { for (const a of (n.actions || [])) walk(a.target); return; }
-  walk(n.yes); walk(n.no);
-})(entryId);
+/** Check every edge resolves to a known id. Logs each broken edge. */
+function checkWiring(tree, ids) {
+  let ok = true;
+  for (const [id, node] of Object.entries(tree)) {
+    for (const edge of outgoingEdges(node)) {
+      if (!ids.has(edge.target)) {
+        console.error(`Broken edge: ${id} -> ${edge.label} -> ${edge.target}`);
+        ok = false;
+      }
+    }
+  }
+  return ok;
+}
 
-for (const id of ids) if (!reachable.has(id)) { console.error('Unreachable:', id); ok = false; }
+/** Walk all edges from `entryId` and return the set of reachable node ids. */
+function reachableFrom(tree, entryId) {
+  const seen = new Set();
+  (function walk(id) {
+    if (!id || seen.has(id)) return;
+    if (!tree[id]) return;
+    seen.add(id);
+    for (const edge of outgoingEdges(tree[id])) walk(edge.target);
+  })(entryId);
+  return seen;
+}
 
-const questions = Object.values(TREE).filter(n => !n.result && !n.choice && !n.info).length;
-const choices   = Object.values(TREE).filter(n => n.choice).length;
-const infos     = Object.values(TREE).filter(n => n.info).length;
-const results   = Object.values(TREE).filter(n => n.result).length;
-console.log(
-  'Questions:', questions,
-  '| Choice:', choices,
-  '| Info:', infos,
-  '| Results:', results,
-  '| Reachable:', reachable.size, '/', ids.size,
-  '| Wiring OK:', ok
-);
-if (!ok) process.exit(1);
+/** Pick the first available entry node from the configured candidates. */
+function pickEntry(ids) {
+  for (const candidate of ENTRY_NODE_CANDIDATES) {
+    if (ids.has(candidate)) return candidate;
+  }
+  return null;
+}
+
+/** Tally nodes by kind for the summary line. */
+function summarize(tree) {
+  const counts = { question: 0, choice: 0, info: 0, result: 0 };
+  for (const node of Object.values(tree)) counts[nodeKind(node)]++;
+  return counts;
+}
+
+// ---------------------------------------------------------------------------
+// Main
+// ---------------------------------------------------------------------------
+
+function main() {
+  const tree = loadTree(path.resolve(SOURCE_FILE));
+  const ids = new Set(Object.keys(tree));
+
+  let ok = checkWiring(tree, ids);
+
+  const entryId = pickEntry(ids);
+  if (!entryId) {
+    console.error(`No entry node found. Expected one of: ${ENTRY_NODE_CANDIDATES.join(', ')}`);
+    ok = false;
+  }
+
+  const reachable = entryId ? reachableFrom(tree, entryId) : new Set();
+  for (const id of ids) {
+    if (!reachable.has(id)) {
+      console.error(`Unreachable: ${id}`);
+      ok = false;
+    }
+  }
+
+  const counts = summarize(tree);
+  console.log(
+    'Questions:', counts.question,
+    '| Choice:',  counts.choice,
+    '| Info:',    counts.info,
+    '| Results:', counts.result,
+    '| Reachable:', reachable.size, '/', ids.size,
+    '| Wiring OK:', ok
+  );
+
+  process.exit(ok ? EXIT_OK : EXIT_BROKEN_WIRING);
+}
+
+main();

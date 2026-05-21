@@ -1,0 +1,147 @@
+name: Deploy
+
+# Validates the decision tree, deploys the static site to GitHub Pages, and
+# publishes a CalVer GitHub Release (vYYYY.MM.DD-N) — all from one push to main.
+# `lint.yml` stays separate because it also runs on pull requests.
+#
+# Manual runs (`workflow_dispatch`) optionally take a `ref` to deploy a
+# specific branch / tag / SHA.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branch, tag, or commit SHA to deploy (optional)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write   # needed to create the Git tag + GitHub Release
+  pages: write      # needed for GitHub Pages deploy
+  id-token: write   # needed for OIDC-authenticated Pages deploy
+
+# One in-flight deploy at a time. Queue, don't cancel — every push to main
+# deserves its own deploy + release pair.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Validate and build artifact
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate decision tree
+        run: node scripts/validate-tree.js
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Static site — publish the repo root.
+          path: '.'
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  release:
+    name: Tag and release (CalVer)
+    needs: deploy
+    runs-on: ubuntu-latest
+    # Skip release on manual `workflow_dispatch` runs that target a non-main
+    # ref, and allow opt-out via `[skip release]` in the commit message.
+    if: |
+      github.event_name == 'push' &&
+      !contains(github.event.head_commit.message, '[skip release]')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute CalVer tag
+        id: ver
+        env:
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          set -euo pipefail
+          # Tag format: vYYYY.MM.DD-<run_number>. Run number guarantees
+          # uniqueness for multiple deploys on the same calendar day and
+          # monotonically increases across the repo's lifetime.
+          date_part="$(date -u +%Y.%m.%d)"
+          tag="v${date_part}-${RUN_NUMBER}"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "Computed tag: $tag"
+
+      - name: Abort if tag already exists
+        env:
+          TAG: ${{ steps.ver.outputs.tag }}
+        run: |
+          set -euo pipefail
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "Tag $TAG already exists — aborting."
+            exit 1
+          fi
+
+      - name: Create and push tag
+        env:
+          TAG: ${{ steps.ver.outputs.tag }}
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin "$TAG"
+
+      - name: Generate release notes
+        env:
+          TAG: ${{ steps.ver.outputs.tag }}
+        run: |
+          set -euo pipefail
+          # Diff range: from the previous tag (excluding the one we just made)
+          # to HEAD. Falls back to the root commit when there's no prior tag.
+          prev="$(git tag --sort=-creatordate | grep -v "^${TAG}$" | head -n1 || true)"
+          if [[ -z "$prev" ]]; then
+            range="$(git rev-list --max-parents=0 HEAD | tail -n1)..HEAD"
+          else
+            range="${prev}..HEAD"
+          fi
+          {
+            echo "## Changes"
+            echo
+            git log --pretty=format:'- %s (%h)' "$range" || echo "- (no user-facing commits)"
+            echo
+          } > release-notes.md
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.ver.outputs.tag }}
+        run: |
+          gh release create "$TAG" \
+            --title "$TAG" \
+            --notes-file release-notes.md
