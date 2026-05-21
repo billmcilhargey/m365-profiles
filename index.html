@@ -611,7 +611,7 @@
     [data-theme="dark"] .profile-status--warn    { background: #3a2a10; color: #f1c27d; }
 
     /* =================================================================
-       Contribute section ("Missing a profile? Suggest a change.")
+       Report-issue section ("Missing a profile? Suggest a change.")
        ================================================================= */
     .contrib-grid {
       display: grid;
@@ -1225,8 +1225,12 @@
     body.is-assessing #licenses,
     body.is-assessing #how-it-works,
     body.is-assessing #docs,
-    body.is-assessing #contribute,
-    body.is-assessing .navbar__links { display: none; }
+    body.is-assessing #contribute { display: none; }
+    /* During assessment we keep the navbar visible but hide every link except
+       "Report issue" so the user can still file feedback mid-flow without
+       losing their place. The remaining link gets a JS click handler that
+       opens a pre-populated GitHub issue in a new tab when assessing. */
+    body.is-assessing .navbar__link:not(#nav-report) { display: none; }
     body.is-assessing #assessment { padding-top: 32px; }
 
     /* =================================================================
@@ -1336,7 +1340,7 @@
         <a class="navbar__link" href="#how-it-works">How it works</a>
         <a class="navbar__link" href="#licenses">License map</a>
         <a class="navbar__link" href="#docs">Docs</a>
-        <a class="navbar__link" href="#contribute">Contribute</a>
+        <a class="navbar__link" id="nav-report" href="#contribute" onclick="onNavReportClick(event)">Report issue</a>
       </div>
       <div class="navbar__right">
         <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch color theme">
@@ -1448,7 +1452,7 @@
             path is the only one fully built out as a 12-step Yes/No tree — the
             other seven land on a curated guidance screen with Microsoft Learn
             and m365maps.com citations. Building those into full sub-trees is
-            the next milestone; <a href="#contribute">contributions welcome</a>.
+            the next milestone; <a href="#contribute">report an issue or contribute</a>.
           </p>
         </div>
         <div class="profile-grid">
@@ -1626,12 +1630,12 @@
     </section>
 
     <!-- ===================================================
-         Contribute / contact
+         Report issue / contact
          =================================================== -->
     <section class="section section--alt" id="contribute" aria-labelledby="contribute-title">
       <div class="section__inner">
         <div class="section__header">
-          <div class="section__eyebrow">Contribute</div>
+          <div class="section__eyebrow">Report issue</div>
           <h2 class="section__title" id="contribute-title">Missing a profile? Suggest a change.</h2>
           <p class="section__desc">
             M365 Profiles is an open-source community helper. If a profile
@@ -2976,6 +2980,45 @@
       const next = current === "dark" ? "light" : "dark";
       localStorage.setItem("m365-admin-theme", next);
       applyTheme(next);
+    }
+
+    // -- Report-issue navbar handler -------------------------------------------
+    // The navbar "Report issue" link is the only nav link that stays visible
+    // during the assessment (see CSS for body.is-assessing). On the landing
+    // page it behaves as a normal in-page anchor jumping to #contribute. While
+    // an assessment is in progress, hijack the click and open a pre-populated
+    // GitHub issue in a new tab so the user keeps their assessment state.
+    function onNavReportClick(e) {
+      if (document.body.classList.contains("is-assessing")) {
+        e.preventDefault();
+        reportIssueFromAssessment();
+      }
+      // else: fall through to default anchor behavior (#contribute).
+    }
+
+    function reportIssueFromAssessment() {
+      const node = TREE[state.currentId];
+      const stepText = node && node.step
+        ? `Step ${node.step.sub ? `${node.step.major}.${node.step.sub}` : node.step.major} of ${TOTAL_MAJOR_STEPS} · ${node.step.label}`
+        : "Assessment";
+      const screenText = node ? (node.question || node.title || "(no title)") : "(no current node)";
+      const titleSeed = screenText.length > 60 ? screenText.slice(0, 57) + "\u2026" : screenText;
+      const body = [
+        `**Where:** ${stepText}`,
+        `**Screen / question:** ${screenText}`,
+        `**Node id:** \`${state.currentId}\``,
+        "",
+        "**What's wrong, unclear, or missing:**",
+        "",
+        "",
+        "**What you'd expect instead:**",
+        "",
+        "",
+        "**Microsoft Learn / m365maps reference (optional):**",
+        ""
+      ].join("\n");
+      const url = `https://github.com/billmcilhargey/m365-profiles/issues/new?labels=feedback,from-assessment&title=${encodeURIComponent("Feedback: " + titleSeed)}&body=${encodeURIComponent(body)}`;
+      window.open(url, "_blank", "noopener,noreferrer");
     }
 
     function questionStepNumber() {
