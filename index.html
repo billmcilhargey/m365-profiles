@@ -395,12 +395,14 @@
     }
     .cta:active { transform: translateY(1px); }
     .cta:hover { text-decoration: none; }
-    .cta--primary {
+    .cta--primary,
+    .cta--primary:visited {
       background: #ffffff;
       color: var(--ms-blue-darker);
     }
     .cta--primary:hover { background: var(--ms-blue-lighter); color: var(--ms-blue-darker); }
-    .cta--secondary {
+    .cta--secondary,
+    .cta--secondary:visited {
       background: transparent;
       color: #ffffff;
       border-color: rgba(255,255,255,0.5);
@@ -644,20 +646,7 @@
       text-decoration: none;
     }
     .contrib-card a.contrib-btn:hover { background: var(--ms-blue-dark); }
-    .contact-list {
-      max-width: 720px;
-      margin: 24px auto 0;
-      padding: 16px 20px;
-      background: var(--ms-blue-lighter);
-      border-left: 4px solid var(--ms-blue);
-      border-radius: 6px;
-      font-size: 14px;
-      color: var(--ms-text);
-      line-height: 1.7;
-    }
-    .contact-list ul { margin: 8px 0 0; padding-left: 22px; }
     [data-theme="dark"] .contrib-card { background: var(--ms-bg-alt); color: var(--ms-text); }
-    [data-theme="dark"] .contact-list { background: #16253a; border-left-color: #3ea6ff; color: var(--ms-text); }
 
     /* =================================================================
        Multi-choice intro card
@@ -1439,15 +1428,6 @@
             <p>Pull requests welcome — build out a profile sub-tree, add a new tenant baseline, polish the UI, or add Microsoft Learn citations. See the README for the tree structure and lint commands.</p>
             <a class="contrib-btn" href="https://github.com/billmcilhargey/m365-profiles/pulls" target="_blank" rel="noopener">Open a pull request →</a>
           </div>
-        </div>
-        <div class="contact-list" role="note">
-          <strong>Contact &amp; channels</strong>
-          <ul>
-            <li><strong>GitHub Issues</strong> — <a href="https://github.com/billmcilhargey/m365-profiles/issues" target="_blank" rel="noopener">github.com/billmcilhargey/m365-profiles/issues</a> (bug reports, profile requests, wording fixes)</li>
-            <li><strong>Maintainer</strong> — <a href="https://github.com/billmcilhargey" target="_blank" rel="noopener">@billmcilhargey</a> on GitHub</li>
-            <li><strong>Security</strong> — use <a href="https://github.com/billmcilhargey/m365-profiles/security" target="_blank" rel="noopener">GitHub Private Vulnerability Reporting</a>, not a public issue (see <a href="https://github.com/billmcilhargey/m365-profiles/blob/main/SECURITY.md" target="_blank" rel="noopener">SECURITY.md</a>)</li>
-            <li><strong>Licensing accuracy questions</strong> — always verify with your Microsoft account team or CSP before purchase. This tool is an independent helper, not official Microsoft guidance.</li>
-          </ul>
         </div>
       </div>
     </section>
