@@ -38,10 +38,11 @@ const TREE_REGEX = /const TREE = (\{[\s\S]*?\});\s*\n\s*\/\/ Only question nodes
 
 /**
  * Candidate entry nodes, in priority order. The first one that exists in TREE
- * becomes the reachability root. Keep `intro_overview` first so production
- * matches the SPA's runtime entry; `start_choice` is the historical fallback.
+ * becomes the reachability root. `start_tenant` is the runtime entry (tenant
+ * baseline picker, step 1). `start_choice` is kept as a fallback in case the
+ * tenant step is removed; `intro_overview` is a historical option.
  */
-const ENTRY_NODE_CANDIDATES = ['intro_overview', 'start_choice'];
+const ENTRY_NODE_CANDIDATES = ['start_tenant', 'intro_overview', 'start_choice'];
 
 /** Process exit codes. */
 const EXIT_OK = 0;

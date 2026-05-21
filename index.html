@@ -87,7 +87,6 @@
     [data-theme="dark"] .why-card,
     [data-theme="dark"] .choice,
     [data-theme="dark"] .controls,
-    [data-theme="dark"] .tenant-toggle select,
     [data-theme="dark"] .card,
     [data-theme="dark"] .btn-no,
     [data-theme="dark"] .btn-secondary {
@@ -753,26 +752,10 @@
       border-radius: 8px;
       flex-wrap: wrap;
     }
-    .tenant-toggle {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      color: var(--ms-text-muted);
-    }
-    .tenant-toggle select {
-      font: inherit;
-      padding: 7px 10px;
-      border-radius: 4px;
-      border: 1px solid var(--ms-border-strong);
-      background: white;
-      color: var(--ms-text);
-      min-height: 36px;
-    }
     .progress-track {
       flex: 1;
       min-width: 120px;
-      max-width: 220px;
+      max-width: none;
       height: 6px;
       background: var(--ms-bg-tint);
       border-radius: 999px;
@@ -1435,48 +1418,15 @@
           <div class="section__eyebrow">Assessment</div>
           <h2 class="section__title" id="assessment-title">Run the decision tree</h2>
           <p class="section__desc">
-            Pick the tenant baseline you already own, then choose the identity
-            profile you're licensing. The privileged-admin path runs a 12-step
-            Yes/No tree; the other seven profiles land on a curated guidance
-            screen with citations.
+            Step 1 picks the tenant baseline you already own (or none yet).
+            Step 2 picks the identity profile. The privileged-admin path then
+            runs a 12-question Yes/No tree; the other seven profiles land on a
+            curated guidance screen with Microsoft Learn citations.
           </p>
         </div>
 
         <div class="assess-wrap">
           <div class="controls">
-            <label class="tenant-toggle">
-              Tenant baseline:
-              <select id="tenantBaseline" aria-label="Tenant baseline">
-                <optgroup label="Commercial — Enterprise">
-                  <option value="e3">Microsoft 365 E3</option>
-                  <option value="e5">Microsoft 365 E5</option>
-                  <option value="e7">Microsoft 365 E7 (Frontier)</option>
-                </optgroup>
-                <optgroup label="Commercial — Business (≤300 seats)">
-                  <option value="business">Microsoft 365 Business Premium</option>
-                  <option value="business_standard">Microsoft 365 Business Standard</option>
-                </optgroup>
-                <optgroup label="Frontline">
-                  <option value="f1">Microsoft 365 F1</option>
-                  <option value="f3">Microsoft 365 F3</option>
-                </optgroup>
-                <optgroup label="Education (academic eligibility)">
-                  <option value="a1">Microsoft 365 A1</option>
-                  <option value="a3">Microsoft 365 A3</option>
-                  <option value="a5">Microsoft 365 A5</option>
-                </optgroup>
-                <optgroup label="US Government (GCC / GCC High / DoD)">
-                  <option value="g3">Microsoft 365 G3</option>
-                  <option value="g5">Microsoft 365 G5</option>
-                </optgroup>
-                <optgroup label="Nonprofit (validated eligibility)">
-                  <option value="npo_e3">Microsoft 365 E3 — Nonprofit Staff Pricing</option>
-                </optgroup>
-                <optgroup label="Other">
-                  <option value="none">No M365 plan yet</option>
-                </optgroup>
-              </select>
-            </label>
             <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progressFill"></div></div>
             <span class="step-label" id="stepLabel">Step 1</span>
           </div>
@@ -1617,9 +1567,129 @@
     // scripts/validate-tree.js — the `// Only question nodes` sentinel below is
     // consumed by that validator's regex; do not remove it.
     const TREE = {
+      start_tenant: {
+        choice: true,
+        eyebrow: "Setup · Step 1 · Tenant baseline",
+        question: "Which Microsoft 365 tenant baseline are you already licensed for?",
+        help: "Pick the per-user base SKU your tenant already owns. This sets context so the recommendation tells you what you have to add on top — or whether the feature is already covered. Pick \"No M365 plan yet\" if you're scoping a brand-new tenant.",
+        choices: [
+          {
+            label: "Microsoft 365 E3",
+            sublabel: "Commercial Enterprise. Includes Entra ID P1, Intune base, Defender for Endpoint P1 (add-on), Purview foundations. Most premium identity / security features must be added.",
+            icon: "1",
+            tone: "primary",
+            value: "e3",
+            target: "start_choice"
+          },
+          {
+            label: "Microsoft 365 E5",
+            sublabel: "Commercial Enterprise. Includes Entra ID P2 (PIM, ID Protection, ID Governance), Defender XDR (P2 + Defender for Cloud Apps + Defender for Identity), Purview E5 suite, Power BI Pro.",
+            icon: "2",
+            tone: "primary",
+            value: "e5",
+            target: "start_choice"
+          },
+          {
+            label: "Microsoft 365 E7 (Frontier Suite)",
+            sublabel: "Commercial Enterprise. Adds the full Microsoft 365 Frontier Suite on top of E5 — includes Copilot, Entra Suite, Intune Suite, Teams Premium, Security Copilot capacity, and emerging AI features.",
+            icon: "3",
+            tone: "primary",
+            value: "e7",
+            target: "start_choice"
+          },
+          {
+            label: "Microsoft 365 Business Premium",
+            sublabel: "Commercial Business (≤300 seats). Includes Entra ID P1, Intune, Defender for Business, Defender for Office P1, Azure Information Protection P1. No Entra ID P2, no full Defender XDR, no E5 compliance.",
+            icon: "4",
+            tone: "primary",
+            value: "business",
+            target: "start_choice"
+          },
+          {
+            label: "Microsoft 365 Business Standard",
+            sublabel: "Commercial Business (≤300 seats). Office apps + Exchange + Teams + SharePoint. No Intune, no Defender, no Entra P1. Add Entra ID P1/P2 and Defender for Business à la carte for security needs.",
+            icon: "5",
+            tone: "primary",
+            value: "business_standard",
+            target: "start_choice"
+          },
+          {
+            label: "Microsoft 365 F1 (Frontline, no mailbox)",
+            sublabel: "Frontline shift worker. Teams + SharePoint + Yammer; no Exchange mailbox. Must meet Microsoft's frontline eligibility criteria. Add Entra ID P1/P2 and Defender as needed.",
+            icon: "6",
+            tone: "primary",
+            value: "f1",
+            target: "start_choice"
+          },
+          {
+            label: "Microsoft 365 F3 (Frontline)",
+            sublabel: "Frontline shift worker with 2 GB mailbox. Web/mobile Office, Teams, Intune for shared devices, Defender for Endpoint P1 (add-on). Must meet Microsoft's frontline eligibility criteria.",
+            icon: "7",
+            tone: "primary",
+            value: "f3",
+            target: "start_choice"
+          },
+          {
+            label: "Microsoft 365 A1 (Education)",
+            sublabel: "Qualifying academic institution. Web/mobile only, free for students with paid faculty. No premium identity or security included.",
+            icon: "8",
+            tone: "primary",
+            value: "a1",
+            target: "start_choice"
+          },
+          {
+            label: "Microsoft 365 A3 (Education)",
+            sublabel: "Qualifying academic institution. Equivalent feature shape to E3 with academic SKUs and pricing. Includes desktop Office, Entra ID P1, Intune for Education.",
+            icon: "9",
+            tone: "primary",
+            value: "a3",
+            target: "start_choice"
+          },
+          {
+            label: "Microsoft 365 A5 (Education)",
+            sublabel: "Qualifying academic institution. Equivalent feature shape to E5 with academic SKUs and pricing. Includes Entra ID P2, full Defender XDR, Purview E5.",
+            icon: "A",
+            tone: "primary",
+            value: "a5",
+            target: "start_choice"
+          },
+          {
+            label: "Microsoft 365 G3 (Government)",
+            sublabel: "US Government — GCC / GCC High / DoD. Equivalent feature shape to E3. Confirm Copilot, Entra Suite, and Defender feature availability in your sovereign cloud before assuming parity.",
+            icon: "B",
+            tone: "primary",
+            value: "g3",
+            target: "start_choice"
+          },
+          {
+            label: "Microsoft 365 G5 (Government)",
+            sublabel: "US Government — GCC / GCC High / DoD. Equivalent feature shape to E5. Confirm feature availability in your sovereign cloud before assuming parity with commercial E5.",
+            icon: "C",
+            tone: "primary",
+            value: "g5",
+            target: "start_choice"
+          },
+          {
+            label: "Microsoft 365 E3 — Nonprofit Staff Pricing",
+            sublabel: "Validated nonprofit. Discounted E3 SKU; same entitlements as commercial E3. Nonprofit Business Premium grants and discounts also exist — check eligibility with Microsoft Nonprofits.",
+            icon: "D",
+            tone: "primary",
+            value: "npo_e3",
+            target: "start_choice"
+          },
+          {
+            label: "No M365 plan yet",
+            sublabel: "Brand-new or pre-purchase tenant — scoping what to buy. The recommendation will assume you start from Entra ID Free and tell you the full stack needed.",
+            icon: "?",
+            tone: "ghost",
+            value: "none",
+            target: "start_choice"
+          }
+        ]
+      },
       start_choice: {
         choice: true,
-        eyebrow: "Setup · Identity profile",
+        eyebrow: "Setup · Step 2 · Identity profile",
         question: "Which Microsoft 365 profile are you licensing?",
         help: "Pick the persona that best describes the identity. Each path uses Microsoft Learn and m365maps.com sources to recommend a license. If unsure, choose \"What's the difference?\" for the privileged-admin background.",
         choices: [
@@ -2365,14 +2435,13 @@
     const TOTAL_STEPS = Object.values(TREE).filter(n => !n.result && !n.choice && !n.info).length;
 
     const state = {
-      currentId: "start_choice",
+      currentId: "start_tenant",
       history: []
     };
 
     const $app = document.getElementById("app");
     const $progress = document.getElementById("progressFill");
     const $stepLabel = document.getElementById("stepLabel");
-    const $tenantBaseline = document.getElementById("tenantBaseline");
     const $themeToggle = document.getElementById("themeToggle");
     const $themeLabel = document.getElementById("themeLabel");
     const $themeIcon = document.getElementById("themeIcon");
@@ -2478,7 +2547,7 @@
 
     function renderResult(node) {
       const back = backButton();
-      const tenant = $tenantBaseline.value;
+      const tenant = selectedTenantValue();
       const tenantNote = tenantHint(node, tenant);
       const docsHtml = linkListHtml(node.docs);
       const bulletsHtml = (node.bullets || []).map(b => `<li>${escapeHtml(b)}</li>`).join("");
@@ -2792,6 +2861,7 @@
         id: state.currentId,
         kind: "choice",
         answer: c.label,
+        value: c.value,
         questionText: node.question
       });
       state.currentId = c.target;
@@ -2814,20 +2884,34 @@
 
     function goBack() {
       const last = state.history.pop();
-      state.currentId = last ? last.id : "start_choice";
+      state.currentId = last ? last.id : "start_tenant";
       render();
     }
 
     function restart() {
-      state.currentId = "start_choice";
+      state.currentId = "start_tenant";
       state.history = [];
       render();
+    }
+
+    // Look up the tenant baseline the user picked at start_tenant. Returns the
+    // SKU key (e.g. "e3", "e5", "none") used by tenantHint's alias map. If the
+    // user hasn't picked a tenant yet, default to "none" so callers stay safe.
+    function selectedTenantValue() {
+      const entry = state.history.find(h => h.id === "start_tenant");
+      return entry && entry.value ? entry.value : "none";
+    }
+
+    // Friendly label for the tenant baseline (used in the Copy summary).
+    function selectedTenantLabel() {
+      const entry = state.history.find(h => h.id === "start_tenant");
+      return entry ? entry.answer : "Not selected";
     }
 
     function copySummary() {
       const node = TREE[state.currentId];
       if (!node || !node.result) { flash("Copy summary is only available on a result screen"); return; }
-      const tenant = $tenantBaseline.options[$tenantBaseline.selectedIndex].text;
+      const tenant = selectedTenantLabel();
       const lines = [
         `M365 Profiles — licensing decision`,
         `Tenant baseline: ${tenant}`,
@@ -2899,10 +2983,6 @@
       ).join("");
     }
 
-    $tenantBaseline.addEventListener("change", () => {
-      if (TREE[state.currentId] && TREE[state.currentId].result) render();
-    });
-
     // Keyboard shortcuts — only when assessment is visible and user isn't typing in a field.
     document.addEventListener("keydown", (e) => {
       const target = e.target;
@@ -2951,8 +3031,8 @@
     if (startCta) {
       startCta.addEventListener("click", () => {
         // If the user has navigated past the picker, take them back to it.
-        if (state.currentId !== "start_choice") {
-          state.currentId = "start_choice";
+        if (state.currentId !== "start_tenant") {
+          state.currentId = "start_tenant";
           state.history = [];
           render();
         }
