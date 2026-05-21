@@ -291,8 +291,7 @@
     [id^="q_"],
     #assessment,
     #how-it-works,
-    #licenses,
-    #docs {
+    #licenses {
       scroll-margin-top: calc(var(--navbar-h) + 16px);
     }
 
@@ -1033,7 +1032,7 @@
       /* Always show the assessment, regardless of is-assessing class. */
       body { background: white !important; color: black !important; }
       .navbar, .footer, .hero, #why-profiles, #profiles, #licenses,
-      #how-it-works, #docs, #contribute,
+      #how-it-works, #contribute,
       .assessment-backbar, .shortcuts, .controls,
       .btn-back, .actions, .question-context, .question-help { display: none !important; }
 
@@ -1224,7 +1223,6 @@
     body.is-assessing #profiles,
     body.is-assessing #licenses,
     body.is-assessing #how-it-works,
-    body.is-assessing #docs,
     body.is-assessing #contribute { display: none; }
     /* During assessment we keep the navbar visible but hide every link except
        "Report issue" so the user can still file feedback mid-flow without
@@ -1267,6 +1265,20 @@
       font-size: 14px;
     }
     .footer__col a:hover { color: white; text-decoration: underline; }
+    /* Sub-group heading within a footer column — used by the consolidated
+       References column to separate Hubs / Service descriptions / PDFs without
+       splitting them into separate columns. */
+    .footer__col h5 {
+      margin: 18px 0 6px;
+      color: var(--footer-text);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      opacity: 0.65;
+    }
+    .footer__col h5:first-of-type { margin-top: 0; }
+    .footer__col ul + h5 { margin-top: 16px; }
 
     .footer__bottom {
       margin-top: 36px;
@@ -1339,7 +1351,6 @@
         <a class="navbar__link" href="#assessment">Assessment</a>
         <a class="navbar__link" href="#how-it-works">How it works</a>
         <a class="navbar__link" href="#licenses">License map</a>
-        <a class="navbar__link" href="#docs">Docs</a>
         <a class="navbar__link" id="nav-report" href="#contribute" onclick="onNavReportClick(event)">Report issue</a>
       </div>
       <div class="navbar__right">
@@ -1663,52 +1674,6 @@
         </div>
       </div>
     </section>
-
-    <!-- ===================================================
-         Docs / footer references
-         =================================================== -->
-    <section class="section" id="docs" aria-labelledby="docs-title">
-      <div class="section__inner">
-        <div class="section__header">
-          <div class="section__eyebrow">References</div>
-          <h2 class="section__title" id="docs-title">Microsoft documentation</h2>
-          <p class="section__desc">Every result links back to the page that justifies it.</p>
-        </div>
-        <ul style="max-width:720px;margin:0 auto;padding-left:20px;line-height:1.9;">
-          <li><strong><a href="https://learn.microsoft.com/" target="_blank" rel="noopener">Microsoft Learn</a></strong> — product documentation hub for every Microsoft service.</li>
-          <li><a href="https://learn.microsoft.com/microsoft-365/" target="_blank" rel="noopener">Microsoft 365 documentation hub</a> — product start page</li>
-          <li><a href="https://learn.microsoft.com/entra/" target="_blank" rel="noopener">Microsoft Entra documentation hub</a> — identity / access start page</li>
-          <li><a href="https://www.microsoft.com/licensing/terms/" target="_blank" rel="noopener">Microsoft Product Terms</a> — authoritative SKU entitlements (legal source of truth)</li>
-          <li><a href="https://learn.microsoft.com/office365/servicedescriptions/office-365-service-descriptions-technet-library" target="_blank" rel="noopener">Microsoft 365 service descriptions</a> — per-service entitlement matrix</li>
-          <li><a href="https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-365-security-compliance-licensing-guidance" target="_blank" rel="noopener">Microsoft 365 security &amp; compliance licensing guidance</a> — tenant-level service licensing rules for Defender, Purview, Entra premium</li>
-          <li class="reference-divider" aria-hidden="true" style="list-style:none;margin:8px 0 4px;padding:0;border-top:1px solid var(--border);max-width:80%;"></li>
-          <li><strong>Family service descriptions (linked from the M365 security &amp; compliance guidance):</strong></li>
-          <li><a href="https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-defender-service-description" target="_blank" rel="noopener">Microsoft Defender service description</a> — Defender for Business / Endpoint / Identity / Cloud Apps / IoT / Office 365 / XDR / Vulnerability Mgmt / Experts</li>
-          <li><a href="https://learn.microsoft.com/office365/servicedescriptions/azure-active-directory" target="_blank" rel="noopener">Microsoft Entra service description</a> — Entra ID, External ID, Workload ID, Entra Suite (P2 / Governance / Verified ID / Internet &amp; Private Access), Domain Services</li>
-          <li><a href="https://learn.microsoft.com/intune/intune-service/fundamentals/microsoft-intune-service-description" target="_blank" rel="noopener">Microsoft Intune service description</a> — Intune plans, Intune Suite, and per-feature add-on entitlements</li>
-          <li><a href="https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-priva-service-description" target="_blank" rel="noopener">Microsoft Priva service description</a> — Privacy Risk Management entitlements</li>
-          <li><a href="https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-purview-service-description" target="_blank" rel="noopener">Microsoft Purview service description</a> — Audit, Compliance Manager, DLP, eDiscovery, Information Protection, Insider Risk, Records Management, Customer Key/Lockbox</li>
-          <li><a href="https://aka.ms/M365EnterprisePlans" target="_blank" rel="noopener">M365 Comparison table — Enterprise &amp; Frontline plans</a> (PDF)</li>
-          <li><a href="https://aka.ms/M365BusinessPlans" target="_blank" rel="noopener">M365 Comparison table — Small &amp; Medium Business plans</a> (PDF)</li>
-          <li class="reference-divider" aria-hidden="true" style="list-style:none;margin:8px 0 4px;padding:0;border-top:1px solid var(--border);max-width:80%;"></li>
-          <li><a href="https://learn.microsoft.com/entra/fundamentals/licensing" target="_blank" rel="noopener">Microsoft Entra licensing overview</a></li>
-          <li><a href="https://learn.microsoft.com/entra/id-governance/licensing-fundamentals" target="_blank" rel="noopener">Entra ID Governance &amp; PIM licensing</a></li>
-          <li><a href="https://learn.microsoft.com/entra/id-protection/concept-identity-protection-risks" target="_blank" rel="noopener">Entra ID Protection risk detections</a></li>
-          <li><a href="https://learn.microsoft.com/entra/global-secure-access/overview-what-is-global-secure-access" target="_blank" rel="noopener">Entra Suite — Global Secure Access overview</a></li>
-          <li><a href="https://learn.microsoft.com/purview/insider-risk-management-configure#subscriptions-and-licensing" target="_blank" rel="noopener">Insider Risk Management licensing</a></li>
-          <li><a href="https://learn.microsoft.com/purview/ediscovery-subscription-licensing" target="_blank" rel="noopener">Microsoft Purview eDiscovery licensing</a></li>
-          <li><a href="https://learn.microsoft.com/defender-xdr/microsoft-365-defender" target="_blank" rel="noopener">Microsoft Defender XDR</a></li>
-          <li><a href="https://learn.microsoft.com/defender-office-365/mdo-about" target="_blank" rel="noopener">Defender for Office 365 plans</a></li>
-          <li><a href="https://learn.microsoft.com/mem/intune/fundamentals/intune-add-ons" target="_blank" rel="noopener">Microsoft Intune Suite &amp; add-ons</a></li>
-          <li><a href="https://learn.microsoft.com/microsoftteams/teams-add-on-licensing/licensing-enhance-teams" target="_blank" rel="noopener">Microsoft Teams Premium licensing</a></li>
-          <li><a href="https://learn.microsoft.com/microsoft-365/copilot/microsoft-365-copilot-licensing" target="_blank" rel="noopener">Microsoft 365 Copilot licensing</a></li>
-          <li><a href="https://learn.microsoft.com/partner-center/announcements/2026-may" target="_blank" rel="noopener">Microsoft 365 E7 (Frontier Suite) announcement</a></li>
-          <li><a href="https://learn.microsoft.com/power-platform/admin/global-service-administrators-can-administer-without-license" target="_blank" rel="noopener">Global / Power Platform admins can administer without a license</a></li>
-          <li><a href="https://learn.microsoft.com/entra/identity/role-based-access-control/security-emergency-access" target="_blank" rel="noopener">Emergency access (break-glass) accounts</a></li>
-          <li><a href="https://m365maps.com/" target="_blank" rel="noopener">M365 Maps — visual SKU comparison</a></li>
-        </ul>
-      </div>
-    </section>
   </div>
 
   <!-- ===================================================
@@ -1726,18 +1691,27 @@
           </ul>
         </div>
         <div class="footer__col">
-          <h4>Microsoft Learn</h4>
+          <h4>References</h4>
+          <h5>Hubs &amp; terms</h5>
           <ul>
             <li><a href="https://learn.microsoft.com/" target="_blank" rel="noopener">Microsoft Learn</a></li>
             <li><a href="https://learn.microsoft.com/microsoft-365/" target="_blank" rel="noopener">Microsoft 365 docs</a></li>
             <li><a href="https://learn.microsoft.com/entra/" target="_blank" rel="noopener">Microsoft Entra docs</a></li>
             <li><a href="https://www.microsoft.com/licensing/terms/" target="_blank" rel="noopener">Microsoft Product Terms</a></li>
-            <li><a href="https://learn.microsoft.com/entra/fundamentals/licensing" target="_blank" rel="noopener">Entra licensing</a></li>
-            <li><a href="https://learn.microsoft.com/entra/id-governance/licensing-fundamentals" target="_blank" rel="noopener">PIM &amp; Governance</a></li>
-            <li><a href="https://learn.microsoft.com/microsoft-365/copilot/microsoft-365-copilot-licensing" target="_blank" rel="noopener">M365 Copilot</a></li>
-            <li><a href="https://learn.microsoft.com/purview/insider-risk-management-configure" target="_blank" rel="noopener">Insider Risk Management</a></li>
-            <li><a href="https://learn.microsoft.com/mem/intune/fundamentals/intune-add-ons" target="_blank" rel="noopener">Intune Suite</a></li>
-            <li><a href="https://learn.microsoft.com/microsoftteams/teams-add-on-licensing/licensing-enhance-teams" target="_blank" rel="noopener">Teams Premium</a></li>
+          </ul>
+          <h5>Service descriptions</h5>
+          <ul>
+            <li><a href="https://learn.microsoft.com/office365/servicedescriptions/office-365-service-descriptions-technet-library" target="_blank" rel="noopener">M365 service descriptions</a></li>
+            <li><a href="https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-365-security-compliance-licensing-guidance" target="_blank" rel="noopener">Security &amp; compliance licensing guidance</a></li>
+            <li><a href="https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-defender-service-description" target="_blank" rel="noopener">Defender service description</a></li>
+            <li><a href="https://learn.microsoft.com/office365/servicedescriptions/azure-active-directory" target="_blank" rel="noopener">Entra service description</a></li>
+            <li><a href="https://learn.microsoft.com/intune/intune-service/fundamentals/microsoft-intune-service-description" target="_blank" rel="noopener">Intune service description</a></li>
+            <li><a href="https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-purview-service-description" target="_blank" rel="noopener">Purview service description</a></li>
+          </ul>
+          <h5>Plan comparison (PDF)</h5>
+          <ul>
+            <li><a href="https://aka.ms/M365EnterprisePlans" target="_blank" rel="noopener">Enterprise &amp; Frontline plans</a></li>
+            <li><a href="https://aka.ms/M365BusinessPlans" target="_blank" rel="noopener">Small &amp; Medium Business plans</a></li>
           </ul>
         </div>
         <div class="footer__col">
