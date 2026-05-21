@@ -979,6 +979,94 @@
     .ans-no  { color: var(--ms-text-muted); font-weight: 700; }
 
     /* =================================================================
+       Result hero (recommended SKU panel) — promoted badge/title/sub
+       ================================================================= */
+    .result-hero {
+      background: var(--ms-blue-lighter);
+      border: 1px solid var(--ms-blue-light);
+      border-left: 4px solid var(--ms-blue);
+      border-radius: 10px;
+      padding: 22px 26px;
+      margin: 4px 0 18px;
+    }
+    .result-hero .result-title { margin: 12px 0 6px; }
+    .result-hero .result-sub   { margin: 0; color: var(--ms-text-soft); }
+    .result-hero.badge-success { background: #e6f4ea; border-left-color: var(--ms-success); border-color: #c5e6cd; }
+    .result-hero.badge-warning { background: #fff4e5; border-left-color: var(--ms-warning); border-color: #ffd9a3; }
+    .result-hero.badge-premium { background: #f1ebf7; border-left-color: var(--ms-purple); border-color: #ddccef; }
+    .result-hero.badge-info    { background: var(--ms-blue-lighter); border-left-color: var(--ms-blue); border-color: var(--ms-blue-light); }
+    [data-theme="dark"] .result-hero { background: var(--ms-bg-alt); border-color: var(--ms-border); color: var(--ms-text); }
+    [data-theme="dark"] .result-hero.badge-success { background: #0e3a1f; border-left-color: #6fce9b; border-color: #163b21; }
+    [data-theme="dark"] .result-hero.badge-warning { background: #3a2a10; border-left-color: #f1c27d; border-color: #4e3614; }
+    [data-theme="dark"] .result-hero.badge-premium { background: #2a1f3a; border-left-color: #c9b3e6; border-color: #3c2c54; }
+    [data-theme="dark"] .result-hero.badge-info    { background: #16253a; border-left-color: #3ea6ff; border-color: #1f3457; }
+
+    /* "Why you got this result" — promoted path trail rendered as Q→A pairs */
+    .result-why__intro { margin: 0 0 10px; font-size: 13px; color: var(--ms-text-soft); }
+    .result-why__list  { list-style: none; padding: 0; margin: 0; }
+    .result-why__list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--ms-border);
+      font-size: 14px;
+    }
+    .result-why__list li:last-child { border-bottom: 0; }
+    .why-q { color: var(--ms-text); flex: 1; }
+    .why-a {
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: var(--ms-bg-tint);
+      color: var(--ms-text);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+    .why-a--yes    { background: var(--ms-blue-light); color: var(--ms-blue-darker); }
+    .why-a--no     { background: var(--ms-bg-tint); color: var(--ms-text-soft); }
+    .why-a--choice { background: #ede7f7; color: var(--ms-purple); }
+    [data-theme="dark"] .why-a--yes    { background: #16253a; color: #7fc3ff; }
+    [data-theme="dark"] .why-a--no     { background: #2a3242; color: #aab4c4; }
+    [data-theme="dark"] .why-a--choice { background: #2a1f3a; color: #c9b3e6; }
+
+    /* =================================================================
+       Dedicated assessment view — hide marketing sections when active
+       ================================================================= */
+    .assessment-backbar {
+      display: none;
+      margin: -20px 0 18px;
+    }
+    body.is-assessing .assessment-backbar { display: block; }
+    .btn-back-overview {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: transparent;
+      border: 1px solid var(--ms-border-strong);
+      color: var(--ms-text);
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+    }
+    .btn-back-overview:hover { background: var(--ms-bg-tint); border-color: var(--ms-blue); color: var(--ms-blue); }
+    body.is-assessing .hero,
+    body.is-assessing #why-profiles,
+    body.is-assessing #profiles,
+    body.is-assessing #licenses,
+    body.is-assessing #how-it-works,
+    body.is-assessing #docs,
+    body.is-assessing #contribute,
+    body.is-assessing .navbar__links { display: none; }
+    body.is-assessing #assessment { padding-top: 32px; }
+
+    /* =================================================================
        Footer (dark, like Docusaurus footer--dark)
        ================================================================= */
     .footer {
@@ -1126,7 +1214,7 @@
           tier. Always verify with your Microsoft account team before purchasing.
         </p>
         <div class="hero__ctas">
-          <a class="cta cta--primary" href="#assessment" id="startCta">Start the assessment →</a>
+          <a class="cta cta--primary" href="#start" id="startCta">Start the assessment →</a>
           <a class="cta cta--secondary" href="https://github.com/billmcilhargey/m365-profiles" target="_blank" rel="noopener">View on GitHub →</a>
         </div>
       </div>
@@ -1338,6 +1426,11 @@
          =================================================== -->
     <section class="section section--alt" id="assessment" aria-labelledby="assessment-title">
       <div class="section__inner">
+        <div class="assessment-backbar">
+          <button type="button" class="btn-back-overview" id="backToOverview" aria-label="Return to the overview">
+            <span aria-hidden="true">&larr;</span> Back to overview
+          </button>
+        </div>
         <div class="section__header">
           <div class="section__eyebrow">Assessment</div>
           <h2 class="section__title" id="assessment-title">Run the decision tree</h2>
@@ -1448,6 +1541,7 @@
           <li><a href="https://learn.microsoft.com/entra/" target="_blank" rel="noopener">Microsoft Entra documentation hub</a> — identity / access start page</li>
           <li><a href="https://www.microsoft.com/licensing/terms/" target="_blank" rel="noopener">Microsoft Product Terms</a> — authoritative SKU entitlements (legal source of truth)</li>
           <li><a href="https://learn.microsoft.com/office365/servicedescriptions/office-365-service-descriptions-technet-library" target="_blank" rel="noopener">Microsoft 365 service descriptions</a> — per-service entitlement matrix</li>
+          <li><a href="https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-365-security-compliance-licensing-guidance" target="_blank" rel="noopener">Microsoft 365 security &amp; compliance licensing guidance</a> — tenant-level service licensing rules for Defender, Purview, Entra premium</li>
           <li class="reference-divider" aria-hidden="true" style="list-style:none;margin:8px 0 4px;padding:0;border-top:1px solid var(--border);max-width:80%;"></li>
           <li><a href="https://learn.microsoft.com/entra/fundamentals/licensing" target="_blank" rel="noopener">Microsoft Entra licensing overview</a></li>
           <li><a href="https://learn.microsoft.com/entra/id-governance/licensing-fundamentals" target="_blank" rel="noopener">Entra ID Governance &amp; PIM licensing</a></li>
@@ -1946,6 +2040,7 @@
         docs: [
           ["Microsoft Intune Suite & add-ons", "https://learn.microsoft.com/mem/intune/fundamentals/intune-add-ons"],
           ["Endpoint Privilege Management", "https://learn.microsoft.com/mem/intune/protect/epm-overview"],
+          ["M365 security &amp; compliance licensing guidance", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-365-security-compliance-licensing-guidance"],
           ["M365 Maps — Intune add-ons", "https://m365maps.com/Microsoft%20Intune%20Suite.htm"]
         ]
       },
@@ -1982,6 +2077,7 @@
         docs: [
           ["PIM licensing fundamentals", "https://learn.microsoft.com/entra/id-governance/licensing-fundamentals#privileged-identity-management"],
           ["What is Privileged Identity Management?", "https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-configure"],
+          ["M365 security &amp; compliance licensing guidance", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-365-security-compliance-licensing-guidance"],
           ["M365 Maps — Entra ID P2", "https://m365maps.com/Microsoft%20Entra%20ID.htm"]
         ]
       },
@@ -1999,6 +2095,7 @@
         docs: [
           ["What are risk detections?", "https://learn.microsoft.com/entra/id-protection/concept-identity-protection-risks"],
           ["Risk-based sign-in Conditional Access policy", "https://learn.microsoft.com/entra/identity/conditional-access/policy-risk-based-sign-in"],
+          ["M365 security &amp; compliance licensing guidance", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-365-security-compliance-licensing-guidance"],
           ["M365 Maps — Entra ID P2", "https://m365maps.com/Microsoft%20Entra%20ID.htm"]
         ]
       },
@@ -2018,6 +2115,7 @@
           ["Entra ID Governance licensing", "https://learn.microsoft.com/entra/id-governance/licensing-fundamentals"],
           ["Lifecycle Workflows overview", "https://learn.microsoft.com/entra/id-governance/what-are-lifecycle-workflows"],
           ["Entitlement Management overview", "https://learn.microsoft.com/entra/id-governance/entitlement-management-overview"],
+          ["M365 security &amp; compliance licensing guidance", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-365-security-compliance-licensing-guidance"],
           ["M365 Maps — Entra ID Governance", "https://m365maps.com/Microsoft%20Entra%20ID%20Governance.htm"]
         ]
       },
@@ -2037,6 +2135,7 @@
           ["What is Global Secure Access?", "https://learn.microsoft.com/entra/global-secure-access/overview-what-is-global-secure-access"],
           ["Microsoft Entra Suite overview", "https://learn.microsoft.com/entra/fundamentals/entra-suite"],
           ["Microsoft Entra Verified ID", "https://learn.microsoft.com/entra/verified-id/decentralized-identifier-overview"],
+          ["M365 security &amp; compliance licensing guidance", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-365-security-compliance-licensing-guidance"],
           ["M365 Maps — Entra Suite", "https://m365maps.com/Microsoft%20Entra%20Suite.htm"]
         ]
       },
@@ -2378,24 +2477,30 @@
     }
 
     function renderResult(node) {
+      const back = backButton();
       const tenant = $tenantBaseline.value;
       const tenantNote = tenantHint(node, tenant);
       const docsHtml = linkListHtml(node.docs);
       const bulletsHtml = (node.bullets || []).map(b => `<li>${escapeHtml(b)}</li>`).join("");
-      // If the node defines custom actions, those REPLACE the default Start over / Change / Copy row.
+      const whyHtml = renderWhyTrail();
+      // If the node defines custom actions, those REPLACE the default Start over / Copy row.
       const actionsHtml = node.actions
         ? renderActions(node.actions)
         : `
           <div class="actions">
             <button class="btn btn-yes" onclick="restart()">Start over</button>
-            <button class="btn btn-secondary" onclick="goBack()">&larr; Change last answer</button>
             <button class="btn btn-secondary" onclick="copySummary()">Copy summary</button>
           </div>`;
       $app.innerHTML = `
+        ${back}
         <article>
-          <span class="result-badge ${node.badgeClass}">${escapeHtml(node.badge)}</span>
-          <h3 class="result-title">${escapeHtml(node.title)}</h3>
-          <p class="result-sub">${escapeHtml(node.sub)}</p>
+          <div class="result-hero ${node.badgeClass || ""}">
+            <span class="result-badge ${node.badgeClass}">${escapeHtml(node.badge)}</span>
+            <h3 class="result-title">${escapeHtml(node.title)}</h3>
+            <p class="result-sub">${escapeHtml(node.sub)}</p>
+          </div>
+
+          ${whyHtml}
 
           <div class="result-section">
             <h3>What to do</h3>
@@ -2415,8 +2520,6 @@
           </div>` : ""}
 
           ${actionsHtml}
-
-          ${renderPathTrail()}
         </article>
       `;
     }
@@ -2463,16 +2566,27 @@
       return completed + 1;
     }
 
-    function renderPathTrail() {
+    function renderWhyTrail() {
       if (state.history.length === 0) return "";
       const items = state.history.map(h => {
         if (h.kind === "choice") {
-          return `<li>${escapeHtml(h.questionText)} &mdash; <span class="ans-yes">${escapeHtml(h.answer)}</span></li>`;
+          return `<li><span class="why-q">${escapeHtml(h.questionText)}</span><span class="why-a why-a--choice">${escapeHtml(h.answer)}</span></li>`;
         }
-        const cls = h.answer === "yes" ? "ans-yes" : "ans-no";
-        return `<li>${escapeHtml(h.questionText)} &mdash; <span class="${cls}">${String(h.answer).toUpperCase()}</span></li>`;
-      }).join("");
-      return `<div class="path-trail"><strong>Your answers</strong><ol>${items}</ol></div>`;
+        // Skip lightweight info / nav / result-jump trail entries — they aren't
+        // decisions and would just add noise to "why you got this result".
+        if (h.kind === "info" || h.kind === "nav" || h.kind === "result-jump") {
+          return "";
+        }
+        const label = h.answer === "yes" ? "Yes" : "No";
+        const cls   = h.answer === "yes" ? "why-a--yes" : "why-a--no";
+        return `<li><span class="why-q">${escapeHtml(h.questionText)}</span><span class="why-a ${cls}">${label}</span></li>`;
+      }).filter(s => s).join("");
+      if (!items) return "";
+      return `<div class="result-section result-why">
+        <h3>Why you got this result</h3>
+        <p class="result-why__intro">Based on the answers you gave:</p>
+        <ul class="result-why__list">${items}</ul>
+      </div>`;
     }
 
     function tenantHint(node, tenant) {
@@ -2831,7 +2945,8 @@
 
     // "Start the assessment" hero CTA: jump straight into the profile picker
     // (the actual walkthrough) and focus the first choice so keyboard users can
-    // hit Enter or `1` immediately. The href="#assessment" handles the scroll.
+    // hit Enter or `1` immediately. The href="#start" triggers the hashchange
+    // listener below which puts the body into dedicated-assessment mode.
     const startCta = document.getElementById("startCta");
     if (startCta) {
       startCta.addEventListener("click", () => {
@@ -2846,6 +2961,35 @@
           const focusTarget = $app.querySelector(".choice--primary, .btn-yes, .choice");
           if (focusTarget) focusTarget.focus({ preventScroll: true });
         }, 350);
+      });
+    }
+
+    // Dedicated-assessment view: hide the marketing sections via a body class
+    // when the URL fragment is `#start` (or the legacy `#assessment`). The
+    // Back-to-overview button clears the fragment to return to the full page.
+    function setAssessmentMode(on) {
+      const wasOn = document.body.classList.contains("is-assessing");
+      document.body.classList.toggle("is-assessing", on);
+      if (on && !wasOn) {
+        // Scroll to top so the assessment fills the viewport, not the previous
+        // scroll offset from the marketing page.
+        window.scrollTo({ top: 0, behavior: "auto" });
+      }
+    }
+    function handleAssessmentFragment() {
+      const h = location.hash;
+      setAssessmentMode(h === "#start" || h === "#assessment");
+    }
+    window.addEventListener("hashchange", handleAssessmentFragment);
+    handleAssessmentFragment(); // honour the fragment on initial page load
+
+    const backToOverview = document.getElementById("backToOverview");
+    if (backToOverview) {
+      backToOverview.addEventListener("click", () => {
+        // Drop the fragment without firing hashchange (we exit mode manually).
+        history.pushState({}, "", location.pathname + location.search);
+        setAssessmentMode(false);
+        window.scrollTo({ top: 0, behavior: "smooth" });
       });
     }
 
