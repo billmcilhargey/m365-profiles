@@ -808,6 +808,24 @@
       font-size: 14px;
       margin: 0 0 24px;
     }
+    .question-help--link {
+      margin: -16px 0 24px;
+    }
+    .question-help__link {
+      background: none;
+      border: 0;
+      padding: 0;
+      font: inherit;
+      color: var(--ms-blue);
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .question-help__link:hover,
+    .question-help__link:focus-visible { color: var(--ms-blue-darker); outline: none; }
+    [data-theme="dark"] .question-help__link { color: #8ec5ff; }
+    [data-theme="dark"] .question-help__link:hover,
+    [data-theme="dark"] .question-help__link:focus-visible { color: #b8d6ff; }
 
     .question-context {
       margin: 0 0 22px;
@@ -1867,7 +1885,8 @@
         choice: true,
         eyebrow: "Setup · Step 2 · Identity profile",
         question: "Which Microsoft 365 profile are you licensing?",
-        help: "Pick the persona that best describes the identity. Each path uses Microsoft Learn and m365maps.com sources to recommend a license. If unsure, choose \"What's the difference?\" for the privileged-admin background.",
+        help: "Pick the persona that best describes the identity. Each path uses Microsoft Learn and m365maps.com sources to recommend a license.",
+        helpLink: { label: "Background — what counts as a privileged admin account", target: "info_privileged_admins" },
         choices: [
           {
             label: "Privileged (dedicated) admin account",
@@ -1933,11 +1952,11 @@
             target: "result_profile_external_id"
           },
           {
-            label: "What's the difference?",
-            sublabel: "Show me why privileged admin accounts matter and what counts as one.",
-            icon: "?",
+            label: "Don't see your scenario? Suggest one",
+            sublabel: "Opens a new GitHub issue — tell us the role / persona / SKU pattern we're missing and we'll add it to the tree.",
+            icon: "+",
             tone: "ghost",
-            target: "info_privileged_admins"
+            href: "https://github.com/billmcilhargey/m365-profiles/issues/new?labels=missing-profile&title=Missing%20profile%3A%20%5Bdescribe%20role%20%2F%20persona%5D&body=Profile%20%2F%20persona%3A%0A%0AWhy%20the%20current%20decision%20tree%20didn%27t%20fit%3A%0A%0ASuggested%20SKU%28s%29%20%28optional%29%3A%0A%0AReference%20%28Microsoft%20Learn%20%2F%20m365maps%20URL%29%3A"
           }
         ]
       },
@@ -2737,21 +2756,29 @@
 
     function renderChoice(node) {
       const back = backButton();
-      const items = (node.choices || []).map((c, i) => `
-        <button class="choice ${c.tone ? "choice--" + c.tone : ""}" onclick="choose(${i})" aria-label="${escapeAttr(c.label)}">
+      const items = (node.choices || []).map((c, i) => {
+        const inner = `
           <span class="choice__icon">${escapeHtml(c.icon || String(i + 1))}</span>
           <span class="choice__text">
             <span class="choice__label">${escapeHtml(c.label)}</span>
             ${c.sublabel ? `<span class="choice__sub">${escapeHtml(c.sublabel)}</span>` : ""}
           </span>
-          <span class="choice__key" aria-hidden="true">${i + 1}</span>
-        </button>
-      `).join("");
+          <span class="choice__key" aria-hidden="true">${c.href ? "\u2197" : i + 1}</span>
+        `;
+        if (c.href) {
+          return `<a class="choice ${c.tone ? "choice--" + c.tone : ""}" href="${escapeAttr(c.href)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeAttr(c.label)} (opens in a new tab)">${inner}</a>`;
+        }
+        return `<button class="choice ${c.tone ? "choice--" + c.tone : ""}" onclick="choose(${i})" aria-label="${escapeAttr(c.label)}">${inner}</button>`;
+      }).join("");
+      const helpLinkHtml = node.helpLink
+        ? `<p class="question-help question-help--link"><button type="button" class="question-help__link" onclick="goTo('${escapeAttr(node.helpLink.target)}')">${escapeHtml(node.helpLink.label)} \u2192</button></p>`
+        : "";
       $app.innerHTML = `
         ${back}
         <div class="question-eyebrow">${escapeHtml(node.eyebrow || "Setup")}</div>
         <h3 class="question-text">${escapeHtml(node.question)}</h3>
         ${node.help ? `<p class="question-help">${escapeHtml(node.help)}</p>` : ""}
+        ${helpLinkHtml}
         <div class="choices" role="group" aria-label="${escapeAttr(node.question)}">${items}</div>
       `;
     }
@@ -3181,6 +3208,11 @@
       if (!node || !node.choice) return;
       const c = (node.choices || [])[index];
       if (!c) return;
+      if (c.href) {
+        // External link: open in a new tab and leave the assessment state alone.
+        window.open(c.href, "_blank", "noopener,noreferrer");
+        return;
+      }
       state.history.push({
         id: state.currentId,
         kind: "choice",

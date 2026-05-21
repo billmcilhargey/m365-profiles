@@ -86,8 +86,19 @@ function nodeKind(node) {
  */
 function outgoingEdges(node) {
   switch (nodeKind(node)) {
-    case 'choice':
-      return (node.choices || []).map(c => ({ label: c.label, target: c.target }));
+    case 'choice': {
+      // Choices may carry an internal `target` (next node id) or an external
+      // `href` (opens in a new tab). Only internal targets count as edges.
+      const edges = (node.choices || [])
+        .filter(c => c.target)
+        .map(c => ({ label: c.label, target: c.target }));
+      // `helpLink` is an inline "Learn more →" affordance rendered below the
+      // question help text; treat it as an outgoing edge for reachability.
+      if (node.helpLink && node.helpLink.target) {
+        edges.push({ label: 'helpLink', target: node.helpLink.target });
+      }
+      return edges;
+    }
     case 'info':
     case 'result':
       // Result nodes only have edges if they define custom actions.
