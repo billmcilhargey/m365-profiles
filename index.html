@@ -1252,6 +1252,21 @@
     body.is-assessing .navbar__link:not(#nav-report) { display: none; }
     body.is-assessing #assessment { padding-top: 32px; }
 
+    /* Smooth entry into assessment mode. The CTA / navbar / skip-link click
+       handlers preventDefault on the anchor scroll and call setAssessmentMode
+       directly; this animation provides the visual transition so the swap
+       doesn't feel abrupt. Disabled under prefers-reduced-motion. */
+    body.is-assessing #assessment {
+      animation: assessmentFadeIn 220ms ease-out both;
+    }
+    @keyframes assessmentFadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      body.is-assessing #assessment { animation: none; }
+    }
+
     /* =================================================================
        Footer (dark, like Docusaurus footer--dark)
        ================================================================= */
@@ -3606,26 +3621,48 @@
       }
     });
 
-    // "Start the assessment" hero CTA: jump straight into the profile picker
-    // (the actual walkthrough) and focus the first choice so keyboard users can
-    // hit Enter or `1` immediately. The href="#start" triggers the hashchange
-    // listener below which puts the body into dedicated-assessment mode.
-    const startCta = document.getElementById("startCta");
-    if (startCta) {
-      startCta.addEventListener("click", () => {
-        // If the user has navigated past the picker, take them back to it.
-        if (state.currentId !== "start_tenant") {
-          state.currentId = "start_tenant";
-          state.history = [];
-          render();
-        }
-        // Delay focus until after the smooth scroll has begun so it doesn't fight the scroll.
-        setTimeout(() => {
-          const focusTarget = $app.querySelector(".choice--primary, .btn-yes, .choice");
-          if (focusTarget) focusTarget.focus({ preventScroll: true });
-        }, 350);
+    // Cross-page transition into the assessment. Used by:
+    //   - the hero "Start the assessment" CTA  (href="#start"  id="startCta")
+    //   - the navbar "Assessment" link          (href="#assessment")
+    //   - the screen-reader skip-link          (href="#assessment")
+    // Previously each of these used the browser's default anchor behaviour,
+    // which smoothly scrolled to the assessment section and then immediately
+    // got snapped back to the top by setAssessmentMode — a jarring visible
+    // jump. Now we preventDefault, push the #start fragment via History API
+    // (so back/forward still works) and switch into assessment mode directly,
+    // letting the CSS fade-in handle the visual transition.
+    function enterAssessment() {
+      // If the user has navigated past the picker, take them back to it so
+      // every entry into the assessment starts from a clean state.
+      if (state.currentId !== "start_tenant") {
+        state.currentId = "start_tenant";
+        state.history = [];
+        render();
+      }
+      // pushState updates the URL without firing hashchange and without
+      // triggering the browser's scroll-to-anchor for #assessment.
+      if (location.hash !== "#start") {
+        history.pushState({}, "", location.pathname + location.search + "#start");
+      }
+      setAssessmentMode(true);
+      // Focus the first interactive choice once layout settles so keyboard
+      // users can hit Enter / 1 immediately.
+      requestAnimationFrame(() => {
+        const focusTarget = $app && $app.querySelector(".choice--primary, .btn-yes, .choice");
+        if (focusTarget) focusTarget.focus({ preventScroll: true });
       });
     }
+
+    // Delegated click handler for every link that should enter assessment
+    // mode. Lets Ctrl/Cmd/Shift/Alt+click keep their normal new-tab behaviour.
+    document.addEventListener("click", (e) => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      if (e.button !== undefined && e.button !== 0) return;
+      const link = e.target.closest("a[href='#start'], a[href='#assessment']");
+      if (!link) return;
+      e.preventDefault();
+      enterAssessment();
+    });
 
     // Dedicated-assessment view: hide the marketing sections via a body class
     // when the URL fragment is `#start` (or the legacy `#assessment`). The
