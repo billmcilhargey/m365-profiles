@@ -2111,27 +2111,34 @@
           { label: "← Back to account-scope choice", target: "start_choice", tone: "secondary" }
         ]
       },
+      // result_primary_account was previously a fuzzy result that said
+      // "buy a base service license (E3 / Business Premium / F3) PLUS re-run
+      // the admin tree to get the premium tier." That left the user with two
+      // unanswered questions and zero specific SKUs. It is now an info node
+      // that routes through the knowledge-worker disambiguation (q_iw_security
+      // → q_iw_copilot_*) for the base SKU AND offers a second action to
+      // re-run the privileged-admin tree for any premium add-ons on top.
       result_primary_account: {
-        result: true,
-        badge: "Different licensing path",
+        info: true,
+        badge: "License needed",
         badgeClass: "badge-warning",
-        title: "Primary daily-use account — licensing rules differ",
-        sub: "Microsoft recommends not mixing privileged work with a daily-use account. If you can, create a separate privileged admin account and restart this assessment.",
-        license: "Base service license (M365 E3 / Business Premium / F3) + the premium tier from re-running this tree on a dedicated admin account",
-        decisionBasis: "You picked an account that does both daily Microsoft 365 work AND privileged admin work. Microsoft's privileged-access guidance recommends separating these roles. Because the account consumes mail / Teams / Office, a base service license is always required — on top of which any premium-tier feature it uses adds the same per-user requirements the admin tree evaluates.",
-        bullets: [
-          "Because this account consumes mail / Teams / Office, it always needs at least a base Microsoft 365 service license (E3, Business Premium, or F3 minimum).",
-          "On top of that base license, layer the highest applicable premium tier (E5 / Defender Suite / Purview Suite / Intune Suite / Teams Premium / Copilot / E7) the same way the privileged admin tree evaluates.",
-          "Strongly consider creating a dedicated privileged admin identity for the role work. The primary account keeps its standard user license; the privileged account often only needs Entra ID Free.",
-          "You can still run this tool — click 'Continue anyway' below and treat the result as the premium tier to add on top of the daily-use service license."
+        title: "Daily-use account that also holds admin roles",
+        sub: "Microsoft recommends splitting daily-use and admin work into separate identities, but if this one account does both, it needs a base end-user license AND any premium tier the admin work requires.",
+        paragraphs: [
+          "Microsoft's privileged-access guidance is to keep daily-use and admin identities separate. A dedicated admin-only account usually only needs Entra ID Free — far cheaper than a full user license. That separation is a future improvement; right now this single account is doing both jobs.",
+          "Because the account reads mail / joins Teams / edits Office docs, it always needs a per-user base service license. The next two quick questions narrow that down to a specific SKU (Microsoft 365 E3, E3 + Copilot, E5, or E7).",
+          "On top of that base SKU, the same account also needs any premium tier the admin work requires (Defender Suite, Purview, Intune Suite, PIM via Entra ID P2, Entra Suite, Teams Premium, Copilot, etc.). After this run, optionally re-run the tree as a privileged-admin profile to identify those add-ons — then layer them on top of the base SKU you get here.",
+          "Tenant-baseline mapping: if your tenant is Business Premium, Frontline, Education, Government, or Nonprofit, the E3 / E5 / E7 answer maps directly to your equivalent SKU (Business Premium ≈ E3, A3 ≈ E3, A5 ≈ E5, G3 ≈ E3, G5 ≈ E5, NSP E3 ≈ E3, NSP E5 ≈ E5)."
         ],
         docs: [
           ["Why separate admin accounts matter", "https://learn.microsoft.com/entra/identity/role-based-access-control/best-practices"],
-          ["Securing privileged access", "https://learn.microsoft.com/security/privileged-access-workgroup/overview"]
+          ["Securing privileged access — overview", "https://learn.microsoft.com/security/privileged-access-workgroup/overview"],
+          ["Compare Microsoft 365 Enterprise plans", "https://www.microsoft.com/microsoft-365/enterprise/microsoft365-plans-and-pricing"]
         ],
         actions: [
-          { label: "Continue anyway → run the tree", target: "start", tone: "primary" },
-          { label: "← Back to intro", target: "start_choice", tone: "secondary" }
+          { label: "Find the base service license →", target: "q_iw_security", tone: "primary" },
+          { label: "Run the privileged-admin add-on tree →", target: "start", tone: "secondary" },
+          { label: "← Back to account-scope choice", target: "start_choice", tone: "secondary" }
         ]
       },
       start: {
@@ -2454,7 +2461,62 @@
           ["M365 Maps — Intune Suite", "https://m365maps.com/Microsoft%20Intune%20Suite.htm"]
         ],
         yes: "result_intune_suite_full",
-        no: "result_intune_standalone"
+        no: "q_intune_which_one"
+      },
+      // q_intune_which_one — disambiguation when the user needs exactly ONE
+      // Intune premium feature. The previous tree dead-ended at a fuzzy
+      // "pick the matching standalone" result; this choice node forces a
+      // specific feature pick so we can name the exact standalone SKU.
+      q_intune_which_one: {
+        choice: true,
+        step: { major: 4, sub: 5, subTotal: 5, label: "Premium service features" },
+        question: "Which Intune premium feature does this user need?",
+        help: "Pick the one feature in scope. Each option maps to a specific Microsoft Intune standalone add-on SKU. If two or more apply to the same user, go back and answer 'Yes' to the previous question — the Intune Suite bundles all six.",
+        choices: [
+          {
+            label: "Endpoint Privilege Management (EPM)",
+            sublabel: "Lets standard users elevate approved apps without local admin rights.",
+            icon: "1",
+            tone: "primary",
+            target: "result_intune_epm"
+          },
+          {
+            label: "Remote Help",
+            sublabel: "Cloud-managed, secure remote-control / view-only support sessions from the Intune admin center.",
+            icon: "2",
+            tone: "primary",
+            target: "result_intune_remote_help"
+          },
+          {
+            label: "Microsoft Tunnel for MAM",
+            sublabel: "Per-app VPN for unmanaged iOS / Android devices in Mobile Application Management.",
+            icon: "3",
+            tone: "primary",
+            target: "result_intune_tunnel"
+          },
+          {
+            label: "Microsoft Cloud PKI",
+            sublabel: "Managed cloud PKI service issuing device / user certificates to Intune-managed endpoints.",
+            icon: "4",
+            tone: "primary",
+            target: "result_intune_cloud_pki"
+          },
+          {
+            label: "Enterprise App Management",
+            sublabel: "Catalog of pre-packaged Win32 apps with auto-update detection in the Intune admin center.",
+            icon: "5",
+            tone: "primary",
+            target: "result_intune_eam"
+          },
+          {
+            label: "Advanced Endpoint Analytics",
+            sublabel: "Anomaly detection, device timeline, and proactive remediation scripts beyond base Endpoint Analytics.",
+            icon: "6",
+            tone: "primary",
+            target: "result_intune_aea"
+          },
+          { label: "← Back to feature-count question", icon: "\u2190", tone: "ghost", target: "q_intune_breadth" }
+        ]
       },
       q_p2_bundle_check: {
         step: { major: 5, sub: 1, subTotal: 4, label: "Premium identity features" },
@@ -2967,23 +3029,126 @@
           ["M365 Maps — Intune Suite", "https://m365maps.com/Microsoft%20Intune%20Suite.htm"]
         ]
       },
-      result_intune_standalone: {
+      // Per-feature Intune standalone result nodes — reached from
+      // q_intune_which_one. Each gives a specific SKU and the rationale for
+      // why a standalone is the cheaper path than the full Intune Suite.
+      result_intune_epm: {
         result: true,
-        badge: "Intune standalone add-on",
+        badge: "Intune EPM standalone",
         badgeClass: "badge-info",
-        title: "Single Intune standalone add-on",
-        sub: "Cheapest path when you only need ONE of the Intune premium features.",
-        license: "One Microsoft Intune standalone add-on, per user — match the SKU to the single feature in use",
-        decisionBasis: "You answered Yes to using Intune premium features, but only ONE of them. The matching standalone add-on (EPM standalone, Remote Help standalone, Cloud PKI standalone, etc.) is cheaper than the full Intune Suite.",
+        title: "Microsoft Intune Endpoint Privilege Management standalone",
+        sub: "Cheapest path when EPM is the only Intune premium feature this user needs.",
+        license: "Microsoft Intune Endpoint Privilege Management (EPM) standalone add-on, per user",
+        decisionBasis: "You answered Yes to needing Intune premium features, scoped down to exactly one (EPM). The EPM standalone add-on is cheaper than the full Intune Suite when no other premium Intune feature is in play.",
         bullets: [
-          "Pick the standalone matching your feature: Endpoint Privilege Management standalone, Remote Help standalone, Cloud PKI standalone, Microsoft Tunnel for MAM standalone, Enterprise App Management standalone, or Advanced Endpoint Analytics standalone.",
-          "If a second premium feature later comes into scope for the same user, the Intune Suite typically becomes the cheaper path — re-evaluate when adopting any second feature.",
-          "Base Intune is already included in M365 E3 / E5 / E7 / Business Premium / F3 — the standalone is purely the per-user uplift for that one premium capability.",
-          "Standalones do NOT include Entra ID P2 — license separately if those admins are also in PIM."
+          "EPM lets standard users elevate approved applications without holding local admin rights — reduces standing-admin attack surface on Windows endpoints.",
+          "Base Intune (device management, app deployment, configuration profiles, compliance) is already included in M365 E3 / E5 / E7 / Business Premium / F3 — EPM standalone is the per-user uplift for elevation.",
+          "If a second Intune premium feature (Remote Help, Tunnel for MAM, Cloud PKI, Enterprise App Management, Advanced Endpoint Analytics) later comes into scope for the same user, the Intune Suite becomes the cheaper path — re-evaluate.",
+          "Standalone add-ons do NOT include Entra ID P2 — license separately if these admins are also in PIM."
         ],
         docs: [
-          ["Microsoft Intune Suite & add-ons", "https://learn.microsoft.com/mem/intune/fundamentals/intune-add-ons"],
-          ["M365 Maps — Intune Suite", "https://m365maps.com/Microsoft%20Intune%20Suite.htm"]
+          ["Endpoint Privilege Management overview", "https://learn.microsoft.com/mem/intune/protect/epm-overview"],
+          ["Microsoft Intune Suite & add-ons", "https://learn.microsoft.com/mem/intune/fundamentals/intune-add-ons"]
+        ]
+      },
+      result_intune_remote_help: {
+        result: true,
+        badge: "Intune Remote Help standalone",
+        badgeClass: "badge-info",
+        title: "Microsoft Intune Remote Help standalone",
+        sub: "Cheapest path when Remote Help is the only Intune premium feature this user needs.",
+        license: "Microsoft Intune Remote Help standalone add-on, per user (helpdesk technicians AND end users in scope of assistance sessions)",
+        decisionBasis: "You answered Yes to needing Intune premium features, scoped down to exactly one (Remote Help). The Remote Help standalone add-on is cheaper than the full Intune Suite when no other premium Intune feature is in play.",
+        bullets: [
+          "Remote Help delivers secure, cloud-managed remote-control and view-only support sessions launched from the Intune admin center, with full audit trail.",
+          "License every helpdesk technician who provides assistance AND every end user who receives assistance — Microsoft licenses both sides of the session.",
+          "Base Intune is already included in M365 E3 / E5 / E7 / Business Premium / F3 — Remote Help standalone is the per-user uplift for the assistance capability.",
+          "If a second Intune premium feature later comes into scope for the same user, the Intune Suite becomes the cheaper path — re-evaluate.",
+          "Standalone add-ons do NOT include Entra ID P2 — license separately if these admins are also in PIM."
+        ],
+        docs: [
+          ["Remote Help overview", "https://learn.microsoft.com/mem/intune/fundamentals/remote-help"],
+          ["Microsoft Intune Suite & add-ons", "https://learn.microsoft.com/mem/intune/fundamentals/intune-add-ons"]
+        ]
+      },
+      result_intune_tunnel: {
+        result: true,
+        badge: "Tunnel for MAM standalone",
+        badgeClass: "badge-info",
+        title: "Microsoft Tunnel for MAM standalone",
+        sub: "Cheapest path when Microsoft Tunnel for MAM is the only Intune premium feature this user needs.",
+        license: "Microsoft Tunnel for Mobile Application Management (MAM) standalone add-on, per user",
+        decisionBasis: "You answered Yes to needing Intune premium features, scoped down to exactly one (Tunnel for MAM). The Tunnel for MAM standalone add-on is cheaper than the full Intune Suite when no other premium Intune feature is in play.",
+        bullets: [
+          "Microsoft Tunnel for MAM provides per-app VPN access on unmanaged iOS / Android devices — typically used for BYOD scenarios where MDM enrollment is not in scope.",
+          "Base Microsoft Tunnel (for enrolled MDM devices) is already included in base Intune — only the MAM variant requires this standalone add-on.",
+          "Base Intune is already included in M365 E3 / E5 / E7 / Business Premium / F3 — Tunnel for MAM standalone is the per-user uplift for the unmanaged-device VPN capability.",
+          "If a second Intune premium feature later comes into scope for the same user, the Intune Suite becomes the cheaper path — re-evaluate.",
+          "Standalone add-ons do NOT include Entra ID P2 — license separately if these admins are also in PIM."
+        ],
+        docs: [
+          ["Microsoft Tunnel for MAM", "https://learn.microsoft.com/mem/intune/protect/microsoft-tunnel-mam"],
+          ["Microsoft Intune Suite & add-ons", "https://learn.microsoft.com/mem/intune/fundamentals/intune-add-ons"]
+        ]
+      },
+      result_intune_cloud_pki: {
+        result: true,
+        badge: "Cloud PKI standalone",
+        badgeClass: "badge-info",
+        title: "Microsoft Cloud PKI standalone",
+        sub: "Cheapest path when Cloud PKI is the only Intune premium feature this user needs.",
+        license: "Microsoft Cloud PKI standalone add-on, per user",
+        decisionBasis: "You answered Yes to needing Intune premium features, scoped down to exactly one (Cloud PKI). The Cloud PKI standalone add-on is cheaper than the full Intune Suite when no other premium Intune feature is in play.",
+        bullets: [
+          "Microsoft Cloud PKI is a managed cloud PKI service that issues device and user certificates to Intune-managed endpoints — removes the need to run on-prem AD CS for certificate-based authentication.",
+          "Issues certificates for Wi-Fi, VPN, SCEP, and 802.1X scenarios; integrates with Intune SCEP / PKCS profile policies.",
+          "Base Intune is already included in M365 E3 / E5 / E7 / Business Premium / F3 — Cloud PKI standalone is the per-user uplift for the managed PKI service.",
+          "If a second Intune premium feature later comes into scope for the same user, the Intune Suite becomes the cheaper path — re-evaluate.",
+          "Standalone add-ons do NOT include Entra ID P2 — license separately if these admins are also in PIM."
+        ],
+        docs: [
+          ["Microsoft Cloud PKI overview", "https://learn.microsoft.com/mem/intune/protect/microsoft-cloud-pki-overview"],
+          ["Microsoft Intune Suite & add-ons", "https://learn.microsoft.com/mem/intune/fundamentals/intune-add-ons"]
+        ]
+      },
+      result_intune_eam: {
+        result: true,
+        badge: "Enterprise App Mgmt standalone",
+        badgeClass: "badge-info",
+        title: "Microsoft Intune Enterprise App Management standalone",
+        sub: "Cheapest path when Enterprise App Management is the only Intune premium feature this user needs.",
+        license: "Microsoft Intune Enterprise App Management standalone add-on, per user",
+        decisionBasis: "You answered Yes to needing Intune premium features, scoped down to exactly one (Enterprise App Management). The Enterprise App Management standalone add-on is cheaper than the full Intune Suite when no other premium Intune feature is in play.",
+        bullets: [
+          "Enterprise App Management provides a curated catalog of pre-packaged Win32 apps with built-in auto-update detection — removes the need to manually repackage and re-deploy each vendor update.",
+          "Catalog apps are deployed via standard Intune Win32 app workflow; only the discovery / packaging / update-detection automation requires the standalone add-on.",
+          "Base Intune is already included in M365 E3 / E5 / E7 / Business Premium / F3 — Enterprise App Management standalone is the per-user uplift for the catalog automation.",
+          "If a second Intune premium feature later comes into scope for the same user, the Intune Suite becomes the cheaper path — re-evaluate.",
+          "Standalone add-ons do NOT include Entra ID P2 — license separately if these admins are also in PIM."
+        ],
+        docs: [
+          ["Enterprise App Management overview", "https://learn.microsoft.com/mem/intune/apps/apps-enterprise-app-management"],
+          ["Microsoft Intune Suite & add-ons", "https://learn.microsoft.com/mem/intune/fundamentals/intune-add-ons"]
+        ]
+      },
+      result_intune_aea: {
+        result: true,
+        badge: "Advanced Endpoint Analytics standalone",
+        badgeClass: "badge-info",
+        title: "Microsoft Intune Advanced Endpoint Analytics standalone",
+        sub: "Cheapest path when Advanced Endpoint Analytics is the only Intune premium feature this user needs.",
+        license: "Microsoft Intune Advanced Endpoint Analytics standalone add-on, per user",
+        decisionBasis: "You answered Yes to needing Intune premium features, scoped down to exactly one (Advanced Endpoint Analytics). The Advanced Endpoint Analytics standalone add-on is cheaper than the full Intune Suite when no other premium Intune feature is in play.",
+        bullets: [
+          "Advanced Endpoint Analytics adds anomaly detection, per-device timeline, and proactive remediation scripts on top of the base Endpoint Analytics reporting included in Intune.",
+          "Useful for proactive support — surfaces battery / boot / app reliability anomalies before users open tickets.",
+          "Base Intune is already included in M365 E3 / E5 / E7 / Business Premium / F3 — Advanced Endpoint Analytics standalone is the per-user uplift for the anomaly / remediation features.",
+          "If a second Intune premium feature later comes into scope for the same user, the Intune Suite becomes the cheaper path — re-evaluate.",
+          "Standalone add-ons do NOT include Entra ID P2 — license separately if these admins are also in PIM."
+        ],
+        docs: [
+          ["Advanced Endpoint Analytics", "https://learn.microsoft.com/mem/analytics/advanced-endpoint-analytics"],
+          ["Microsoft Intune Suite & add-ons", "https://learn.microsoft.com/mem/intune/fundamentals/intune-add-ons"]
         ]
       },
       result_p2_standalone: {
