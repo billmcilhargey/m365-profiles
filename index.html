@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>M365 Profiles — Microsoft 365 Licensing Decision Tree</title>
   <meta name="description" content="Interactive decision tree that matches a Microsoft 365 identity profile — privileged admin, information / knowledge worker, frontline (F1/F3), education (A1/A3/A5), government (GCC/GCC High/DoD), nonprofit, SMB, or External ID guest — to the right license: Entra ID Free / P1 / P2, Governance, Entra Suite, M365 E3/E5/Business Premium/F1/F3/A1/A3/A5/G3/G5, Defender Suite, Purview Suite, Intune Suite, Teams Premium, M365 Copilot, or M365 E7 (Frontier Suite)." />
+  <meta name="author" content="Dr. Bill Mcilhargey" />
+  <meta name="copyright" content="© 2026 Dr. Bill Mcilhargey · MIT Licensed" />
   <meta name="theme-color" content="#0078d4" />
   <meta name="color-scheme" content="light dark" />
 
@@ -1805,7 +1807,7 @@
         </div>
       </div>
       <div class="footer__bottom">
-        <span>&copy; 2026 Bill McIlhargey · MIT Licensed · <strong>Independent community helper — not affiliated with Microsoft, not official Microsoft guidance.</strong></span>
+        <span>&copy; 2026 Dr. Bill Mcilhargey · MIT Licensed · <strong>Independent community helper — not affiliated with Microsoft, not official Microsoft guidance.</strong></span>
         <span>Built as guidance. Verify licensing with your Microsoft account team.</span>
         <span class="footer__version">Release <a id="release-version" href="https://github.com/billmcilhargey/m365-profiles/releases/tag/__RELEASE_VERSION__" target="_blank" rel="noopener">__RELEASE_VERSION__</a></span>
       </div>
@@ -4481,8 +4483,22 @@
       const fontReg   = reserve();
       const fontBold  = reserve();
       const fontItal  = reserve();
+      const infoId    = reserve();
+
+      // Document Properties (shown in viewers like Acrobat / Preview).
+      // Pulled from `meta` so each downloaded report carries the right
+      // title; author / creator / producer are constant across reports.
+      const infoTitle    = meta && meta.docTitle   ? meta.docTitle   : "Microsoft 365 Licensing Recommendation";
+      const infoAuthor   = meta && meta.docAuthor  ? meta.docAuthor  : "Dr. Bill Mcilhargey";
+      const infoSubject  = meta && meta.docSubject ? meta.docSubject : "Independent Microsoft 365 licensing recommendation";
+      const infoCreator  = meta && meta.docCreator ? meta.docCreator : "M365 Profiles - community decision tree";
+      const infoProducer = "M365 Profiles (https://billmcilhargey.github.io/m365-profiles/)";
+      const now = new Date();
+      const pad = n => String(n).padStart(2, "0");
+      const infoDate = `D:${now.getUTCFullYear()}${pad(now.getUTCMonth() + 1)}${pad(now.getUTCDate())}${pad(now.getUTCHours())}${pad(now.getUTCMinutes())}${pad(now.getUTCSeconds())}Z`;
 
       set(catalogId, `<< /Type /Catalog /Pages ${pagesId} 0 R >>`);
+      set(infoId, `<< /Title (${pdfEscapeString(infoTitle)}) /Author (${pdfEscapeString(infoAuthor)}) /Subject (${pdfEscapeString(infoSubject)}) /Creator (${pdfEscapeString(infoCreator)}) /Producer (${pdfEscapeString(infoProducer)}) /CreationDate (${infoDate}) /ModDate (${infoDate}) >>`);
       set(fontReg,  `<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>`);
       set(fontBold, `<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>`);
       set(fontItal, `<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Oblique /Encoding /WinAnsiEncoding >>`);
@@ -4542,7 +4558,7 @@
         xref += `${String(offsets[i]).padStart(10, "0")} 00000 n \n`;
       }
       parts.push(xref);
-      parts.push(`trailer\n<< /Size ${objects.length + 1} /Root ${catalogId} 0 R >>\nstartxref\n${xrefStart}\n%%EOF\n`);
+      parts.push(`trailer\n<< /Size ${objects.length + 1} /Root ${catalogId} 0 R /Info ${infoId} 0 R >>\nstartxref\n${xrefStart}\n%%EOF\n`);
 
       // Pack as Latin-1 bytes. Every character we emit is < 0x100 (header
       // binary marker uses 0xC2 0xC5; literal-string content uses ASCII

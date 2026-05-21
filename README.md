@@ -193,4 +193,4 @@ current node id and step.
 
 ## License
 
-[MIT](LICENSE) © 2026 Bill McIlhargey
+[MIT](LICENSE) © 2026 Dr. Bill Mcilhargey
