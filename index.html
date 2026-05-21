@@ -554,6 +554,112 @@
     }
 
     /* =================================================================
+       Profile cards grid ("Profiles supported today" section)
+       ================================================================= */
+    .profile-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+    }
+    .profile-card {
+      background: white;
+      border: 1px solid var(--ms-border);
+      border-radius: 10px;
+      padding: 18px 20px;
+      box-shadow: var(--card-shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .profile-card--warn { border-left: 4px solid #c8842c; }
+    .profile-card__head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .profile-card__icon { font-size: 22px; }
+    .profile-card h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--ms-text);
+    }
+    .profile-card p {
+      margin: 0;
+      font-size: 13.5px;
+      color: var(--ms-text-soft);
+      line-height: 1.55;
+    }
+    .profile-status {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 3px 8px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .profile-status--full    { background: #dff6dd; color: #107c10; }
+    .profile-status--curated { background: var(--ms-blue-lighter); color: var(--ms-blue-dark); }
+    .profile-status--warn    { background: #fef0c7; color: #8a4b00; }
+    [data-theme="dark"] .profile-card { background: var(--ms-bg-alt); color: var(--ms-text); }
+    [data-theme="dark"] .profile-status--full    { background: #0e3a1f; color: #6fce9b; }
+    [data-theme="dark"] .profile-status--curated { background: #16253a; color: #7fc3ff; }
+    [data-theme="dark"] .profile-status--warn    { background: #3a2a10; color: #f1c27d; }
+
+    /* =================================================================
+       Contribute section ("Missing a profile? Suggest a change.")
+       ================================================================= */
+    .contrib-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+    }
+    .contrib-card {
+      background: white;
+      border: 1px solid var(--ms-border);
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: var(--card-shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .contrib-card h3 { margin: 0; font-size: 16px; font-weight: 700; color: var(--ms-text); }
+    .contrib-card p  { margin: 0; font-size: 14px; color: var(--ms-text-soft); line-height: 1.55; flex: 1; }
+    .contrib-card a.contrib-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      align-self: flex-start;
+      background: var(--ms-blue);
+      color: white;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      text-decoration: none;
+    }
+    .contrib-card a.contrib-btn:hover { background: var(--ms-blue-dark); }
+    .contact-list {
+      max-width: 720px;
+      margin: 24px auto 0;
+      padding: 16px 20px;
+      background: var(--ms-blue-lighter);
+      border-left: 4px solid var(--ms-blue);
+      border-radius: 6px;
+      font-size: 14px;
+      color: var(--ms-text);
+      line-height: 1.7;
+    }
+    .contact-list ul { margin: 8px 0 0; padding-left: 22px; }
+    [data-theme="dark"] .contrib-card { background: var(--ms-bg-alt); color: var(--ms-text); }
+    [data-theme="dark"] .contact-list { background: #16253a; border-left-color: #3ea6ff; color: var(--ms-text); }
+
+    /* =================================================================
        Multi-choice intro card
        ================================================================= */
     .choices {
@@ -984,11 +1090,13 @@
         <span>M365 Profiles</span>
       </a>
       <div class="navbar__links">
-        <a class="navbar__link" href="#why-privileged">Why privileged</a>
+        <a class="navbar__link" href="#why-profiles">Why profiles</a>
+        <a class="navbar__link" href="#profiles">Profiles</a>
         <a class="navbar__link" href="#assessment">Assessment</a>
         <a class="navbar__link" href="#how-it-works">How it works</a>
         <a class="navbar__link" href="#licenses">License map</a>
         <a class="navbar__link" href="#docs">Docs</a>
+        <a class="navbar__link" href="#contribute">Contribute</a>
       </div>
       <div class="navbar__right">
         <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch color theme">
@@ -1036,52 +1144,149 @@
     </header>
 
     <!-- ===================================================
-         Why privileged admin accounts? (the deepest sub-tree)
+         Why profiles? (rewritten for the multi-profile scope)
          =================================================== -->
-    <section class="section section--accent" id="why-privileged" aria-labelledby="why-privileged-title">
+    <section class="section section--accent" id="why-profiles" aria-labelledby="why-profiles-title">
       <div class="section__inner">
         <div class="section__header">
-          <div class="section__eyebrow">Why the privileged-admin path exists</div>
-          <h2 class="section__title" id="why-privileged-title">The deepest sub-tree: privileged (dedicated) admin accounts</h2>
+          <div class="section__eyebrow">Why M365 Profiles?</div>
+          <h2 class="section__title" id="why-profiles-title">Why an identity-profile decision tree?</h2>
           <p class="section__desc">
-            Microsoft's privileged access strategy is built on <strong>separation of
-            duties</strong>: a user's daily-use identity (mailbox, Teams, Office)
-            and their administrative identity should be <em>two different accounts</em>.
-            Of M365 Profiles' eight identity paths, the privileged-admin path is
-            the most license-sensitive — and the only one fully built out as a 12-step Yes/No tree.
+            Microsoft 365 ships 30+ SKUs across the Enterprise (E), Business (Bus),
+            Frontline (F), Education (A), Government (G), and Nonprofit families —
+            plus Entra ID tiers, Defender / Purview / Intune suites, Teams Premium,
+            M365 Copilot, M365 E7, and the External ID MAU model.
+            <strong>Which one this identity needs depends on <em>who that identity is</em>,</strong>
+            not just what features are nice to have. Picking the wrong SKU is a
+            real cost / compliance risk — especially for eligibility-gated tiers.
           </p>
         </div>
         <div class="why-grid">
           <div class="why-card">
-            <div class="why-card__icon" aria-hidden="true">🛡️</div>
-            <h3>Smaller blast radius</h3>
-            <p>If a daily mailbox is phished, the attacker doesn't automatically get Global Admin. The admin account is a separate identity, sitting behind separate sign-in protections (FIDO2, PIM, risk-based CA).</p>
+            <div class="why-card__icon" aria-hidden="true">🎯</div>
+            <h3>One SKU per persona</h3>
+            <p>A privileged admin, a frontline shift worker, a faculty member, and a guest partner all need <em>different</em> Microsoft 365 licenses — sometimes none at all. The right answer changes the per-month cost by 10× or more.</p>
           </div>
           <div class="why-card">
-            <div class="why-card__icon" aria-hidden="true">💰</div>
-            <h3>Cheaper to license</h3>
-            <p>Most privileged admin accounts <em>never need a service license</em> — they don't have a mailbox or use Teams. <strong>Entra ID Free</strong> is enough until they enter a premium policy scope.</p>
+            <div class="why-card__icon" aria-hidden="true">🔒</div>
+            <h3>Eligibility-gated tiers</h3>
+            <p>Frontline (F1 / F3), Education (A1 / A3 / A5), Government (G1 / G3 / G5), and Nonprofit SKUs are <strong>validated by Microsoft under the Product Terms</strong>. Assigning the wrong tier is an audit / compliance risk, not just a billing one.</p>
           </div>
           <div class="why-card">
             <div class="why-card__icon" aria-hidden="true">📘</div>
-            <h3>Aligned to Microsoft guidance</h3>
-            <p>"Use separate accounts for administrative privileges" is one of the top Microsoft Entra best practices and a core element of the <a href="https://learn.microsoft.com/security/privileged-access-workgroup/overview" target="_blank" rel="noopener">privileged access strategy</a>.</p>
+            <h3>Cited to the source</h3>
+            <p>Every recommendation links back to <a href="https://learn.microsoft.com/" target="_blank" rel="noopener">Microsoft Learn</a>, the <a href="https://www.microsoft.com/licensing/terms/" target="_blank" rel="noopener">Microsoft Product Terms</a>, and the <a href="https://m365maps.com/" target="_blank" rel="noopener">m365maps.com</a> visualisations. You can verify every answer in seconds.</p>
           </div>
         </div>
         <div class="why-callout" role="note">
-          <strong>What counts as a privileged admin account?</strong>
-          A separate cloud-only identity (typically <code>admin-firstname@tenant.onmicrosoft.com</code>)
-          that is used <em>only</em> for privileged work — Global Admin, Privileged
-          Role Admin, Identity Admin, Security Admin, Compliance Admin, Intune Admin,
-          Teams Admin, Exchange Admin, etc. It has no mailbox to phish, no Teams
-          chats, and no Office apps — so most of the time it doesn't consume a
-          Microsoft 365 service license at all.
+          <strong>What we mean by &ldquo;profile&rdquo;.</strong>
+          A <em>profile</em> is the identity persona attached to a Microsoft 365
+          account — not the role, not the device, not the location. The same
+          person can sit in two profiles (a daily-use information-worker account
+          <em>and</em> a separate privileged admin account), and they need
+          different licenses for each. Re-run M365 Profiles once per persona.
         </div>
         <p class="why-foot">
           Sources:
-          <a href="https://learn.microsoft.com/entra/identity/role-based-access-control/best-practices" target="_blank" rel="noopener">Microsoft Entra best practices for admin roles</a> ·
-          <a href="https://learn.microsoft.com/security/privileged-access-workgroup/overview" target="_blank" rel="noopener">Securing privileged access — overview</a> ·
-          <a href="https://learn.microsoft.com/security/privileged-access-workgroup/privileged-access-accounts" target="_blank" rel="noopener">Privileged access accounts</a>
+          <a href="https://learn.microsoft.com/entra/fundamentals/licensing" target="_blank" rel="noopener">Microsoft Entra licensing</a> ·
+          <a href="https://www.microsoft.com/licensing/terms/" target="_blank" rel="noopener">Microsoft Product Terms</a> ·
+          <a href="https://learn.microsoft.com/office365/servicedescriptions/office-365-service-descriptions-technet-library" target="_blank" rel="noopener">Microsoft 365 service descriptions</a>
+        </p>
+      </div>
+    </section>
+
+    <!-- ===================================================
+         Profiles supported today
+         =================================================== -->
+    <section class="section" id="profiles" aria-labelledby="profiles-title">
+      <div class="section__inner">
+        <div class="section__header">
+          <div class="section__eyebrow">Coverage</div>
+          <h2 class="section__title" id="profiles-title">Profiles supported today</h2>
+          <p class="section__desc">
+            Eight identity profiles plus one warning path. The privileged-admin
+            path is the only one fully built out as a 12-step Yes/No tree — the
+            other seven land on a curated guidance screen with Microsoft Learn
+            and m365maps.com citations. Building those into full sub-trees is
+            the next milestone; <a href="#contribute">contributions welcome</a>.
+          </p>
+        </div>
+        <div class="profile-grid">
+          <div class="profile-card">
+            <div class="profile-card__head">
+              <span class="profile-card__icon" aria-hidden="true">🛡️</span>
+              <span class="profile-status profile-status--full">Full tree</span>
+            </div>
+            <h3>Privileged (dedicated) admin</h3>
+            <p>A separate cloud-only identity used <em>only</em> for privileged work — Global Admin, Identity / Security / Compliance / Intune / Teams / Exchange Admin. Entra ID Free until it crosses into PIM, ID Protection, Defender XDR, Purview E5, Intune Suite, Teams Premium, Entra Suite, Copilot, or Agent 365.</p>
+          </div>
+          <div class="profile-card profile-card--warn">
+            <div class="profile-card__head">
+              <span class="profile-card__icon" aria-hidden="true">⚠️</span>
+              <span class="profile-status profile-status--warn">Warning path</span>
+            </div>
+            <h3>Primary daily-use account with admin roles</h3>
+            <p>Same identity does mail / Teams / Office <em>and</em> privileged work. Microsoft does not recommend this. Always needs a base service license plus any premium tier the role triggers.</p>
+          </div>
+          <div class="profile-card">
+            <div class="profile-card__head">
+              <span class="profile-card__icon" aria-hidden="true">💼</span>
+              <span class="profile-status profile-status--curated">Curated guidance</span>
+            </div>
+            <h3>Information / knowledge worker</h3>
+            <p>Office / Teams / SharePoint / OneDrive / Outlook user on a managed PC. M365 E3, M365 E5, M365 Business Premium (≤ 300 seats), + Copilot, + Teams Premium, + Intune Suite, + Entra Suite, M365 E7.</p>
+          </div>
+          <div class="profile-card">
+            <div class="profile-card__head">
+              <span class="profile-card__icon" aria-hidden="true">👷</span>
+              <span class="profile-status profile-status--curated">Curated guidance</span>
+            </div>
+            <h3>Frontline worker (F1 / F3)</h3>
+            <p>Shift / deskless / field worker — retail, manufacturing, healthcare, hospitality, first responders, field engineers. Microsoft 365 F1 / F3 at a fraction of E-SKU price. <strong>Eligibility-gated</strong> under the Product Terms.</p>
+          </div>
+          <div class="profile-card">
+            <div class="profile-card__head">
+              <span class="profile-card__icon" aria-hidden="true">🎓</span>
+              <span class="profile-status profile-status--curated">Curated guidance</span>
+            </div>
+            <h3>Education — faculty / student</h3>
+            <p>Qualifying academic institution only. Microsoft 365 A1 / A3 / A5 for faculty and students — different entitlements and pricing per role. A5 Compliance / A5 Security standalone bumps available.</p>
+          </div>
+          <div class="profile-card">
+            <div class="profile-card__head">
+              <span class="profile-card__icon" aria-hidden="true">🏛️</span>
+              <span class="profile-status profile-status--curated">Curated guidance</span>
+            </div>
+            <h3>Government — GCC / GCC High / DoD</h3>
+            <p>US sovereign clouds. M365 G1 / G3 / G5 + F-tier Government. Confirm Copilot, Entra Suite, Defender XDR, Purview Premium availability — sovereign clouds lag commercial GA.</p>
+          </div>
+          <div class="profile-card">
+            <div class="profile-card__head">
+              <span class="profile-card__icon" aria-hidden="true">💝</span>
+              <span class="profile-status profile-status--curated">Curated guidance</span>
+            </div>
+            <h3>Nonprofit</h3>
+            <p>Charitable org enrolled in Microsoft Nonprofits. Business Premium grant (up to 300 seats), Nonprofit Staff Pricing on Basic / Standard / Premium / E3 / E5 / F3. Eligibility re-validated annually.</p>
+          </div>
+          <div class="profile-card">
+            <div class="profile-card__head">
+              <span class="profile-card__icon" aria-hidden="true">🏢</span>
+              <span class="profile-status profile-status--curated">Curated guidance</span>
+            </div>
+            <h3>Small / mid-size business (≤ 300 seats)</h3>
+            <p>Commercial org with no more than 300 seats. Microsoft 365 Business Basic / Standard / Premium. Hard 300-seat cap — above that you must move to Enterprise SKUs.</p>
+          </div>
+          <div class="profile-card">
+            <div class="profile-card__head">
+              <span class="profile-card__icon" aria-hidden="true">🔗</span>
+              <span class="profile-status profile-status--curated">Curated guidance</span>
+            </div>
+            <h3>External ID / B2B guest</h3>
+            <p>Partner / vendor / contractor invited as a guest. Billed by Monthly Active Users (MAU) under Entra External ID — not per-seat. First 50&nbsp;000 MAU free per tenant. Premium features (P1 / P2 / Verified ID) priced per MAU.</p>
+          </div>
+        </div>
+        <p class="why-foot">
+          Don't see your scenario? <a href="https://github.com/billmcilhargey/m365-profiles/issues/new?title=%5BProfile+request%5D+" target="_blank" rel="noopener">Request a missing profile on GitHub</a>.
         </p>
       </div>
     </section>
@@ -1204,6 +1409,50 @@
     </section>
 
     <!-- ===================================================
+         Contribute / contact
+         =================================================== -->
+    <section class="section section--alt" id="contribute" aria-labelledby="contribute-title">
+      <div class="section__inner">
+        <div class="section__header">
+          <div class="section__eyebrow">Contribute</div>
+          <h2 class="section__title" id="contribute-title">Missing a profile? Suggest a change.</h2>
+          <p class="section__desc">
+            M365 Profiles is an open-source community helper. If a profile
+            you'd like to license isn't covered, a recommendation looks wrong,
+            or wording needs to be sharper, open a GitHub issue — every input
+            improves the tree for everyone.
+          </p>
+        </div>
+        <div class="contrib-grid">
+          <div class="contrib-card">
+            <h3>Request a missing profile</h3>
+            <p>Have a Microsoft 365 identity persona that doesn't fit any of the eight profiles above? Tell us about the role, what services it consumes, and which SKU you currently assign.</p>
+            <a class="contrib-btn" href="https://github.com/billmcilhargey/m365-profiles/issues/new?title=%5BProfile+request%5D+" target="_blank" rel="noopener">Open a profile request →</a>
+          </div>
+          <div class="contrib-card">
+            <h3>Suggest a wording or rule fix</h3>
+            <p>Spotted a licensing rule that's out of date, a sovereign-cloud caveat that's wrong, or wording that's unclear? File an issue with the result page URL or the question text and we'll iterate.</p>
+            <a class="contrib-btn" href="https://github.com/billmcilhargey/m365-profiles/issues/new?title=%5BWording%2Frule%5D+" target="_blank" rel="noopener">Suggest a fix →</a>
+          </div>
+          <div class="contrib-card">
+            <h3>Contribute code or docs</h3>
+            <p>Pull requests welcome — build out a profile sub-tree, add a new tenant baseline, polish the UI, or add Microsoft Learn citations. See the README for the tree structure and lint commands.</p>
+            <a class="contrib-btn" href="https://github.com/billmcilhargey/m365-profiles/pulls" target="_blank" rel="noopener">Open a pull request →</a>
+          </div>
+        </div>
+        <div class="contact-list" role="note">
+          <strong>Contact &amp; channels</strong>
+          <ul>
+            <li><strong>GitHub Issues</strong> — <a href="https://github.com/billmcilhargey/m365-profiles/issues" target="_blank" rel="noopener">github.com/billmcilhargey/m365-profiles/issues</a> (bug reports, profile requests, wording fixes)</li>
+            <li><strong>Maintainer</strong> — <a href="https://github.com/billmcilhargey" target="_blank" rel="noopener">@billmcilhargey</a> on GitHub</li>
+            <li><strong>Security</strong> — use <a href="https://github.com/billmcilhargey/m365-profiles/security" target="_blank" rel="noopener">GitHub Private Vulnerability Reporting</a>, not a public issue (see <a href="https://github.com/billmcilhargey/m365-profiles/blob/main/SECURITY.md" target="_blank" rel="noopener">SECURITY.md</a>)</li>
+            <li><strong>Licensing accuracy questions</strong> — always verify with your Microsoft account team or CSP before purchase. This tool is an independent helper, not official Microsoft guidance.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================
          Docs / footer references
          =================================================== -->
     <section class="section" id="docs" aria-labelledby="docs-title">
@@ -1267,6 +1516,16 @@
             <li><a href="https://learn.microsoft.com/purview/insider-risk-management-configure" target="_blank" rel="noopener">Insider Risk Management</a></li>
             <li><a href="https://learn.microsoft.com/mem/intune/fundamentals/intune-add-ons" target="_blank" rel="noopener">Intune Suite</a></li>
             <li><a href="https://learn.microsoft.com/microsoftteams/teams-add-on-licensing/licensing-enhance-teams" target="_blank" rel="noopener">Teams Premium</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h4>Contact</h4>
+          <ul>
+            <li><a href="https://github.com/billmcilhargey/m365-profiles/issues" target="_blank" rel="noopener">Open an issue</a></li>
+            <li><a href="https://github.com/billmcilhargey/m365-profiles/issues/new?title=%5BProfile+request%5D+" target="_blank" rel="noopener">Request a profile</a></li>
+            <li><a href="https://github.com/billmcilhargey/m365-profiles/issues/new?title=%5BWording%2Frule%5D+" target="_blank" rel="noopener">Suggest a wording fix</a></li>
+            <li><a href="https://github.com/billmcilhargey" target="_blank" rel="noopener">Maintainer (@billmcilhargey)</a></li>
+            <li><a href="https://github.com/billmcilhargey/m365-profiles/security" target="_blank" rel="noopener">Report a vulnerability</a></li>
           </ul>
         </div>
         <div class="footer__col">
