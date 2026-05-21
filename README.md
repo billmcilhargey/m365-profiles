@@ -121,7 +121,7 @@ links every answer back to the Microsoft Learn page that justifies it.
   layers sovereign-cloud / education / nonprofit caveats where appropriate.
 - A **progress bar with step count**, back button, restart, **Copy summary**
   to clipboard, and a path trail of your answers.
-- 36 tree nodes total (12 questions, 1 profile picker, 2 info screens,
+- 35 tree nodes total (12 questions, 1 profile picker, 1 info screen,
   21 results) — every edge verified reachable by `scripts/validate-tree.js`.
 - Per-question **"How to decide quickly"** examples plus direct Microsoft
   Learn links for technical items in each question.

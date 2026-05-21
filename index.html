@@ -1285,27 +1285,6 @@
     // scripts/validate-tree.js — the `// Only question nodes` sentinel below is
     // consumed by that validator's regex; do not remove it.
     const TREE = {
-      intro_overview: {
-        info: true,
-        badge: "Before you start",
-        badgeClass: "badge-info",
-        title: "Quick scope check for this licensing assessment",
-        sub: "M365 Profiles helps you match an identity — privileged admin, information / knowledge worker, frontline worker, education, or government — to the right Microsoft 365 license.",
-        paragraphs: [
-          "This tool is an independent community helper and not official Microsoft licensing guidance. Use it to narrow the likely tier, then confirm with your Microsoft account team or CSP before purchase.",
-          "Pick the profile that best describes the identity you are licensing — privileged (dedicated) admin, primary daily-use admin, information / knowledge worker, frontline worker (F1 / F3), education (faculty / student, A1 / A3 / A5), or government (GCC / GCC High / DoD).",
-          "Best accuracy comes from evaluating one profile at a time. Re-run the tool for each persona in your tenant.",
-          "Tip: keep a dedicated break-glass account strategy separate from normal day-to-day privileged accounts, and confirm sovereign-cloud feature parity (Copilot, Entra Suite, Defender) before assuming GCC High / DoD coverage."
-        ],
-        docs: [
-          ["Microsoft Entra admin role best practices", "https://learn.microsoft.com/entra/identity/role-based-access-control/best-practices"],
-          ["Securing privileged access overview", "https://learn.microsoft.com/security/privileged-access-workgroup/overview"],
-          ["Emergency access accounts", "https://learn.microsoft.com/entra/identity/role-based-access-control/security-emergency-access"]
-        ],
-        actions: [
-          { label: "Next: choose account type →", target: "start_choice", tone: "primary" }
-        ]
-      },
       start_choice: {
         choice: true,
         eyebrow: "Setup · Identity profile",
@@ -2049,7 +2028,7 @@
     const TOTAL_STEPS = Object.values(TREE).filter(n => !n.result && !n.choice && !n.info).length;
 
     const state = {
-      currentId: "intro_overview",
+      currentId: "start_choice",
       history: []
     };
 
@@ -2612,10 +2591,18 @@
       }
     });
 
-    // Smooth-scroll the Start CTA + nudge focus into the assessment card.
+    // "Start the assessment" hero CTA: jump straight into the profile picker
+    // (the actual walkthrough) and focus the first choice so keyboard users can
+    // hit Enter or `1` immediately. The href="#assessment" handles the scroll.
     const startCta = document.getElementById("startCta");
     if (startCta) {
       startCta.addEventListener("click", () => {
+        // If the user has navigated past the picker, take them back to it.
+        if (state.currentId !== "start_choice") {
+          state.currentId = "start_choice";
+          state.history = [];
+          render();
+        }
         // Delay focus until after the smooth scroll has begun so it doesn't fight the scroll.
         setTimeout(() => {
           const focusTarget = $app.querySelector(".choice--primary, .btn-yes, .choice");
