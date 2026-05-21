@@ -2018,52 +2018,52 @@
           },
           {
             label: "Information / knowledge worker (end user)",
-            sublabel: "Office, Teams, Outlook, OneDrive, SharePoint user on a desktop or laptop. Choose between M365 E3 / E5 / Business Premium, plus Copilot / E7.",
+            sublabel: "Office, Teams, Outlook, OneDrive, SharePoint user on a desktop or laptop. Two short questions → exact E3 / E3+Copilot / E5 / E7 recommendation.",
             icon: "3",
             tone: "primary",
-            target: "result_profile_info_worker"
+            target: "q_iw_security"
           },
           {
             label: "Frontline worker (F1 / F3)",
-            sublabel: "Shift / deskless / field worker — retail, manufacturing, healthcare, hospitality. Shared device, limited mailbox, Teams-first. Must meet Microsoft's frontline eligibility criteria.",
+            sublabel: "Shift / deskless / field worker — retail, manufacturing, healthcare, hospitality. One question → F1 (no mailbox) or F3 (mailbox + mobile Office).",
             icon: "4",
             tone: "primary",
-            target: "result_profile_frontline"
+            target: "q_frontline_mailbox"
           },
           {
             label: "Education (faculty / student)",
-            sublabel: "Qualifying academic institution. A1 / A3 / A5 SKUs for faculty and students — different entitlements and pricing than commercial.",
+            sublabel: "Qualifying academic institution. Two short questions → exact A1 / A3 / A5 recommendation.",
             icon: "5",
             tone: "primary",
-            target: "result_profile_edu"
+            target: "q_edu_security"
           },
           {
-            label: "Government (GCC / GCC High / DoD)",
-            sublabel: "US public-sector sovereign clouds. Eligibility, data residency, and feature parity differ from commercial — confirm Copilot, Entra Suite, and Defender availability before buying.",
+            label: "Government (GCC / GCC High / DoD / Air-Gapped)",
+            sublabel: "US public-sector sovereign clouds. Pick a cloud + tier → exact G1 / G3 / G5 / Air-Gapped recommendation with cloud-specific caveats.",
             icon: "6",
             tone: "primary",
-            target: "result_profile_gov"
+            target: "q_gov_profile_cloud"
           },
           {
             label: "Nonprofit (validated eligibility)",
-            sublabel: "Charitable / nonprofit org enrolled in Microsoft Nonprofits. Discounted Business Premium / E3 / E5 SKUs and a limited grant tier of Business Premium per qualifying org.",
+            sublabel: "Charitable / nonprofit org enrolled in Microsoft Nonprofits. Two short questions → exact Business Premium grant / E3 NSP / E5 NSP recommendation.",
             icon: "7",
             tone: "primary",
-            target: "result_profile_nonprofit"
+            target: "q_npo_seats"
           },
           {
             label: "Small / mid-size business (≤ 300 seats)",
-            sublabel: "Commercial business with no more than 300 seats. Business Basic / Standard / Premium SKUs — hard seat cap and feature deltas vs Enterprise.",
+            sublabel: "Commercial business with no more than 300 seats. Two short questions → exact Business Basic / Standard / Premium recommendation.",
             icon: "8",
             tone: "primary",
-            target: "result_profile_smb"
+            target: "q_smb_office"
           },
           {
-            label: "External ID / B2B guest",
-            sublabel: "Partner / vendor / contractor invited as a guest. Consumes monthly active users (MAU) under Entra External ID — not a per-user license.",
+            label: "External ID / B2B guest / CIAM",
+            sublabel: "Partner / vendor / contractor / customer identity. Pick the scenario → exact MAU free / P1 / P2 / Verified ID / CIAM recommendation.",
             icon: "9",
             tone: "primary",
-            target: "result_profile_external_id"
+            target: "q_extid_features"
           },
           {
             label: "Don't see your scenario? Suggest one",
@@ -2181,7 +2181,7 @@
           ["Copilot Studio licensing concepts", "https://learn.microsoft.com/microsoft-copilot-studio/billing-licensing"],
           ["M365 E7 announcement", "https://learn.microsoft.com/partner-center/announcements/2026-may"]
         ],
-        yes: "result_copilot_e7",
+        yes: "q_copilot_e7_choice",
         no: "q_purview_e5"
       },
       q_purview_e5: {
@@ -2202,7 +2202,7 @@
           ["Purview eDiscovery licensing", "https://learn.microsoft.com/purview/ediscovery-subscription-licensing"],
           ["Audit (Premium)", "https://learn.microsoft.com/purview/audit-premium"]
         ],
-        yes: "result_e5_compliance",
+        yes: "q_purview_e5_breadth",
         no: "q_defender"
       },
       q_defender: {
@@ -2223,7 +2223,7 @@
           ["Defender for Endpoint plans", "https://learn.microsoft.com/defender-endpoint/microsoft-defender-endpoint"],
           ["Microsoft Sentinel overview", "https://learn.microsoft.com/azure/sentinel/overview"]
         ],
-        yes: "result_e5_security",
+        yes: "q_defender_breadth",
         no: "q_intune_suite"
       },
       q_intune_suite: {
@@ -2244,7 +2244,7 @@
           ["Endpoint Privilege Management overview", "https://learn.microsoft.com/mem/intune/protect/epm-overview"],
           ["Remote Help", "https://learn.microsoft.com/mem/intune/remote-actions/remote-help"]
         ],
-        yes: "result_intune_suite",
+        yes: "q_intune_breadth",
         no: "q_teams_premium"
       },
       q_teams_premium: {
@@ -2286,7 +2286,7 @@
           ["What is PIM", "https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-configure"],
           ["Access reviews", "https://learn.microsoft.com/entra/id-governance/access-reviews-overview"]
         ],
-        yes: "result_p2_pim",
+        yes: "q_p2_bundle_check",
         no: "q_identity_protection"
       },
       q_identity_protection: {
@@ -2307,7 +2307,7 @@
           ["Risk-based sign-in CA policy", "https://learn.microsoft.com/entra/identity/conditional-access/policy-risk-based-sign-in"],
           ["User-risk CA policy", "https://learn.microsoft.com/entra/identity/conditional-access/policy-risk-based-user"]
         ],
-        yes: "result_p2_idp",
+        yes: "q_p2_bundle_check",
         no: "q_id_governance"
       },
       q_id_governance: {
@@ -2374,6 +2374,312 @@
         no: "result_no_license_admin"
       },
 
+      // ---------- Admin tree disambiguation questions ----------
+      q_copilot_e7_choice: {
+        step: { major: 4, sub: 1, subTotal: 5, label: "Premium service features" },
+        question: "Will this user ALSO need Microsoft Entra Suite (Internet Access + Private Access + Verified ID) AND Agent 365 governance — all bundled in a single per-user SKU?",
+        help: "Microsoft 365 E7 (Frontier Suite, GA May 1, 2026) bundles E5 + Copilot + Entra Suite + Agent 365 in one license. The Copilot add-on layered on E3/E5 is cheaper when you only need Copilot.",
+        rationale: {
+          why: "E7 is meaningfully cheaper than stacking E5 + Copilot + Entra Suite + Agent 365 individually when all four are needed. The Copilot add-on alone is the right answer when Entra Suite and Agent 365 aren't required.",
+          yes: "buy M365 E7 — one bundled license covers all four.",
+          no: "buy the Microsoft 365 Copilot add-on layered on the existing base plan — cheaper and no base-plan change."
+        },
+        techDocs: [
+          ["Microsoft 365 E7 (Frontier Suite) announcement", "https://learn.microsoft.com/partner-center/announcements/2026-may"],
+          ["Microsoft 365 Copilot licensing", "https://learn.microsoft.com/microsoft-365/copilot/microsoft-365-copilot-licensing"],
+          ["Microsoft Entra Suite overview", "https://learn.microsoft.com/entra/fundamentals/entra-suite"]
+        ],
+        yes: "result_e7_full",
+        no: "result_copilot_addon"
+      },
+      q_purview_e5_breadth: {
+        step: { major: 4, sub: 2, subTotal: 5, label: "Premium service features" },
+        question: "Does this user ALSO need Defender XDR / Defender for Endpoint P2 / Defender for Identity / Defender for Cloud Apps (any of the Defender Suite workloads)?",
+        help: "M365 E5 bundles Purview E5 AND the Defender Suite. If you need both for the same user, full E5 is the single cheapest SKU. The E5 Compliance add-on covers ONLY Purview E5 and is cheaper when Defender XDR is not in scope.",
+        rationale: {
+          why: "Buying E5 once is usually cheaper than stacking E3 + E5 Compliance + Defender Suite. But the E5 Compliance add-on is meaningfully cheaper when only Purview is needed.",
+          yes: "the user is in scope for BOTH Purview E5 and Defender — buy full M365 E5.",
+          no: "only Purview is in scope — buy the M365 E5 Compliance add-on on the existing base."
+        },
+        techDocs: [
+          ["M365 security & compliance licensing guidance", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-365-security-compliance-licensing-guidance"],
+          ["Compare Microsoft 365 Enterprise plans", "https://www.microsoft.com/microsoft-365/enterprise/microsoft365-plans-and-pricing"],
+          ["M365 Maps — E5 Compliance comparison", "https://m365maps.com/Microsoft%20365%20E5%20Compliance.htm"]
+        ],
+        yes: "result_e5_full",
+        no: "result_e5_compliance_only"
+      },
+      q_defender_breadth: {
+        step: { major: 4, sub: 3, subTotal: 5, label: "Premium service features" },
+        question: "Does this user ALSO need Microsoft Purview E5 features (Insider Risk Management, Communication Compliance, premium eDiscovery, Audit Premium)?",
+        help: "M365 E5 bundles the Defender Suite AND Purview E5. If you need both for the same user, full E5 is the single cheapest SKU. The Defender Suite add-on (formerly E5 Security) covers ONLY Defender — cheaper when Purview E5 isn't in scope.",
+        rationale: {
+          why: "Buying E5 once is usually cheaper than stacking E3 + Defender Suite + E5 Compliance. But the Defender Suite add-on alone is meaningfully cheaper when Purview isn't in scope.",
+          yes: "the user is in scope for BOTH Defender and Purview E5 — buy full M365 E5.",
+          no: "only Defender is in scope — buy the Microsoft Defender Suite add-on on the existing base."
+        },
+        techDocs: [
+          ["M365 security & compliance licensing guidance", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-365-security-compliance-licensing-guidance"],
+          ["Microsoft Defender XDR overview", "https://learn.microsoft.com/defender-xdr/microsoft-365-defender"],
+          ["M365 Maps — E5 Security comparison", "https://m365maps.com/Microsoft%20365%20E5%20Security.htm"]
+        ],
+        yes: "result_e5_full",
+        no: "result_defender_suite_only"
+      },
+      q_intune_breadth: {
+        step: { major: 4, sub: 4, subTotal: 5, label: "Premium service features" },
+        question: "Does this user need TWO OR MORE of the Intune premium features — Endpoint Privilege Management, Remote Help, Microsoft Tunnel for MAM, Cloud PKI, Enterprise App Management, or Advanced Endpoint Analytics?",
+        help: "The Intune Suite bundles all six features and costs less than the sum of two standalone add-ons. If only ONE feature is in scope, the matching standalone add-on (EPM standalone, Remote Help standalone, etc.) is cheaper.",
+        rationale: {
+          why: "Microsoft prices the Intune Suite below the cost of stacking two standalone add-ons. A single standalone is cheaper than the Suite when only one feature is needed.",
+          yes: "buy Microsoft Intune Suite — bundle is cheaper for two or more features.",
+          no: "buy a single matching Intune standalone add-on — cheaper for one feature only."
+        },
+        techDocs: [
+          ["Microsoft Intune Suite & add-ons", "https://learn.microsoft.com/mem/intune/fundamentals/intune-add-ons"],
+          ["Endpoint Privilege Management", "https://learn.microsoft.com/mem/intune/protect/epm-overview"],
+          ["M365 Maps — Intune Suite", "https://m365maps.com/Microsoft%20Intune%20Suite.htm"]
+        ],
+        yes: "result_intune_suite_full",
+        no: "result_intune_standalone"
+      },
+      q_p2_bundle_check: {
+        step: { major: 5, sub: 1, subTotal: 4, label: "Premium identity features" },
+        question: "Are these users ALREADY on M365 E5, M365 E7, EMS E5, Microsoft Defender Suite, Microsoft Entra Suite, or Entra ID Governance — any SKU that already includes Microsoft Entra ID P2?",
+        help: "If the user already holds a SKU that includes P2, no additional purchase is needed for PIM / Identity Protection. Otherwise the cheapest path is standalone Entra ID P2.",
+        rationale: {
+          why: "Multiple Microsoft SKUs include Entra ID P2 — there is no reason to double-buy. Standalone P2 is the cheapest path only when the user isn't already on a P2-inclusive SKU.",
+          yes: "no additional purchase — verify the P2-inclusive SKU is assigned to every PIM eligible / approver / reviewer and every user in scope of risk policies.",
+          no: "buy Microsoft Entra ID P2 standalone, per user, for every admin and every approver / reviewer / risk-scoped user."
+        },
+        techDocs: [
+          ["PIM licensing fundamentals", "https://learn.microsoft.com/entra/id-governance/licensing-fundamentals#privileged-identity-management"],
+          ["M365 security & compliance licensing guidance", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-365-security-compliance-licensing-guidance"],
+          ["M365 Maps — Entra ID", "https://m365maps.com/Microsoft%20Entra%20ID.htm"]
+        ],
+        yes: "result_p2_already_included",
+        no: "result_p2_standalone"
+      },
+
+      // ---------- Profile flow disambiguation questions ----------
+      q_iw_security: {
+        step: { major: 2, sub: 1, subTotal: 2, label: "Knowledge worker tier" },
+        question: "Do these users need E5-tier security or compliance — Microsoft Defender XDR, Defender for Endpoint P2, Defender for Identity, Defender for Cloud Apps, Microsoft Purview E5 (IRM / Communication Compliance / premium eDiscovery / Audit Premium / endpoint DLP), or Entra ID P2 (PIM, Identity Protection)?",
+        help: "M365 E5 bundles all of those for one per-user price. E3 (or E3 + Copilot add-on) is the cheapest path when none of those are needed.",
+        rationale: {
+          why: "E3 is the smallest Enterprise SKU with desktop Office + Exchange + Teams + Intune + Entra ID P1. E5 layers Defender Suite + Purview E5 + Entra ID P2 on top in one SKU.",
+          yes: "the user needs E5-tier features — drop into the E5 vs E7 disambiguation next.",
+          no: "the user can stay on E3 — drop into the Copilot question next."
+        },
+        techDocs: [
+          ["Compare Microsoft 365 Enterprise plans", "https://www.microsoft.com/microsoft-365/enterprise/microsoft365-plans-and-pricing"],
+          ["M365 Maps — E5 comparison", "https://m365maps.com/Microsoft%20365%20E5.htm"]
+        ],
+        yes: "q_iw_copilot_bundle",
+        no: "q_iw_copilot_addon"
+      },
+      q_iw_copilot_bundle: {
+        step: { major: 2, sub: 2, subTotal: 2, label: "Knowledge worker tier" },
+        question: "Does this user ALSO need Microsoft 365 Copilot, Microsoft Entra Suite (Internet Access / Private Access / Verified ID), AND Agent 365 — all bundled in a single per-user SKU?",
+        help: "M365 E7 (GA May 1, 2026) bundles E5 + Copilot + Entra Suite + Agent 365 in one license — typically cheaper than stacking the four add-ons.",
+        rationale: {
+          why: "E7 was designed as the bundled price point for users who need all four. E5 alone is cheaper when Copilot / Entra Suite / Agent 365 aren't all required.",
+          yes: "buy Microsoft 365 E7 — the single bundled SKU.",
+          no: "buy Microsoft 365 E5 — add Copilot or Entra Suite individually only if specific users need them."
+        },
+        techDocs: [
+          ["Microsoft 365 E7 (Frontier Suite) announcement", "https://learn.microsoft.com/partner-center/announcements/2026-may"],
+          ["Microsoft 365 Copilot licensing", "https://learn.microsoft.com/microsoft-365/copilot/microsoft-365-copilot-licensing"],
+          ["Microsoft Entra Suite overview", "https://learn.microsoft.com/entra/fundamentals/entra-suite"]
+        ],
+        yes: "result_iw_e7",
+        no: "result_iw_e5"
+      },
+      q_iw_copilot_addon: {
+        step: { major: 2, sub: 2, subTotal: 2, label: "Knowledge worker tier" },
+        question: "Does this user need Microsoft 365 Copilot (in Word / Excel / PowerPoint / Outlook / Teams, or Copilot Studio agents grounded in tenant data)?",
+        help: "The Copilot add-on layers on M365 E3 per user. It does NOT require a base-plan upgrade.",
+        rationale: {
+          why: "Copilot per-user add-on is the smallest incremental cost for a single user. Only users who actually use Copilot need the add-on — license assignment gates access.",
+          yes: "buy M365 E3 + the Microsoft 365 Copilot add-on per Copilot user.",
+          no: "buy M365 E3 only — the baseline knowledge-worker SKU."
+        },
+        techDocs: [
+          ["Microsoft 365 Copilot licensing", "https://learn.microsoft.com/microsoft-365/copilot/microsoft-365-copilot-licensing"],
+          ["Compare Microsoft 365 Enterprise plans", "https://www.microsoft.com/microsoft-365/enterprise/microsoft365-plans-and-pricing"]
+        ],
+        yes: "result_iw_e3_copilot",
+        no: "result_iw_e3"
+      },
+      q_smb_office: {
+        step: { major: 2, sub: 1, subTotal: 2, label: "SMB tier" },
+        question: "Do users need the desktop Office apps installed (Word / Excel / PowerPoint / Outlook running on Windows or Mac), or is Office for the web enough?",
+        help: "Business Basic = web/mobile Office only. Business Standard = Basic + installed desktop apps. Business Premium = Standard + Defender for Business + Intune + Entra ID P1.",
+        rationale: {
+          why: "Microsoft prices the three Business SKUs by what's installed. Web-only is the cheapest tier; installed desktop apps and security each step up the price.",
+          yes: "users need installed desktop Office — Standard or Premium tier next.",
+          no: "users are fine with Office for the web — Basic or Premium tier next."
+        },
+        techDocs: [
+          ["Compare Microsoft 365 Business plans", "https://www.microsoft.com/microsoft-365/business/compare-all-plans"],
+          ["Microsoft 365 Business 300-seat limit", "https://learn.microsoft.com/microsoft-365/commerce/subscriptions/upgrade-to-different-plan"]
+        ],
+        yes: "q_smb_security",
+        no: "q_smb_security_basic"
+      },
+      q_smb_security: {
+        step: { major: 2, sub: 2, subTotal: 2, label: "SMB tier" },
+        question: "Do you need Microsoft Defender for Business + Microsoft Intune device management + Microsoft Entra ID P1 (Conditional Access + MFA enforcement + group-based licensing)?",
+        help: "Business Premium is the only Business SKU that bundles serious security + device management + Conditional Access.",
+        rationale: {
+          why: "Defender for Business + Intune + Entra ID P1 together cost more as separate add-ons than the Business Premium delta over Business Standard.",
+          yes: "buy Business Premium — bundles all three.",
+          no: "buy Business Standard — installed Office without the security uplift."
+        },
+        techDocs: [
+          ["Microsoft 365 Business Premium overview", "https://learn.microsoft.com/microsoft-365/business-premium/"],
+          ["Compare Microsoft 365 Business plans", "https://www.microsoft.com/microsoft-365/business/compare-all-plans"]
+        ],
+        yes: "result_smb_premium",
+        no: "result_smb_standard"
+      },
+      q_smb_security_basic: {
+        step: { major: 2, sub: 2, subTotal: 2, label: "SMB tier" },
+        question: "Do you need Microsoft Defender for Business + Microsoft Intune device management + Microsoft Entra ID P1 (Conditional Access + MFA enforcement + group-based licensing)?",
+        help: "Business Premium is the only Business SKU that bundles serious security + device management + Conditional Access. It includes installed Office too.",
+        rationale: {
+          why: "Defender for Business + Intune + Entra ID P1 together cost more as separate add-ons than the Business Premium delta — and Premium also includes installed Office.",
+          yes: "buy Business Premium — bundles all three (and installed Office).",
+          no: "buy Business Basic — web/mobile Office without security uplift."
+        },
+        techDocs: [
+          ["Microsoft 365 Business Premium overview", "https://learn.microsoft.com/microsoft-365/business-premium/"],
+          ["Compare Microsoft 365 Business plans", "https://www.microsoft.com/microsoft-365/business/compare-all-plans"]
+        ],
+        yes: "result_smb_premium",
+        no: "result_smb_basic"
+      },
+      q_frontline_mailbox: {
+        step: { major: 2, sub: 1, subTotal: 1, label: "Frontline tier" },
+        question: "Does this frontline worker need their own Exchange Online mailbox (a personal mailbox at user@domain.com, not just a shared inbox)?",
+        help: "F1 has NO mailbox by design. F3 includes a 2 GB Exchange Online mailbox plus mobile Office apps + Defender for Office P1.",
+        rationale: {
+          why: "F1 is mailbox-less and is the cheapest M365 SKU — designed for Teams-first deskless workers. F3 roughly doubles the price to add the mailbox and mobile Office.",
+          yes: "buy F3 — the mailbox + mobile Office tier.",
+          no: "buy F1 — Teams + SharePoint + Intune + Entra ID P1 without a mailbox."
+        },
+        examples: [
+          "Yes example: Healthcare nurse who receives shift schedules + patient assignments by email.",
+          "No example: Warehouse picker who only uses Teams shifts + push-to-talk on a shared device."
+        ],
+        techDocs: [
+          ["Compare frontline plans (F1 vs F3)", "https://learn.microsoft.com/microsoft-365/frontline/flw-licensing-options"],
+          ["Frontline worker license eligibility", "https://learn.microsoft.com/microsoft-365/frontline/flw-licensing-options#frontline-worker-license-eligibility"]
+        ],
+        yes: "result_frontline_f3",
+        no: "result_frontline_f1"
+      },
+      q_edu_security: {
+        step: { major: 2, sub: 1, subTotal: 2, label: "Education tier" },
+        question: "Does the institution need E5-tier security and compliance for these users — Defender XDR, Defender for Endpoint, Defender for Identity, Defender for Cloud Apps, Purview E5 (IRM / eDiscovery Premium / Audit Premium), or Entra ID P2 (PIM / Identity Protection)?",
+        help: "A5 mirrors commercial E5 at academic pricing. A3 mirrors E3. A1 is web/mobile only with no installed desktop apps (free for qualifying students).",
+        rationale: {
+          why: "A5 layers Defender Suite + Purview E5 + Entra ID P2 on A3 — same delta as commercial E5 over E3, at academic pricing.",
+          yes: "buy A5 — the top education SKU with full security stack.",
+          no: "drop into the A1 vs A3 disambiguation next."
+        },
+        techDocs: [
+          ["Compare M365 Education plans (A1 / A3 / A5)", "https://www.microsoft.com/education/products/office"],
+          ["Microsoft 365 Education service description", "https://learn.microsoft.com/office365/servicedescriptions/office-365-platform-service-description/office-365-education"]
+        ],
+        yes: "result_edu_a5",
+        no: "q_edu_office"
+      },
+      q_edu_office: {
+        step: { major: 2, sub: 2, subTotal: 2, label: "Education tier" },
+        question: "Do users need the desktop Office apps installed, Exchange Online mailboxes, and Microsoft Intune device management?",
+        help: "A3 includes desktop Office + Exchange + Intune + Entra ID P1 + AIP P1 + Defender for Office P1. A1 is web/mobile Office only and is free for qualifying students.",
+        rationale: {
+          why: "A1 is the entry tier (free for students); A3 is the standard paid academic SKU with installed Office and security baseline.",
+          yes: "buy A3 — installed Office + Exchange + Intune.",
+          no: "buy A1 — web/mobile only; free for qualifying students."
+        },
+        techDocs: [
+          ["Compare M365 Education plans (A1 / A3 / A5)", "https://www.microsoft.com/education/products/office"],
+          ["Microsoft 365 Education service description", "https://learn.microsoft.com/office365/servicedescriptions/office-365-platform-service-description/office-365-education"]
+        ],
+        yes: "result_edu_a3",
+        no: "result_edu_a1"
+      },
+      q_gov_profile_cloud: {
+        choice: true,
+        step: { major: 2, sub: 1, subTotal: 2, label: "Government tier" },
+        question: "Which US sovereign cloud will this user run in?",
+        help: "Each US sovereign cloud has different accreditation, feature parity, and cross-cloud collaboration rules. Pick once — all downstream answers and links adapt to the cloud.",
+        helpLink: { label: "Background — sovereign cloud feature parity & compliance", target: "info_sovereign_cloud" },
+        choices: [
+          { label: "GCC", sublabel: "FedRAMP High / DoD IL2 — most US civilian and SLG.", icon: "1", tone: "primary", value: "gcc", target: "q_gov_profile_tier" },
+          { label: "GCC High", sublabel: "FedRAMP High / DoD IL4 / DFARS 7012 / ITAR — DIB & CMMC L2+.", icon: "2", tone: "primary", value: "gcc_high", target: "q_gov_profile_tier" },
+          { label: "DoD", sublabel: "DoD IL5 — US Department of Defense only.", icon: "3", tone: "primary", value: "dod", target: "q_gov_profile_tier" },
+          { label: "Air-Gapped (Top Secret / DoD IL6)", sublabel: "Classified workloads on physically separated infrastructure — verify every SKU against the Air-Gapped product page.", icon: "4", tone: "primary", value: "il6", target: "result_gov_il6" }
+        ]
+      },
+      q_gov_profile_tier: {
+        choice: true,
+        step: { major: 2, sub: 2, subTotal: 2, label: "Government tier" },
+        question: "Which security and compliance tier does this user need?",
+        help: "The G-series mirrors the commercial E-series: G1 ≈ E1 (web/mobile only), G3 ≈ E3 (installed Office + Intune + Entra ID P1), G5 ≈ E5 (G3 + Defender XDR + Purview E5 + Entra ID P2).",
+        choices: [
+          { label: "G1 — web/mobile only, no premium security", sublabel: "Equivalent to E1. No installed Office.", icon: "1", tone: "primary", value: "g1", target: "result_gov_g1" },
+          { label: "G3 — installed Office + Intune + Entra ID P1 + Defender for Office P1", sublabel: "Equivalent to E3.", icon: "3", tone: "primary", value: "g3", target: "result_gov_g3" },
+          { label: "G5 — G3 + Defender XDR + Purview E5 + Entra ID P2", sublabel: "Equivalent to E5. The top G-series SKU.", icon: "5", tone: "primary", value: "g5", target: "result_gov_g5" }
+        ]
+      },
+      q_npo_seats: {
+        step: { major: 2, sub: 1, subTotal: 2, label: "Nonprofit tier" },
+        question: "Is the nonprofit at or below 300 seats? (the Business SKU family has a hard 300-seat cap across all Business plans combined)",
+        help: "≤ 300 seats → Business Premium with up to 10 free grant seats + additional seats at Nonprofit Staff Pricing. > 300 seats → switch to Enterprise (E3 / E5) at NSP.",
+        rationale: {
+          why: "Microsoft enforces a 300-seat cap across all Business SKUs combined. The Business Premium Nonprofit grant covers up to 10 seats free per validated nonprofit; additional seats are NSP.",
+          yes: "buy Business Premium for Nonprofits — grant covers up to 10 free seats.",
+          no: "drop into the E3 vs E5 disambiguation for nonprofits at enterprise scale."
+        },
+        techDocs: [
+          ["Microsoft 365 Business Premium grant eligibility", "https://learn.microsoft.com/microsoft-365/nonprofit/microsoft-365-business-premium-grant"],
+          ["Microsoft for Nonprofits — products & pricing", "https://www.microsoft.com/nonprofits"]
+        ],
+        yes: "result_npo_business_premium",
+        no: "q_npo_e5_tier"
+      },
+      q_npo_e5_tier: {
+        step: { major: 2, sub: 2, subTotal: 2, label: "Nonprofit tier" },
+        question: "Does the nonprofit need E5-tier security or compliance — Defender XDR, Defender for Endpoint P2, Defender for Identity, Defender for Cloud Apps, or Purview E5 (IRM / Communication Compliance / premium eDiscovery / Audit Premium)?",
+        help: "M365 E5 at Nonprofit Staff Pricing is the right SKU when E5-tier security/compliance is required. M365 E3 NSP is the cheaper baseline when it isn't.",
+        rationale: {
+          why: "E5 at NSP bundles Defender Suite + Purview E5 + Entra ID P2 — same feature shape as commercial E5 at deeply discounted pricing.",
+          yes: "buy M365 E5 at Nonprofit Staff Pricing — bundles the full security/compliance stack.",
+          no: "buy M365 E3 at Nonprofit Staff Pricing — the enterprise baseline at NSP rates."
+        },
+        techDocs: [
+          ["Microsoft for Nonprofits — products & pricing", "https://www.microsoft.com/nonprofits"],
+          ["Microsoft 365 for nonprofits — get started", "https://learn.microsoft.com/microsoft-365/nonprofit/"]
+        ],
+        yes: "result_npo_e5",
+        no: "result_npo_e3"
+      },
+      q_extid_features: {
+        choice: true,
+        step: { major: 2, sub: 1, subTotal: 1, label: "External ID tier" },
+        question: "What's the actual use case for these external identities?",
+        help: "External ID is a family of products with separate billing meters. Pick the scenario that matches your use case — pricing and feature sets differ.",
+        choices: [
+          { label: "Basic B2B collaboration only", sublabel: "Invite guests, share files, join Teams — no risk-based CA, no PIM, no Verified ID.", icon: "1", tone: "primary", value: "free", target: "result_extid_free" },
+          { label: "Premium identity features (risk-based CA, Identity Protection, PIM)", sublabel: "Premium detections + risk-based CA evaluated against guest sign-ins.", icon: "2", tone: "primary", value: "p2", target: "result_extid_p2" },
+          { label: "Issue Microsoft Entra Verified ID credentials", sublabel: "Decentralized verifiable credentials for high-trust scenarios.", icon: "3", tone: "primary", value: "verified", target: "result_extid_verified" },
+          { label: "Customer-facing app (CIAM) — sign-up / sign-in / social IdPs", sublabel: "For end customers — NOT B2B partners. Replaces Azure AD B2C for new tenants.", icon: "4", tone: "primary", value: "ciam", target: "result_extid_ciam" }
+        ]
+      },
+
       // ---------- Results ----------
       result_service: {
         result: true,
@@ -2413,96 +2719,6 @@
           ["Conditional Access for workload identities", "https://learn.microsoft.com/entra/identity/conditional-access/workload-identity"]
         ]
       },
-      result_copilot_e7: {
-        result: true,
-        badge: "Copilot add-on or E7",
-        badgeClass: "badge-info",
-        title: "Microsoft 365 Copilot add-on, or Microsoft 365 E7 (Frontier Suite)",
-        sub: "Required for Copilot, Copilot Studio agents grounded in tenant data, and Agent 365 governance.",
-        license: "Microsoft 365 Copilot add-on (per user, on top of an eligible base plan) — or Microsoft 365 E7, which bundles E5 + Copilot + Entra Suite + Agent 365 in one SKU",
-        decisionBasis: "You answered Yes to using Copilot, Copilot Studio grounded in tenant data, or governing AI agents. Microsoft 365 Copilot is a per-user add-on (not bundled with any base plan below E7) per the Microsoft Copilot licensing page. E7 bundles E5 + Copilot + Entra Suite + Agent 365 — a single SKU is often cheaper than stacking the add-ons.",
-        bullets: [
-          "Microsoft 365 Copilot is an add-on to an eligible base plan (E3, E5, Business Standard, Business Premium, etc.).",
-          "Microsoft 365 E7 (GA May 1, 2026) bundles M365 E5 + Microsoft 365 Copilot + Microsoft Entra Suite + Agent 365 in a single SKU — recommended when scaling agentic AI.",
-          "Pay-as-you-go (Copilot Credits) is also available for limited agent access without a full Copilot license.",
-          "E5 and E7 customers get Security Copilot capacity included at no extra cost."
-        ],
-        docs: [
-          ["Microsoft 365 Copilot licensing", "https://learn.microsoft.com/microsoft-365/copilot/microsoft-365-copilot-licensing"],
-          ["Microsoft 365 E7 (Frontier Suite) announcement", "https://learn.microsoft.com/partner-center/announcements/2026-may"],
-          ["Security Copilot for E5/E7 customers", "https://learn.microsoft.com/copilot/security/security-copilot-inclusion"],
-          ["M365 Maps — Copilot SKU comparison", "https://m365maps.com/Microsoft%20365%20Copilot.htm"]
-        ]
-      },
-      result_e5_compliance: {
-        result: true,
-        badge: "E5 / Purview required",
-        badgeClass: "badge-premium",
-        title: "Microsoft 365 E5 (or E5 Compliance / Purview Suite) required",
-        sub: "Per-user license for everyone in scope of the Purview policy — including admins added as test users.",
-        license: "Microsoft 365 E5, M365 E5 Compliance, or the Microsoft Purview Suite — per user in scope of the policy (also satisfied by M365 E7)",
-        decisionBasis: "You answered Yes to being in-scope of an E5-tier Purview policy (Insider Risk, Communication Compliance, premium eDiscovery, endpoint DLP, etc.). Microsoft's Purview subscription pages require every in-scope user to be licensed at M365 E5, E5 Compliance, or Purview Suite — not just the policy author. Being a test user is a licensing trigger.",
-        bullets: [
-          "Insider Risk Management, Communication Compliance, Adaptive Protection, endpoint DLP, premium eDiscovery, auto-labeling, Records Management, Customer Lockbox / Customer Key, Information Barriers, Privileged Access Management for Office, and Audit (Premium) all sit in the E5 / Purview Suite tier.",
-          "Every user covered by these policies (not just the admin running them) must be licensed.",
-          "E5 also gives you Entra ID P2, so it covers PIM and Identity Protection at the same time.",
-          "M365 E7 (Frontier Suite) includes E5 plus Copilot, Entra Suite, and Agent 365."
-        ],
-        docs: [
-          ["Insider Risk Management — subscriptions & licensing", "https://learn.microsoft.com/purview/insider-risk-management-configure#subscriptions-and-licensing"],
-          ["Microsoft Purview eDiscovery licensing", "https://learn.microsoft.com/purview/ediscovery-subscription-licensing"],
-          ["Audit (Premium) requirements", "https://learn.microsoft.com/purview/audit-premium"],
-          ["M365 security &amp; compliance licensing guidance (parent)", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-365-security-compliance-licensing-guidance"],
-          ["Microsoft Purview service description", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-purview-service-description"],
-          ["Microsoft Priva service description", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-priva-service-description"],
-          ["M365 Maps — E5 Compliance comparison", "https://m365maps.com/Microsoft%20365%20E5%20Compliance.htm"]
-        ]
-      },
-      result_e5_security: {
-        result: true,
-        badge: "E5 / Defender Suite required",
-        badgeClass: "badge-premium",
-        title: "Microsoft 365 E5 or Microsoft Defender Suite required",
-        sub: "Defender XDR experiences, Defender for Endpoint P2, and Defender for Office 365 P2 sit in the E5 Security / Defender Suite tier.",
-        license: "Microsoft 365 E5 or the Microsoft Defender Suite add-on, per user (also satisfied by M365 E7). The Defender Suite includes Entra ID P2.",
-        decisionBasis: "You answered Yes to operating Defender XDR, Defender for Endpoint P2, Defender for Identity, Defender for Cloud Apps, or Defender for Office 365 P2. The Microsoft Entra licensing page bundles these into the Defender Suite (formerly E5 Security), included in M365 E5 / E7 or sold as a per-user add-on. Base E3 / Business Premium do not include them.",
-        bullets: [
-          "Defender for Endpoint Plan 2, Defender for Identity, Defender for Cloud Apps, Defender for Office 365 Plan 2, and the Defender XDR portal are part of the Microsoft Defender Suite.",
-          "The Defender Suite also includes Entra ID P2 — so this single tier also satisfies PIM and Identity Protection needs.",
-          "Microsoft Sentinel is billed in Azure per-GB and is not a user license, but Defender XDR + Sentinel together require Defender Suite for full unified SecOps.",
-          "Included as a baseline in M365 E5 and M365 E7."
-        ],
-        docs: [
-          ["Microsoft Defender XDR overview", "https://learn.microsoft.com/defender-xdr/microsoft-365-defender"],
-          ["Defender for Office 365 plans", "https://learn.microsoft.com/defender-office-365/mdo-about"],
-          ["Microsoft Entra licensing (Defender Suite)", "https://learn.microsoft.com/entra/fundamentals/licensing"],
-          ["M365 security &amp; compliance licensing guidance (parent)", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-365-security-compliance-licensing-guidance"],
-          ["Microsoft Defender service description", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-defender-service-description"],
-          ["M365 Maps — E5 Security comparison", "https://m365maps.com/Microsoft%20365%20E5%20Security.htm"]
-        ]
-      },
-      result_intune_suite: {
-        result: true,
-        badge: "Intune Suite add-on",
-        badgeClass: "badge-premium",
-        title: "Microsoft Intune Suite (or standalone Intune add-on)",
-        sub: "Premium endpoint management features are not in base Intune.",
-        license: "Microsoft Intune Suite add-on per user — or the matching standalone add-on (EPM, Remote Help, Cloud PKI, Microsoft Tunnel for MAM, Enterprise App Management, Advanced Endpoint Analytics) for users who only need one feature",
-        decisionBasis: "You answered Yes to using EPM, Remote Help, Microsoft Tunnel for MAM, Cloud PKI, Enterprise App Management, or Advanced Endpoint Analytics. Microsoft's Intune add-ons documentation lists each of these as a per-user add-on outside base Intune. Buy the Intune Suite (or the matching standalone add-on) only for users who actually use the feature.",
-        bullets: [
-          "Endpoint Privilege Management (EPM), Remote Help, Microsoft Tunnel for MAM, Cloud PKI, Enterprise App Management, and Advanced Endpoint Analytics require the Microsoft Intune Suite add-on or individual standalone add-ons.",
-          "Base Intune is already included in M365 E3 / E5 / E7 / Business Premium / F3 — only buy the Suite for users who actually use the premium features.",
-          "Intune Suite does NOT include Entra ID P2 — if those admins are also in PIM, license them with P2 (or M365 E5/E7) separately.",
-          "Intune Suite is also included in M365 E5 + Intune Suite bundles in some agreements — check with your Microsoft account team."
-        ],
-        docs: [
-          ["Microsoft Intune Suite & add-ons", "https://learn.microsoft.com/mem/intune/fundamentals/intune-add-ons"],
-          ["Endpoint Privilege Management", "https://learn.microsoft.com/mem/intune/protect/epm-overview"],
-          ["M365 security &amp; compliance licensing guidance", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-365-security-compliance-licensing-guidance"],
-          ["Microsoft Intune service description", "https://learn.microsoft.com/intune/intune-service/fundamentals/microsoft-intune-service-description"],
-          ["M365 Maps — Intune add-ons", "https://m365maps.com/Microsoft%20Intune%20Suite.htm"]
-        ]
-      },
       result_teams_premium: {
         result: true,
         badge: "Teams Premium add-on",
@@ -2521,49 +2737,6 @@
           ["Teams Premium licensing", "https://learn.microsoft.com/microsoftteams/teams-add-on-licensing/licensing-enhance-teams"],
           ["Teams Premium overview", "https://learn.microsoft.com/microsoftteams/enhanced-teams-experience"],
           ["M365 Maps — Teams Premium SKU", "https://m365maps.com/Microsoft%20Teams%20Premium.htm"]
-        ]
-      },
-      result_p2_pim: {
-        result: true,
-        badge: "Entra ID P2 required",
-        badgeClass: "badge-premium",
-        title: "Microsoft Entra ID P2 required",
-        sub: "PIM eligible / time-bound / approver / reviewer roles all require P2 per user.",
-        license: "Microsoft Entra ID P2 per user (admins, approvers, and reviewers) — included in M365 E5, M365 E7, EMS E5, Defender Suite, Entra Suite, and Entra ID Governance",
-        decisionBasis: "You answered Yes to being PIM-eligible / time-bound or being a PIM approver/reviewer. The Entra ID Governance licensing fundamentals page is explicit: every user in any of those positions requires Entra ID P2 (or Entra ID Governance). M365 E5 and E7 include P2; otherwise buy it as a per-user add-on.",
-        bullets: [
-          "Each admin who is PIM-eligible needs an Entra ID P2 (or Entra ID Governance) license.",
-          "Approvers of activation requests and users who perform access reviews also count toward the license requirement.",
-          "P2 is included in: Microsoft 365 E5, Microsoft 365 E7, EMS E5, the Microsoft Defender Suite, the Microsoft Entra Suite, and Entra ID Governance.",
-          "Standalone Entra ID P2 is also available if you don't want to upgrade the full M365 plan."
-        ],
-        docs: [
-          ["PIM licensing fundamentals", "https://learn.microsoft.com/entra/id-governance/licensing-fundamentals#privileged-identity-management"],
-          ["What is Privileged Identity Management?", "https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-configure"],
-          ["M365 security &amp; compliance licensing guidance", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-365-security-compliance-licensing-guidance"],
-          ["Microsoft Entra service description", "https://learn.microsoft.com/office365/servicedescriptions/azure-active-directory"],
-          ["M365 Maps — Entra ID P2", "https://m365maps.com/Microsoft%20Entra%20ID.htm"]
-        ]
-      },
-      result_p2_idp: {
-        result: true,
-        badge: "Entra ID P2 required",
-        badgeClass: "badge-premium",
-        title: "Microsoft Entra ID P2 required",
-        sub: "Identity Protection premium detections and risk-based Conditional Access need P2 per user in scope.",
-        license: "Microsoft Entra ID P2 per user in scope of risk policies — included in M365 E5, M365 E7, EMS E5, Defender Suite, and Entra Suite",
-        decisionBasis: "You answered Yes to being in scope of Entra ID Protection (risk-based CA, premium risk detections, or user/sign-in risk policies). The Identity Protection documentation requires Entra ID P2 for every user the policy evaluates — not just the policy author. Bundled in M365 E5 / E7 or sold standalone.",
-        bullets: [
-          "Premium detections (atypical / impossible travel, password spray, malicious IP, verified threat actor IP, suspicious MFA approval, anomalous token, etc.) only appear with P2.",
-          "Risk-based Conditional Access (user-risk + sign-in-risk policies) is a P2 capability.",
-          "P2 is included in M365 E5, M365 E7, EMS E5, the Microsoft Defender Suite, and the Microsoft Entra Suite."
-        ],
-        docs: [
-          ["What are risk detections?", "https://learn.microsoft.com/entra/id-protection/concept-identity-protection-risks"],
-          ["Risk-based sign-in Conditional Access policy", "https://learn.microsoft.com/entra/identity/conditional-access/policy-risk-based-sign-in"],
-          ["M365 security &amp; compliance licensing guidance", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-365-security-compliance-licensing-guidance"],
-          ["Microsoft Entra service description", "https://learn.microsoft.com/office365/servicedescriptions/azure-active-directory"],
-          ["M365 Maps — Entra ID P2", "https://m365maps.com/Microsoft%20Entra%20ID.htm"]
         ]
       },
       result_id_governance: {
@@ -2652,204 +2825,719 @@
           ["Microsoft Entra service description", "https://learn.microsoft.com/office365/servicedescriptions/azure-active-directory"]
         ]
       },
-      result_profile_info_worker: {
+
+      // ---------- Admin tree — disambiguated SKU results ----------
+      result_copilot_addon: {
         result: true,
-        badge: "Information / knowledge worker",
-        badgeClass: "badge-premium",
-        title: "Information / knowledge worker — M365 E3 / E5 (or Business Premium ≤ 300 seats)",
-        sub: "Standard desktop / laptop end user who consumes Exchange, Teams, SharePoint, OneDrive, and Office apps. Choose the tier by the security and compliance posture you actually deploy.",
-        license: "Microsoft 365 E3 (baseline) or E5 (security + compliance) per user — or Business Premium for tenants ≤ 300 seats. Add Microsoft 365 Copilot per user as needed (or move to M365 E7).",
-        decisionBasis: "You picked Information / knowledge worker. Microsoft's commercial plan comparisons treat this persona as the baseline for the E and Business families. The recommended tier depends on the security / compliance posture you operate — the linked Microsoft 365 service descriptions and product terms enumerate what each SKU includes so you can map deployed features back to the cheapest SKU that covers them.",
+        badge: "Copilot add-on",
+        badgeClass: "badge-info",
+        title: "Microsoft 365 Copilot add-on",
+        sub: "Per-user Copilot add-on layered on an eligible base plan — keeps the existing tenant SKU mix.",
+        license: "Microsoft 365 Copilot add-on, per user, on top of an eligible base plan (E3 / E5 / Business Standard / Business Premium)",
+        decisionBasis: "You answered Yes to Copilot but No to needing Entra Suite + Agent 365 in one bundle. The Copilot add-on is the lowest-cost path — it just layers Copilot on top of an eligible base plan without forcing a base-plan upgrade.",
         bullets: [
-          "Baseline: Microsoft 365 E3 — Office apps, Exchange Online (P2), Teams, SharePoint, OneDrive, Intune, Entra ID P1, Defender for Office 365 P1, AIP P1.",
-          "Step up to Microsoft 365 E5 when you need Defender XDR, Defender for Endpoint P2, Defender for Identity, Defender for Cloud Apps, Purview E5 (IRM, CC, eDiscovery Premium, Audit Premium, Customer Lockbox), Entra ID P2, Power BI Pro, and PSTN-ready Teams Phone.",
-          "Use Microsoft 365 Business Premium for organizations ≤ 300 seats that want Defender for Business + Intune + Entra ID P1 + Defender for Office 365 P1 at a lower per-user cost — note the seat cap and feature deltas vs. E3.",
-          "Add Microsoft 365 Copilot (per-user) when the worker uses Copilot in Word/Excel/PowerPoint/Outlook/Teams or tenant-grounded Copilot Studio agents.",
-          "Microsoft 365 E7 (Frontier Suite, GA May 1, 2026) bundles E5 + Copilot + Entra Suite + Agent 365 in a single license — evaluate vs. E5 + Copilot add-on.",
-          "Add-ons to consider per role: Teams Premium (meeting features), Intune Suite (EPM, Remote Help, Cloud PKI), Entra Suite (Global Secure Access / Internet Access / Private Access / Verified ID), Power BI Premium Per User, Visio / Project."
+          "Add the Microsoft 365 Copilot per-user license to the existing base plan; no base-plan change required.",
+          "Only license users who will actually use Copilot — license assignment gates access.",
+          "Pay-as-you-go (Copilot Credits) is also available for limited agent access without a full Copilot license.",
+          "E5 and E7 customers get Security Copilot capacity included at no extra cost."
         ],
         docs: [
-          ["Compare Microsoft 365 Enterprise plans (E3 / E5 / F)", "https://www.microsoft.com/microsoft-365/business/compare-all-plans"],
-          ["Microsoft 365 Business Premium overview", "https://learn.microsoft.com/microsoft-365/business-premium/"],
-          ["M365 service descriptions index", "https://learn.microsoft.com/office365/servicedescriptions/office-365-service-descriptions-technet-library"],
-          ["M365 Comparison table — Enterprise &amp; Frontline plans (PDF)", "https://aka.ms/M365EnterprisePlans"],
           ["Microsoft 365 Copilot licensing", "https://learn.microsoft.com/microsoft-365/copilot/microsoft-365-copilot-licensing"],
-          ["M365 E7 (Frontier Suite) announcement", "https://learn.microsoft.com/partner-center/announcements/2026-may"],
-          ["m365maps.com — visual SKU comparisons", "https://m365maps.com/"]
+          ["Copilot Studio licensing", "https://learn.microsoft.com/microsoft-copilot-studio/billing-licensing"],
+          ["M365 Maps — Copilot SKU comparison", "https://m365maps.com/Microsoft%20365%20Copilot.htm"]
+        ]
+      },
+      result_e7_full: {
+        result: true,
+        badge: "M365 E7 (Frontier Suite)",
+        badgeClass: "badge-premium",
+        title: "Microsoft 365 E7 (Frontier Suite)",
+        sub: "Single bundled SKU that includes E5 + Copilot + Entra Suite + Agent 365.",
+        license: "Microsoft 365 E7 (Frontier Suite), per user — bundles E5, Copilot, Entra Suite, and Agent 365 in one license",
+        decisionBasis: "You answered Yes to Copilot AND Yes to also needing Entra Suite (Internet/Private Access, Verified ID) and Agent 365 governance. E7 (GA May 1, 2026) bundles all four into one per-user SKU and is typically cheaper than stacking the add-ons individually.",
+        bullets: [
+          "Microsoft 365 E7 includes Microsoft 365 E5 + Microsoft 365 Copilot + Microsoft Entra Suite + Agent 365.",
+          "Pricing target is the bundle being meaningfully cheaper than E5 + Copilot + Entra Suite + Agent 365 priced individually — confirm with your Microsoft account team.",
+          "E7 includes Entra ID P2 (via Entra Suite) — covers PIM, Identity Protection, and Governance use cases for the licensed users.",
+          "E7 customers get Security Copilot capacity included at no extra cost."
+        ],
+        docs: [
+          ["Microsoft 365 E7 (Frontier Suite) announcement", "https://learn.microsoft.com/partner-center/announcements/2026-may"],
+          ["Microsoft 365 Copilot licensing", "https://learn.microsoft.com/microsoft-365/copilot/microsoft-365-copilot-licensing"],
+          ["Microsoft Entra Suite overview", "https://learn.microsoft.com/entra/fundamentals/entra-suite"]
+        ]
+      },
+      result_e5_full: {
+        result: true,
+        badge: "Microsoft 365 E5",
+        badgeClass: "badge-premium",
+        title: "Microsoft 365 E5",
+        sub: "Single bundled SKU that covers both Purview E5 and the Microsoft Defender Suite (plus Entra ID P2).",
+        license: "Microsoft 365 E5, per user — bundles Purview E5 + Defender Suite + Entra ID P2 + Power BI Pro + Teams Phone",
+        decisionBasis: "You answered Yes to BOTH Purview E5 features and Defender XDR / Defender Suite features. M365 E5 is the single SKU that covers both at once — and it also includes Entra ID P2, so it satisfies PIM, Identity Protection, and Governance triggers for the same user.",
+        bullets: [
+          "Microsoft 365 E5 includes Microsoft Purview E5 (IRM, Communication Compliance, premium eDiscovery, Audit Premium, Customer Lockbox), the Microsoft Defender Suite (Defender XDR + Defender for Endpoint P2 + Defender for Identity + Defender for Cloud Apps + Defender for Office 365 P2), and Microsoft Entra ID P2.",
+          "Buying E5 once is meaningfully cheaper than stacking E3 + E5 Compliance + Defender Suite + Entra ID P2 add-ons.",
+          "M365 E7 (Frontier Suite) bundles E5 + Copilot + Entra Suite + Agent 365 if you also need those.",
+          "License every user in scope of the policies — not just the policy author."
+        ],
+        docs: [
+          ["Compare Microsoft 365 Enterprise plans", "https://www.microsoft.com/microsoft-365/enterprise/microsoft365-plans-and-pricing"],
+          ["M365 security & compliance licensing guidance", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-365-security-compliance-licensing-guidance"],
+          ["M365 Maps — E5 comparison", "https://m365maps.com/Microsoft%20365%20E5.htm"]
+        ]
+      },
+      result_e5_compliance_only: {
+        result: true,
+        badge: "E5 Compliance add-on",
+        badgeClass: "badge-premium",
+        title: "Microsoft 365 E5 Compliance add-on",
+        sub: "Covers Purview E5 features without forcing a full E5 upgrade — keep your existing base plan.",
+        license: "Microsoft 365 E5 Compliance add-on (or Microsoft Purview Suite), per user in scope of the Purview policy",
+        decisionBasis: "You answered Yes to Purview E5 features but No to also needing Defender XDR / Defender Suite. The E5 Compliance add-on covers Purview without forcing you to buy full E5 — buy it on top of E3 / Business Premium for the in-scope users only.",
+        bullets: [
+          "Microsoft 365 E5 Compliance includes IRM, Communication Compliance, premium eDiscovery, endpoint DLP, Records Management, Customer Lockbox, Customer Key, Privileged Access Management for Office, Information Barriers, and Audit (Premium).",
+          "It also includes Microsoft Entra ID P2 — same identity-tier benefit as full E5.",
+          "License every user in scope of any covered Purview policy — not just the admin who configures it.",
+          "If you later need Defender XDR / Endpoint P2 too, upgrading the user from E3 + E5 Compliance to full E5 is the cleanest path."
+        ],
+        docs: [
+          ["Microsoft Purview eDiscovery licensing", "https://learn.microsoft.com/purview/ediscovery-subscription-licensing"],
+          ["Insider Risk Management — subscriptions & licensing", "https://learn.microsoft.com/purview/insider-risk-management-configure#subscriptions-and-licensing"],
+          ["M365 Maps — E5 Compliance comparison", "https://m365maps.com/Microsoft%20365%20E5%20Compliance.htm"]
+        ]
+      },
+      result_defender_suite_only: {
+        result: true,
+        badge: "Defender Suite add-on",
+        badgeClass: "badge-premium",
+        title: "Microsoft Defender Suite add-on",
+        sub: "Covers Defender XDR + Defender for Endpoint P2 + Identity + Cloud Apps + Office P2 — without forcing a full E5 upgrade.",
+        license: "Microsoft Defender Suite add-on (formerly E5 Security), per user — also includes Entra ID P2",
+        decisionBasis: "You answered Yes to Defender XDR / Defender Suite features but No to also needing Purview E5. The Defender Suite add-on covers the security workloads without forcing you to buy full E5 — buy it on top of E3 / Business Premium for the SOC analyst / security admins only.",
+        bullets: [
+          "Microsoft Defender Suite includes Defender for Endpoint Plan 2, Defender for Identity, Defender for Cloud Apps, Defender for Office 365 Plan 2, and the Defender XDR portal.",
+          "Defender Suite also includes Microsoft Entra ID P2 — covers PIM and Identity Protection for the same user.",
+          "Microsoft Sentinel is billed in Azure per-GB and is a separate purchase, but Defender Suite + Sentinel is the standard unified SecOps combo.",
+          "If you later need Purview E5 too, upgrading to full M365 E5 is the cleanest path."
+        ],
+        docs: [
+          ["Microsoft Defender XDR overview", "https://learn.microsoft.com/defender-xdr/microsoft-365-defender"],
+          ["Defender for Endpoint plans", "https://learn.microsoft.com/defender-endpoint/microsoft-defender-endpoint"],
+          ["M365 Maps — E5 Security comparison", "https://m365maps.com/Microsoft%20365%20E5%20Security.htm"]
+        ]
+      },
+      result_intune_suite_full: {
+        result: true,
+        badge: "Intune Suite add-on",
+        badgeClass: "badge-premium",
+        title: "Microsoft Intune Suite add-on",
+        sub: "All six Intune premium features bundled — cheaper than stacking standalones.",
+        license: "Microsoft Intune Suite add-on, per user that needs two or more premium endpoint features",
+        decisionBasis: "You answered Yes to two or more Intune premium features. The Intune Suite bundles all six (EPM, Remote Help, Microsoft Tunnel for MAM, Cloud PKI, Enterprise App Management, Advanced Endpoint Analytics) for less than the sum of the individual standalone add-ons.",
+        bullets: [
+          "Bundles Endpoint Privilege Management, Remote Help, Microsoft Tunnel for MAM, Cloud PKI, Enterprise App Management, and Advanced Endpoint Analytics.",
+          "Layers on top of base Intune (already included in M365 E3 / E5 / E7 / Business Premium / F3) — only license users that actually use the premium features.",
+          "Intune Suite does NOT include Entra ID P2 — if those admins are also in PIM, license them with P2 (or M365 E5/E7) separately.",
+          "Also bundled with some M365 + Intune Suite enterprise agreement offers — confirm with your Microsoft account team."
+        ],
+        docs: [
+          ["Microsoft Intune Suite & add-ons", "https://learn.microsoft.com/mem/intune/fundamentals/intune-add-ons"],
+          ["Endpoint Privilege Management", "https://learn.microsoft.com/mem/intune/protect/epm-overview"],
+          ["M365 Maps — Intune Suite", "https://m365maps.com/Microsoft%20Intune%20Suite.htm"]
+        ]
+      },
+      result_intune_standalone: {
+        result: true,
+        badge: "Intune standalone add-on",
+        badgeClass: "badge-info",
+        title: "Single Intune standalone add-on",
+        sub: "Cheapest path when you only need ONE of the Intune premium features.",
+        license: "One Microsoft Intune standalone add-on, per user — match the SKU to the single feature in use",
+        decisionBasis: "You answered Yes to using Intune premium features, but only ONE of them. The matching standalone add-on (EPM standalone, Remote Help standalone, Cloud PKI standalone, etc.) is cheaper than the full Intune Suite.",
+        bullets: [
+          "Pick the standalone matching your feature: Endpoint Privilege Management standalone, Remote Help standalone, Cloud PKI standalone, Microsoft Tunnel for MAM standalone, Enterprise App Management standalone, or Advanced Endpoint Analytics standalone.",
+          "If a second premium feature later comes into scope for the same user, the Intune Suite typically becomes the cheaper path — re-evaluate when adopting any second feature.",
+          "Base Intune is already included in M365 E3 / E5 / E7 / Business Premium / F3 — the standalone is purely the per-user uplift for that one premium capability.",
+          "Standalones do NOT include Entra ID P2 — license separately if those admins are also in PIM."
+        ],
+        docs: [
+          ["Microsoft Intune Suite & add-ons", "https://learn.microsoft.com/mem/intune/fundamentals/intune-add-ons"],
+          ["M365 Maps — Intune Suite", "https://m365maps.com/Microsoft%20Intune%20Suite.htm"]
+        ]
+      },
+      result_p2_standalone: {
+        result: true,
+        badge: "Entra ID P2 — standalone",
+        badgeClass: "badge-premium",
+        title: "Microsoft Entra ID P2 — standalone add-on",
+        sub: "Cheapest path when the user isn't already on E5 / E7 / EMS E5 / Defender Suite / Entra Suite / Governance.",
+        license: "Microsoft Entra ID P2 standalone, per user (admin + every approver / reviewer in PIM, and every user in scope of risk-based policies)",
+        decisionBasis: "You answered Yes to a P2 trigger (PIM-eligible / approver / reviewer, OR in scope of Identity Protection / risk-based CA) AND the user is not on any SKU that already includes P2. Standalone Entra ID P2 is the cheapest path for these users.",
+        bullets: [
+          "License the admin AND every approver / reviewer in PIM workflows.",
+          "For Identity Protection: license every user evaluated by the risk-based policy, not just the policy author.",
+          "If you later upgrade users to M365 E5 / E7 / EMS E5 / Defender Suite / Entra Suite / Entra ID Governance, P2 is included — drop the standalone for those users.",
+          "Standalone P2 does NOT include Governance — if you also need Lifecycle Workflows or Entitlement Management access packages, use Entra ID Governance instead."
+        ],
+        docs: [
+          ["PIM licensing fundamentals", "https://learn.microsoft.com/entra/id-governance/licensing-fundamentals#privileged-identity-management"],
+          ["Identity Protection — risks", "https://learn.microsoft.com/entra/id-protection/concept-identity-protection-risks"],
+          ["M365 Maps — Entra ID", "https://m365maps.com/Microsoft%20Entra%20ID.htm"]
+        ]
+      },
+      result_p2_already_included: {
+        result: true,
+        badge: "Already included",
+        badgeClass: "badge-success",
+        title: "Entra ID P2 — already included in the user's SKU",
+        sub: "No additional purchase needed — the existing license already covers PIM and Identity Protection.",
+        license: "No additional license. P2 is already included in the SKU the user holds (M365 E5 / E7, EMS E5, Defender Suite, Entra Suite, or Entra ID Governance)",
+        decisionBasis: "You answered Yes to a P2 trigger AND the user is already on a SKU that includes Entra ID P2. No new purchase is required for these users — verify the assignment is active on every PIM eligible / approver / reviewer (and every user in scope of risk policies).",
+        bullets: [
+          "Verify the P2-inclusive SKU is actually assigned to every PIM-eligible admin, approver, and reviewer — auditors check assignment, not eligibility.",
+          "Same rule for Identity Protection: every user evaluated by a risk-based CA / user-risk / sign-in-risk policy must hold a P2-inclusive SKU.",
+          "Keep the SKU assigned for as long as the user is in scope — if you remove the SKU but leave the PIM eligibility, the policy is non-compliant.",
+          "If you add Governance features later (Entitlement Management access packages, Lifecycle Workflows), check whether the existing SKU also includes Governance — only Entra Suite, M365 E7, and standalone Entra ID Governance do."
+        ],
+        docs: [
+          ["PIM licensing fundamentals", "https://learn.microsoft.com/entra/id-governance/licensing-fundamentals#privileged-identity-management"],
+          ["M365 security & compliance licensing guidance", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-365-security-compliance-licensing-guidance"]
+        ]
+      },
+
+      // ---------- Profile flow — disambiguated SKU results ----------
+      result_iw_e3: {
+        result: true,
+        badge: "Microsoft 365 E3",
+        badgeClass: "badge-premium",
+        title: "Microsoft 365 E3",
+        sub: "Baseline knowledge-worker SKU — desktop Office, Exchange P2, Teams, SharePoint, OneDrive, Intune, Entra ID P1, Defender for Office P1, AIP P1.",
+        license: "Microsoft 365 E3, per user",
+        decisionBasis: "You picked Information / knowledge worker, declined E5-tier security/compliance/identity, and don't need Copilot. M365 E3 is the smallest Enterprise SKU that includes desktop Office + Exchange + Teams + Intune + Entra ID P1 — the right baseline.",
+        bullets: [
+          "Includes desktop Office (Word/Excel/PowerPoint/Outlook), Exchange Online Plan 2 (100 GB mailbox), Teams, SharePoint, OneDrive (1 TB+).",
+          "Includes Microsoft Intune, Microsoft Entra ID P1 (Conditional Access, MFA), Defender for Office 365 P1, AIP P1.",
+          "Add Microsoft 365 Copilot per user if Copilot need emerges later — no base-plan change required.",
+          "Step up to M365 E5 when you need Defender XDR / Purview E5 / Entra ID P2 for the same user."
+        ],
+        docs: [
+          ["Compare Microsoft 365 Enterprise plans", "https://www.microsoft.com/microsoft-365/enterprise/microsoft365-plans-and-pricing"],
+          ["Microsoft 365 E3 service description", "https://learn.microsoft.com/office365/servicedescriptions/office-365-platform-service-description/office-365-platform-service-description"],
+          ["M365 Maps — Enterprise plan comparison", "https://m365maps.com/Microsoft%20365%20Enterprise.htm"]
         ],
         actions: [
           { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
         ]
       },
-      result_profile_frontline: {
+      result_iw_e3_copilot: {
         result: true,
-        badge: "Frontline worker",
-        badgeClass: "badge-premium",
-        title: "Frontline worker — Microsoft 365 F1 / F3 (eligibility-gated)",
-        sub: "Shift, deskless, and field workers — retail associates, manufacturing operators, hospitality staff, healthcare clinicians, first responders, field engineers. Frontline SKUs are eligibility-gated and capped by Microsoft.",
-        license: "Microsoft 365 F1 (Teams-first, no mailbox) or F3 (adds 2 GB Exchange + mobile Office) per user — eligibility-gated to deskless / shared-device workers; confirm the per-tenant cap before assigning",
-        decisionBasis: "You picked Frontline worker. Microsoft's Product Terms restrict F1 / F3 to workers who do not primarily work at a desk, are not assigned a personal computer, and often share a device. Assigning F SKUs to information workers / admins is a compliance risk Microsoft can audit — so this result also highlights the eligibility rule alongside the SKU shape.",
+        badge: "M365 E3 + Copilot",
+        badgeClass: "badge-info",
+        title: "Microsoft 365 E3 + Microsoft 365 Copilot add-on",
+        sub: "E3 baseline with the Copilot add-on layered per user — no base-plan upgrade required.",
+        license: "Microsoft 365 E3 per user PLUS the Microsoft 365 Copilot add-on per Copilot user",
+        decisionBasis: "You picked Information / knowledge worker, declined E5-tier security/compliance/identity, but need Copilot. M365 E3 + Copilot add-on is cheaper than jumping to M365 E5 or E7 — and only the users who actually use Copilot need the add-on.",
         bullets: [
-          "F1 — entry tier: Teams, SharePoint (browse), Yammer / Viva Engage, Stream, Office for the web (view-only), Intune, Entra ID P1 — no mailbox. For light Teams-first deskless workers.",
-          "F3 — full frontline: F1 + 2 GB Exchange Online mailbox, Office mobile apps (commercial use), Defender for Office 365 P1, AIP P1, Power Apps / Power Automate for F3 use rights.",
-          "Eligibility (Microsoft Product Terms): workers who do not primarily work at a desk, are not assigned a personal computer for work, often share a device, and whose primary job functions are deskless. Confirm the per-tenant frontline-license cap with your reseller / Microsoft account team.",
-          "Frontline add-ons: Teams Phone with Calling Plan (per user), Teams Premium for Frontline (when GA), Defender for Endpoint P1 (frontline-specific tier), Microsoft Viva Communications & Communities for Frontline, Microsoft 365 Copilot for Frontline (where licensed).",
-          "Do NOT use F SKUs for information workers, executives, IT admins, or anyone with a dedicated desk and PC — Microsoft reserves audit rights and the wrong assignment is a compliance risk.",
-          "Frontline-specific solutions to plan around: Shifts in Teams, Walkie Talkie, Tasks (Planner + To Do), Approvals, Updates, Virtual Appointments, RealWear / shared Android device enrollment, Shared Device mode for Teams."
+          "E3 covers the desktop Office + Exchange + Teams + Intune + Entra ID P1 baseline.",
+          "Copilot add-on per user enables Copilot in Word/Excel/PowerPoint/Outlook/Teams + Copilot Studio grounded in tenant data + Microsoft 365 Chat.",
+          "Only license the users that will actually use Copilot — license assignment is what gates access.",
+          "If the user later needs E5-tier security/compliance/identity, swap E3 → E5 (keep the Copilot add-on); or move to E7 (bundles E5 + Copilot + Entra Suite + Agent 365)."
         ],
         docs: [
-          ["Microsoft 365 for frontline workers — overview", "https://learn.microsoft.com/microsoft-365/frontline/flw-overview"],
+          ["Microsoft 365 Copilot licensing", "https://learn.microsoft.com/microsoft-365/copilot/microsoft-365-copilot-licensing"],
+          ["Compare Microsoft 365 Enterprise plans", "https://www.microsoft.com/microsoft-365/enterprise/microsoft365-plans-and-pricing"],
+          ["M365 Maps — Copilot SKU comparison", "https://m365maps.com/Microsoft%20365%20Copilot.htm"]
+        ],
+        actions: [
+          { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
+        ]
+      },
+      result_iw_e5: {
+        result: true,
+        badge: "Microsoft 365 E5",
+        badgeClass: "badge-premium",
+        title: "Microsoft 365 E5",
+        sub: "Single bundled SKU that covers Defender Suite + Purview E5 + Entra ID P2 + Power BI Pro + Teams Phone.",
+        license: "Microsoft 365 E5, per user — includes Defender Suite + Purview E5 + Entra ID P2",
+        decisionBasis: "You picked Information / knowledge worker AND need E5-tier security / compliance / identity. M365 E5 is the single SKU that covers Defender XDR + Purview E5 + Entra ID P2 — usually cheaper than E3 + E5 Compliance + Defender Suite + P2 add-ons.",
+        bullets: [
+          "Includes Microsoft Defender Suite (Defender XDR + Endpoint P2 + Identity + Cloud Apps + Office P2), Microsoft Purview E5 (IRM, eDiscovery Premium, Audit Premium, Customer Lockbox, etc.), Microsoft Entra ID P2 (PIM, Identity Protection).",
+          "Also includes Power BI Pro and Teams Phone Standard.",
+          "Add Microsoft 365 Copilot per user if Copilot need emerges (or move to M365 E7).",
+          "For Entra Suite features (Internet/Private Access, Verified ID) — buy Entra Suite add-on or move to E7."
+        ],
+        docs: [
+          ["Compare Microsoft 365 Enterprise plans", "https://www.microsoft.com/microsoft-365/enterprise/microsoft365-plans-and-pricing"],
+          ["Microsoft 365 E5 service description", "https://learn.microsoft.com/office365/servicedescriptions/office-365-platform-service-description/office-365-platform-service-description"],
+          ["M365 Maps — E5 comparison", "https://m365maps.com/Microsoft%20365%20E5.htm"]
+        ],
+        actions: [
+          { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
+        ]
+      },
+      result_iw_e7: {
+        result: true,
+        badge: "M365 E7 (Frontier Suite)",
+        badgeClass: "badge-premium",
+        title: "Microsoft 365 E7 (Frontier Suite)",
+        sub: "Single bundled SKU that includes E5 + Copilot + Entra Suite + Agent 365.",
+        license: "Microsoft 365 E7 (Frontier Suite), per user — bundles E5, Copilot, Entra Suite, and Agent 365",
+        decisionBasis: "You picked Information / knowledge worker AND need E5-tier security AND Copilot + Entra Suite + Agent 365 in a single bundle. E7 (GA 2026-05-01) bundles all of those — typically cheaper than E5 + Copilot + Entra Suite + Agent 365 priced individually.",
+        bullets: [
+          "Bundles Microsoft 365 E5 + Microsoft 365 Copilot + Microsoft Entra Suite + Agent 365 in one license.",
+          "Covers Defender Suite + Purview E5 + Entra ID P2 + Internet/Private Access + Verified ID + Copilot + Agent governance — the most comprehensive M365 SKU.",
+          "Security Copilot capacity included at no extra cost.",
+          "Confirm pricing vs. E5 + Copilot + Entra Suite stacked individually with your Microsoft account team — E7 is normally cheaper when all three are needed."
+        ],
+        docs: [
+          ["Microsoft 365 E7 (Frontier Suite) announcement", "https://learn.microsoft.com/partner-center/announcements/2026-may"],
+          ["Microsoft 365 Copilot licensing", "https://learn.microsoft.com/microsoft-365/copilot/microsoft-365-copilot-licensing"],
+          ["Microsoft Entra Suite overview", "https://learn.microsoft.com/entra/fundamentals/entra-suite"]
+        ],
+        actions: [
+          { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
+        ]
+      },
+      result_smb_basic: {
+        result: true,
+        badge: "Business Basic",
+        badgeClass: "badge-info",
+        title: "Microsoft 365 Business Basic",
+        sub: "Web/mobile Office only — Exchange + Teams + SharePoint + OneDrive without installed desktop apps.",
+        license: "Microsoft 365 Business Basic, per user (≤ 300 seat hard cap across all Business SKUs combined)",
+        decisionBasis: "You picked SMB, declined desktop Office apps, and declined Defender for Business + Intune + Entra ID P1. Business Basic is the smallest Business SKU and covers web/mobile Office + Exchange (50 GB) + Teams + SharePoint + OneDrive.",
+        bullets: [
+          "Includes Exchange Online (50 GB), Teams, SharePoint, OneDrive, Office for the web. No installed desktop apps.",
+          "Hard 300-seat cap across all Business SKUs combined — at 301 seats Microsoft requires Enterprise (E) SKUs.",
+          "Step up to Business Standard when users need installed Word/Excel/PowerPoint/Outlook desktop apps.",
+          "Step up to Business Premium when you need Defender for Business + Intune + Entra ID P1."
+        ],
+        docs: [
+          ["Compare Microsoft 365 Business plans", "https://www.microsoft.com/microsoft-365/business/compare-all-plans"],
+          ["Microsoft 365 Business 300-seat limit", "https://learn.microsoft.com/microsoft-365/commerce/subscriptions/upgrade-to-different-plan"],
+          ["M365 Maps — Business plans", "https://m365maps.com/"]
+        ],
+        actions: [
+          { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
+        ]
+      },
+      result_smb_standard: {
+        result: true,
+        badge: "Business Standard",
+        badgeClass: "badge-info",
+        title: "Microsoft 365 Business Standard",
+        sub: "Business Basic + installed desktop Office apps (Word/Excel/PowerPoint/Outlook on Windows or Mac).",
+        license: "Microsoft 365 Business Standard, per user (≤ 300 seat hard cap across all Business SKUs combined)",
+        decisionBasis: "You picked SMB, need installed desktop Office apps, but don't need Defender for Business + Intune + Entra ID P1. Business Standard adds installed Office to the Basic feature set without bundling security / device management.",
+        bullets: [
+          "Business Basic + installed Word, Excel, PowerPoint, Outlook, OneNote (and Access / Publisher on Windows).",
+          "Includes Microsoft Loop, Microsoft Bookings, and Clipchamp.",
+          "Hard 300-seat cap across all Business SKUs combined.",
+          "Step up to Business Premium when you need Defender for Business + Intune + Entra ID P1 — that's the smallest Business tier with serious security."
+        ],
+        docs: [
+          ["Compare Microsoft 365 Business plans", "https://www.microsoft.com/microsoft-365/business/compare-all-plans"],
+          ["Microsoft 365 Business Standard overview", "https://www.microsoft.com/microsoft-365/business/microsoft-365-business-standard"],
+          ["M365 Maps — Business plans", "https://m365maps.com/"]
+        ],
+        actions: [
+          { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
+        ]
+      },
+      result_smb_premium: {
+        result: true,
+        badge: "Business Premium",
+        badgeClass: "badge-premium",
+        title: "Microsoft 365 Business Premium",
+        sub: "Business Standard + Defender for Business + Microsoft Intune + Entra ID P1 + Defender for Office 365 P1 + AIP P1.",
+        license: "Microsoft 365 Business Premium, per user (≤ 300 seat hard cap across all Business SKUs combined)",
+        decisionBasis: "You picked SMB and need Defender for Business + Intune + Entra ID P1. Business Premium is the smallest Business SKU that bundles serious endpoint security, device management, and Conditional Access — and is the right baseline for any SMB serious about security.",
+        bullets: [
+          "Includes everything in Business Standard plus Microsoft Defender for Business, Microsoft Intune (MDM/MAM), Microsoft Entra ID P1 (Conditional Access + MFA), Defender for Office 365 P1, and AIP P1.",
+          "Hard 300-seat cap across all Business SKUs combined.",
+          "Add Microsoft 365 Copilot per user as needed (or upgrade to M365 Copilot Business).",
+          "Add Microsoft Defender Suite for Business Premium to layer Entra ID P2 + Defender XDR + Purview Suite features on top.",
+          "At 301 seats Microsoft requires you to switch the whole tenant to Enterprise SKUs — plan the cutover before 280 seats."
+        ],
+        docs: [
+          ["Microsoft 365 Business Premium overview", "https://learn.microsoft.com/microsoft-365/business-premium/"],
+          ["Microsoft Defender Suite for Business Premium", "https://learn.microsoft.com/defender-xdr/microsoft-defender-suite-for-business-premium"],
+          ["Microsoft 365 Business 300-seat limit", "https://learn.microsoft.com/microsoft-365/commerce/subscriptions/upgrade-to-different-plan"]
+        ],
+        actions: [
+          { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
+        ]
+      },
+      result_frontline_f1: {
+        result: true,
+        badge: "Microsoft 365 F1",
+        badgeClass: "badge-info",
+        title: "Microsoft 365 F1",
+        sub: "Mailbox-less frontline tier — Teams + SharePoint browse + Stream + Intune + Entra ID P1.",
+        license: "Microsoft 365 F1, per frontline user (eligibility-gated to deskless / shared-device workers, per-tenant cap)",
+        decisionBasis: "You picked Frontline and confirmed the user does NOT need their own Exchange mailbox. F1 is the entry frontline tier — Teams-first, no mailbox, no installed Office apps — and is the cheapest Microsoft 365 SKU.",
+        bullets: [
+          "Includes Teams, SharePoint (browse), Yammer / Viva Engage, Stream, Office for the web (view-only), Intune, Entra ID P1.",
+          "NO mailbox, NO installed Office apps — by design.",
+          "Eligibility-gated to workers who don't primarily work at a desk, aren't assigned a personal computer, and often share a device. Microsoft audits assignment.",
+          "Step up to F3 when the worker needs their own mailbox or mobile Office apps.",
+          "Frontline add-ons: Teams Phone with Calling Plan, Microsoft 365 Copilot for Frontline (where licensed), Defender for Endpoint P1 (frontline-specific tier)."
+        ],
+        docs: [
           ["Compare frontline plans (F1 vs F3)", "https://learn.microsoft.com/microsoft-365/frontline/flw-licensing-options"],
           ["Frontline worker license eligibility", "https://learn.microsoft.com/microsoft-365/frontline/flw-licensing-options#frontline-worker-license-eligibility"],
-          ["M365 Comparison table — Enterprise &amp; Frontline plans (PDF)", "https://aka.ms/M365EnterprisePlans"],
-          ["Deploy Microsoft 365 for frontline workers", "https://learn.microsoft.com/microsoft-365/frontline/flw-deploy-overview"],
-          ["Microsoft 365 Copilot for frontline workers", "https://learn.microsoft.com/microsoft-365/frontline/flw-copilot"],
-          ["m365maps.com — Frontline maps (F1 / F3)", "https://m365maps.com/"]
+          ["M365 Comparison table — Enterprise & Frontline plans (PDF)", "https://aka.ms/M365EnterprisePlans"]
         ],
         actions: [
           { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
         ]
       },
-      result_profile_edu: {
+      result_frontline_f3: {
         result: true,
-        badge: "Education",
-        badgeClass: "badge-premium",
-        title: "Education — Microsoft 365 A1 / A3 / A5 (qualifying academic institution)",
-        sub: "Faculty and students at qualifying academic institutions. A-SKUs are eligibility-gated and priced separately from commercial; faculty and student SKUs have different entitlements.",
-        license: "Microsoft 365 A1, A3, or A5 (faculty and student SKUs differ) — institution must be an accredited K-12 / higher-ed organization validated by Microsoft Education",
-        decisionBasis: "You picked Education. The Microsoft Education Product Terms restrict A-SKUs to accredited K-12 or higher-education institutions and split entitlements between faculty and student SKUs. Microsoft validates eligibility before tenant provisioning. The recommended tier mirrors the commercial E1 / E3 / E5 feature shape at academic pricing.",
+        badge: "Microsoft 365 F3",
+        badgeClass: "badge-info",
+        title: "Microsoft 365 F3",
+        sub: "F1 + 2 GB Exchange Online mailbox + mobile Office apps + Defender for Office P1 + AIP P1.",
+        license: "Microsoft 365 F3, per frontline user (eligibility-gated to deskless / shared-device workers, per-tenant cap)",
+        decisionBasis: "You picked Frontline and confirmed the user needs their own Exchange mailbox. F3 adds a 2 GB mailbox + mobile Office to F1 — the right SKU for frontline workers who actually receive email.",
         bullets: [
-          "A1 — included with qualifying education tenants: Office for the web, Teams for Education, SharePoint, OneDrive (with capped storage), basic Intune for Education, Entra ID P1 (faculty) / Entra ID Free (student).",
-          "A3 — desktop Office apps, Exchange Online, Intune, Entra ID P1, AIP P1, Defender for Office P1, Power BI Pro for faculty. The most common paid education baseline.",
-          "A5 — A3 + Defender XDR, Defender for Endpoint, Defender for Identity, Defender for Cloud Apps, Purview E5 (eDiscovery Premium, IRM, Audit Premium), Entra ID P2, Power BI Pro, Teams Phone (faculty).",
-          "Eligibility (Microsoft Education Product Terms): accredited academic institution, K-12 or higher education. Verify with the Microsoft Education account team; Microsoft audits eligibility.",
-          "Education-specific add-ons: Microsoft 365 Copilot for Education (Faculty / Student where available), Minecraft Education, Reading Coach / Reflect / Insights, Microsoft 365 A5 Compliance / A5 Security as standalone bumps from A3.",
-          "Do NOT mix A SKUs with commercial E SKUs in the same tenant for the same population — feature deltas (e.g., Class Teams, Reflect, Education Insights) only light up on A SKUs.",
-          "Frontline + Education: schools with shared lab devices or maintenance / facilities staff may layer F1 / F3 for non-faculty deskless staff — confirm with the Microsoft Education team."
+          "Includes everything in F1 plus a 2 GB Exchange Online mailbox, Office mobile apps (commercial-use rights), Defender for Office 365 P1, AIP P1, Power Apps / Power Automate for F3 use rights.",
+          "Still eligibility-gated to deskless / shared-device workers — same per-tenant cap as F1.",
+          "Frontline add-ons: Teams Phone with Calling Plan, Microsoft 365 Copilot for Frontline (where licensed), Defender for Endpoint P1.",
+          "Do NOT assign F SKUs to information workers, IT admins, or anyone with a dedicated desk and personal PC — Microsoft audits assignment."
         ],
         docs: [
-          ["Microsoft 365 Education plans", "https://www.microsoft.com/education/products/microsoft-365"],
-          ["Compare M365 Education plans (A1 / A3 / A5)", "https://www.microsoft.com/education/products/office"],
-          ["Microsoft 365 Education service description", "https://learn.microsoft.com/office365/servicedescriptions/office-365-platform-service-description/office-365-education"],
-          ["Microsoft 365 Copilot for Education", "https://learn.microsoft.com/microsoft-365-copilot/microsoft-365-copilot-education"],
-          ["Education academic eligibility", "https://www.microsoft.com/education/how-to-buy/academic-eligibility"],
-          ["m365maps.com — Education maps", "https://m365maps.com/"]
+          ["Compare frontline plans (F1 vs F3)", "https://learn.microsoft.com/microsoft-365/frontline/flw-licensing-options"],
+          ["Microsoft 365 for frontline workers — overview", "https://learn.microsoft.com/microsoft-365/frontline/flw-overview"],
+          ["M365 Comparison table — Enterprise & Frontline plans (PDF)", "https://aka.ms/M365EnterprisePlans"]
         ],
         actions: [
           { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
         ]
       },
-      result_profile_gov: {
+      result_edu_a1: {
         result: true,
-        badge: "Government (sovereign cloud)",
-        badgeClass: "badge-warning",
-        title: "US Government — GCC, GCC High, or DoD (sovereign clouds)",
-        sub: "Microsoft 365 for US public sector. Eligibility, data residency, accreditation (FedRAMP High / DoD IL2 / IL4 / IL5 / IL6), and feature parity differ from commercial — always validate before buying.",
-        license: "Microsoft 365 G1 / G3 / G5 (and F1 / F3 for frontline) in the appropriate sovereign cloud — GCC, GCC High, or DoD. Eligibility validated by Microsoft FedCiv; feature parity differs by cloud.",
-        decisionBasis: "You picked Government. Microsoft 365 G3 / G5 (and F SKUs in government) mirror commercial Enterprise SKUs, but Microsoft's Government Product Terms restrict eligibility to US federal / state / local / tribal governments, the DoD, and qualifying contractors. Feature parity with commercial differs by cloud (GCC vs GCC High vs DoD) — the linked Microsoft Learn pages enumerate which services / features are available in each.",
+        badge: "Microsoft 365 A1",
+        badgeClass: "badge-info",
+        title: "Microsoft 365 A1",
+        sub: "Web/mobile-only education tier — Office for the web + Teams for Education + SharePoint + OneDrive (capped). Free for qualifying students.",
+        license: "Microsoft 365 A1, per user (qualifying academic institution; faculty paid, student often free)",
+        decisionBasis: "You picked Education, declined E5-tier security/compliance, and declined the need for installed desktop Office + Exchange + Intune. A1 is the entry academic SKU — web/mobile only — and is free for qualifying students.",
         bullets: [
-          "GCC (Government Community Cloud) — runs on Azure Commercial regions with government screening. FedRAMP High. For US federal, state, local, and tribal governments and their contractors handling CUI but not ITAR. Closest feature parity to commercial Microsoft 365.",
-          "GCC High — runs on Azure Government regions. FedRAMP High + DoD IL4/IL5. For DIB / DFARS / ITAR / EAR-regulated workloads. Smaller feature set than commercial; some services (e.g., parts of Copilot, Entra Suite, Power Platform) lag or are unavailable.",
-          "DoD — exclusive to US Department of Defense. DoD IL5 (and IL6 for classified separately). Most restricted feature parity; confirm every workload with Microsoft FedCiv account team.",
-          "Eligibility (Microsoft Government Product Terms): federal / state / local / tribal governments, US DoD, and contractors meeting DFARS 7012 / ITAR / CMMC requirements. Microsoft validates eligibility before tenant provisioning.",
-          "Plan equivalents: Microsoft 365 G1 / G3 / G5 (and F1 / F3 for frontline) mirror commercial E1 / E3 / E5 / F1 / F3 with sovereign deltas. A5-equivalent education SKUs exist for qualifying US public-sector education institutions.",
-          "Cross-tenant collaboration with commercial M365 tenants is restricted in GCC High / DoD — plan B2B / cross-cloud guest access carefully (cross-cloud B2B trust, Teams external access policies).",
-          "Always verify: (1) Copilot availability in your cloud, (2) Defender XDR feature parity, (3) Entra Suite / Global Secure Access availability, (4) Purview Premium eDiscovery and Customer Lockbox availability, (5) Teams Phone Calling Plans availability per region."
+          "Includes Office for the web, Teams for Education, SharePoint, OneDrive (capped storage), basic Intune for Education, Entra ID P1 (faculty) or Entra ID Free (student).",
+          "Free for qualifying students at validated academic institutions; faculty A1 is paid.",
+          "Step up to A3 when faculty / students need installed Office + Exchange Online + full Intune.",
+          "Step up to A5 when you need E5-tier security/compliance (Defender XDR / Purview E5 / Entra ID P2)."
+        ],
+        docs: [
+          ["Compare M365 Education plans (A1 / A3 / A5)", "https://www.microsoft.com/education/products/office"],
+          ["Microsoft 365 Education service description", "https://learn.microsoft.com/office365/servicedescriptions/office-365-platform-service-description/office-365-education"],
+          ["Education academic eligibility", "https://www.microsoft.com/education/how-to-buy/academic-eligibility"]
+        ],
+        actions: [
+          { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
+        ]
+      },
+      result_edu_a3: {
+        result: true,
+        badge: "Microsoft 365 A3",
+        badgeClass: "badge-premium",
+        title: "Microsoft 365 A3",
+        sub: "Academic equivalent of E3 — installed Office + Exchange + Intune + Entra ID P1 + AIP P1 + Defender for Office P1.",
+        license: "Microsoft 365 A3, per user (qualifying academic institution; faculty / student SKUs differ)",
+        decisionBasis: "You picked Education, need installed desktop Office + Exchange + Intune, but don't need E5-tier security/compliance. A3 mirrors commercial E3 at academic pricing and is the most common paid education baseline.",
+        bullets: [
+          "Includes desktop Office apps, Exchange Online, Microsoft Intune, Entra ID P1, AIP P1, Defender for Office 365 P1.",
+          "Faculty A3 includes Power BI Pro; student A3 does not.",
+          "Step up to A5 when you need Defender XDR / Defender for Endpoint / Defender for Identity / Defender for Cloud Apps / Purview E5 / Entra ID P2.",
+          "Education-specific add-ons: Microsoft 365 Copilot for Education (faculty / student where available), Minecraft Education, Reading Coach / Reflect / Insights."
+        ],
+        docs: [
+          ["Compare M365 Education plans (A1 / A3 / A5)", "https://www.microsoft.com/education/products/office"],
+          ["Microsoft 365 Education service description", "https://learn.microsoft.com/office365/servicedescriptions/office-365-platform-service-description/office-365-education"],
+          ["Microsoft 365 Copilot for Education", "https://learn.microsoft.com/microsoft-365-copilot/microsoft-365-copilot-education"]
+        ],
+        actions: [
+          { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
+        ]
+      },
+      result_edu_a5: {
+        result: true,
+        badge: "Microsoft 365 A5",
+        badgeClass: "badge-premium",
+        title: "Microsoft 365 A5",
+        sub: "Academic equivalent of E5 — A3 + Defender XDR + Defender for Endpoint + Defender for Identity + Defender for Cloud Apps + Purview E5 + Entra ID P2.",
+        license: "Microsoft 365 A5, per user (qualifying academic institution; faculty / student SKUs differ)",
+        decisionBasis: "You picked Education AND need E5-tier security / compliance / identity for the institution. A5 mirrors commercial E5 at academic pricing and is the top education SKU.",
+        bullets: [
+          "Includes everything in A3 plus Defender XDR, Defender for Endpoint, Defender for Identity, Defender for Cloud Apps, Purview E5 (eDiscovery Premium, IRM, Audit Premium), Entra ID P2 (PIM, Identity Protection).",
+          "Faculty A5 includes Power BI Pro and Teams Phone; student A5 does not.",
+          "Standalone A5 Security and A5 Compliance add-ons exist as a bump from A3 if you only need one half of the E5 stack.",
+          "Education-specific add-ons: Microsoft 365 Copilot for Education, Minecraft Education, Reading Coach / Reflect / Insights."
+        ],
+        docs: [
+          ["Compare M365 Education plans (A1 / A3 / A5)", "https://www.microsoft.com/education/products/office"],
+          ["Microsoft 365 Education service description", "https://learn.microsoft.com/office365/servicedescriptions/office-365-platform-service-description/office-365-education"],
+          ["Microsoft 365 Copilot for Education", "https://learn.microsoft.com/microsoft-365-copilot/microsoft-365-copilot-education"]
+        ],
+        actions: [
+          { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
+        ]
+      },
+      result_gov_g1: {
+        result: true,
+        badge: "Microsoft 365 G1",
+        badgeClass: "badge-warning",
+        title: "Microsoft 365 G1 (Government)",
+        sub: "Web/mobile only — equivalent to commercial E1. Sovereign-cloud caveats apply (see banner above).",
+        license: "Microsoft 365 G1, per user (in the sovereign cloud you selected — feature parity differs by cloud)",
+        decisionBasis: "You picked Government, chose a sovereign cloud, and need the basic web/mobile tier. G1 mirrors commercial E1 with US government accreditation in the chosen cloud — verify feature availability against the government cloud service description before purchase.",
+        bullets: [
+          "Includes Exchange Online (50 GB), Teams, SharePoint, OneDrive, Office for the web. No installed desktop apps.",
+          "Sovereign cloud feature parity differs from commercial — Copilot, Entra Suite, Defender XDR availability varies by cloud (see banner above).",
+          "Step up to G3 when users need installed desktop Office, Intune, Entra ID P1.",
+          "Step up to G5 when you need Defender XDR / Purview E5 / Entra ID P2 in the same cloud."
         ],
         docs: [
           ["Microsoft 365 Government — overview & plans", "https://learn.microsoft.com/microsoft-365/enterprise/microsoft-365-us-government"],
           ["Compare Microsoft 365 Government plans (GCC / GCC High / DoD)", "https://www.microsoft.com/microsoft-365/government"],
-          ["GCC vs GCC High vs DoD feature differences", "https://learn.microsoft.com/microsoft-365/enterprise/microsoft-365-us-government-gcc-high"],
-          ["Microsoft Defender for Government", "https://learn.microsoft.com/defender-xdr/usgov"],
-          ["Microsoft Purview for US Government", "https://learn.microsoft.com/purview/purview-fairfax"],
-          ["Microsoft 365 Copilot for Government", "https://learn.microsoft.com/microsoft-365-copilot/microsoft-365-copilot-government"],
-          ["Entra ID Government", "https://learn.microsoft.com/entra/identity/authentication/howto-mfa-mfasettings#government-cloud"],
-          ["m365maps.com — Government maps", "https://m365maps.com/"]
+          ["GCC vs GCC High vs DoD feature differences", "https://learn.microsoft.com/microsoft-365/enterprise/microsoft-365-us-government-gcc-high"]
         ],
         actions: [
           { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
         ]
       },
-      result_profile_nonprofit: {
+      result_gov_g3: {
         result: true,
-        badge: "Nonprofit",
+        badge: "Microsoft 365 G3",
         badgeClass: "badge-premium",
-        title: "Nonprofit — discounted / granted SKUs under Microsoft Nonprofits",
-        sub: "Qualifying charitable organizations enrolled in the Microsoft Nonprofits program get discounted SKUs and, for the smallest orgs, a limited grant tier of Business Premium. Eligibility is validated annually.",
-        license: "Microsoft 365 Business Premium grant (up to 300 free seats) — or Nonprofit Staff Pricing on Business / Enterprise SKUs. Requires active Microsoft Nonprofits enrollment and annual re-validation.",
-        decisionBasis: "You picked Nonprofit. Microsoft Nonprofits restricts grants and Nonprofit Staff Pricing to public-benefit / charitable organizations with recognized legal status (e.g. 501(c)(3) in the US). The grant tier (up to 300 free Business Premium seats) and Nonprofit Staff Pricing are both gated to organizations enrolled and re-validated annually through the Microsoft Nonprofits program.",
+        title: "Microsoft 365 G3 (Government)",
+        sub: "Equivalent to commercial E3 — installed Office + Exchange + Intune + Entra ID P1. Sovereign-cloud caveats apply.",
+        license: "Microsoft 365 G3, per user (in the sovereign cloud you selected — feature parity differs by cloud)",
+        decisionBasis: "You picked Government, chose a sovereign cloud, and need the E3-equivalent tier. G3 mirrors commercial E3 with US government accreditation in the chosen cloud — confirm Defender for Office P1 and Intune availability against the cloud's service description.",
         bullets: [
-          "Microsoft 365 Business Premium grant — up to 300 free seats per validated nonprofit (where available). After the grant cap, additional seats use Business Premium Nonprofit Staff Pricing.",
-          "Nonprofit Staff Pricing — discounted commercial SKUs: M365 Business Basic / Standard / Premium for ≤ 300 seats, and M365 E3 / E5 / F3 for enterprise nonprofits with no seat cap.",
-          "Donated grants vs. discounted: Microsoft splits offers into \"granted\" (no cost, limited seats / SKUs) and \"discounted\" (Nonprofit Staff Pricing). Both require active Microsoft Nonprofits enrollment.",
-          "Eligibility (Microsoft Nonprofits): public-benefit / charitable / nongovernmental org with recognized legal status in its country (e.g., 501(c)(3) in the US). Excludes governmental orgs, hospital systems, schools / universities (use Education SKUs), and political / advocacy orgs.",
-          "Renewal: Microsoft re-validates eligibility annually via TechSoup (US) or equivalent partners. Lapsed validation deactivates the grant tier and reverts the org to standard commercial pricing.",
-          "Common add-ons that are NOT free under the grant: Microsoft 365 Copilot, Teams Phone, Power BI Premium, Defender Suite for Business Premium — all priced at Nonprofit Staff Pricing rates."
+          "Includes desktop Office, Exchange Online Plan 2, Teams, SharePoint, OneDrive, Microsoft Intune, Entra ID P1, AIP P1, Defender for Office 365 P1 (where available in the cloud).",
+          "Sovereign cloud feature parity differs — verify Defender, Copilot, Entra Suite, and Purview Premium availability for your cloud before buying.",
+          "Step up to G5 when you need Defender XDR / Purview E5 / Entra ID P2.",
+          "Cross-tenant collaboration with commercial M365 tenants is restricted in GCC High / DoD — plan B2B carefully."
+        ],
+        docs: [
+          ["Microsoft 365 Government — overview & plans", "https://learn.microsoft.com/microsoft-365/enterprise/microsoft-365-us-government"],
+          ["GCC vs GCC High vs DoD feature differences", "https://learn.microsoft.com/microsoft-365/enterprise/microsoft-365-us-government-gcc-high"],
+          ["Microsoft Defender for Government", "https://learn.microsoft.com/defender-xdr/usgov"]
+        ],
+        actions: [
+          { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
+        ]
+      },
+      result_gov_g5: {
+        result: true,
+        badge: "Microsoft 365 G5",
+        badgeClass: "badge-premium",
+        title: "Microsoft 365 G5 (Government)",
+        sub: "Equivalent to commercial E5 — G3 + Defender XDR + Purview E5 + Entra ID P2. Sovereign-cloud caveats apply.",
+        license: "Microsoft 365 G5, per user (in the sovereign cloud you selected — feature parity differs by cloud)",
+        decisionBasis: "You picked Government, chose a sovereign cloud, AND need E5-tier security / compliance / identity. G5 mirrors commercial E5 with US government accreditation — confirm every premium SKU's availability against the cloud's service description.",
+        bullets: [
+          "Includes everything in G3 plus Defender XDR, Defender for Endpoint P2, Defender for Identity, Defender for Cloud Apps, Defender for Office 365 P2, Purview E5 (eDiscovery Premium, IRM, Audit Premium, Customer Lockbox where available), Entra ID P2.",
+          "Sovereign cloud feature parity differs — some Defender XDR and Purview features lag commercial in GCC High / DoD. Verify per workload.",
+          "Copilot availability in government clouds is rolling out gradually — confirm Copilot for Government availability in your cloud before relying on it.",
+          "Entra Suite (Global Secure Access, Verified ID) availability is limited in GCC High / DoD — verify before relying on it."
+        ],
+        docs: [
+          ["Microsoft 365 Government — overview & plans", "https://learn.microsoft.com/microsoft-365/enterprise/microsoft-365-us-government"],
+          ["Microsoft Defender for Government", "https://learn.microsoft.com/defender-xdr/usgov"],
+          ["Microsoft Purview for US Government", "https://learn.microsoft.com/purview/purview-fairfax"],
+          ["Microsoft 365 Copilot for Government", "https://learn.microsoft.com/microsoft-365-copilot/microsoft-365-copilot-government"]
+        ],
+        actions: [
+          { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
+        ]
+      },
+      result_gov_il6: {
+        result: true,
+        badge: "M365 Air-Gapped (IL6)",
+        badgeClass: "badge-warning",
+        title: "Microsoft 365 Air-Gapped (Top Secret / DoD IL6)",
+        sub: "Classified workloads on physically separated infrastructure. Verify every premium SKU against the Air-Gapped product page before purchasing.",
+        license: "Microsoft 365 Air-Gapped (Top Secret / DoD IL6) — verify SKU availability against the Air-Gapped product page; engage Microsoft FedCiv account team",
+        decisionBasis: "You picked Government and chose Microsoft 365 Air-Gapped. This is a separately-architected, physically-isolated cloud for classified workloads — commercial-feature parity is intentionally limited and SKU availability is gated. Pricing and entitlements are negotiated directly with the Microsoft FedCiv team.",
+        bullets: [
+          "Air-Gapped operates on physically separated infrastructure — most commercial features either lag significantly or are unavailable.",
+          "Verify every premium SKU (Copilot, Defender XDR, Purview Premium, Entra Suite, Teams Premium) against the Air-Gapped product page before assuming it's available.",
+          "Engage the Microsoft FedCiv / Federal Civilian account team early — eligibility, provisioning, and procurement happen through Microsoft directly, not standard CSP partners.",
+          "Cross-cloud collaboration (to commercial / GCC / GCC High / DoD) is heavily restricted by design."
+        ],
+        docs: [
+          ["Microsoft 365 Government — overview & plans", "https://learn.microsoft.com/microsoft-365/enterprise/microsoft-365-us-government"],
+          ["Compare Microsoft 365 Government plans", "https://www.microsoft.com/microsoft-365/government"],
+          ["Compliance between Commercial, Government, DoD & Secret offerings", "https://techcommunity.microsoft.com/blog/publicsectorblog/understanding-compliance-between-commercial-government-dod--secret-offerings---m/4225436"]
+        ],
+        actions: [
+          { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
+        ]
+      },
+      result_npo_business_premium: {
+        result: true,
+        badge: "Nonprofit Business Premium",
+        badgeClass: "badge-premium",
+        title: "Microsoft 365 Business Premium — Nonprofit (grant + NSP)",
+        sub: "Up to 10 free seats per validated nonprofit as a grant; additional seats at Nonprofit Staff Pricing (NSP).",
+        license: "Microsoft 365 Business Premium for Nonprofits — first 10 seats free as a grant; additional seats at NSP rates (≤ 300 seat hard cap)",
+        decisionBasis: "You picked Nonprofit and are at or below 300 seats. Business Premium is the right Business-family SKU and is also the Microsoft Nonprofits grant SKU — qualifying nonprofits get up to 10 free seats as a grant, with additional seats priced at NSP.",
+        bullets: [
+          "Up to 10 free Business Premium seats per validated nonprofit as a Microsoft for Nonprofits grant.",
+          "Additional seats beyond the grant are priced at Nonprofit Staff Pricing (steeply discounted from commercial).",
+          "Hard 300-seat cap across all Business SKUs combined — above 300 seats move to E3/E5 NSP.",
+          "Requires active Microsoft Nonprofits enrollment and annual re-validation (TechSoup in the US, or equivalent partner in other markets).",
+          "Common add-ons NOT free under the grant: Microsoft 365 Copilot, Teams Phone, Defender Suite for Business Premium — priced at NSP."
+        ],
+        docs: [
+          ["Microsoft 365 Business Premium grant eligibility", "https://learn.microsoft.com/microsoft-365/nonprofit/microsoft-365-business-premium-grant"],
+          ["Microsoft for Nonprofits — products & pricing", "https://www.microsoft.com/nonprofits"],
+          ["Microsoft Nonprofits eligibility guidelines", "https://www.microsoft.com/nonprofits/eligibility"]
+        ],
+        actions: [
+          { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
+        ]
+      },
+      result_npo_e3: {
+        result: true,
+        badge: "M365 E3 — Nonprofit",
+        badgeClass: "badge-premium",
+        title: "Microsoft 365 E3 — Nonprofit Staff Pricing",
+        sub: "Enterprise E3 at NSP rates — for nonprofits above the 300-seat Business cap, without E5-tier security needs.",
+        license: "Microsoft 365 E3 at Nonprofit Staff Pricing, per user (no seat cap)",
+        decisionBasis: "You picked Nonprofit, are above 300 seats, and don't need E5-tier security. M365 E3 at NSP rates is the enterprise-tier baseline for larger nonprofits — same entitlements as commercial E3 at deeply discounted pricing.",
+        bullets: [
+          "Same feature shape as commercial E3 — installed Office, Exchange P2, Teams, Intune, Entra ID P1.",
+          "No seat cap — replaces Business SKUs once the org exceeds 300 seats.",
+          "Add Microsoft 365 Copilot at NSP rates per user as needed.",
+          "Requires active Microsoft Nonprofits enrollment and annual re-validation.",
+          "If you later need Defender XDR / Purview E5 / Entra ID P2, step up to M365 E5 at NSP."
         ],
         docs: [
           ["Microsoft for Nonprofits — products & pricing", "https://www.microsoft.com/nonprofits"],
-          ["Microsoft 365 Business Premium grant eligibility", "https://learn.microsoft.com/microsoft-365/nonprofit/microsoft-365-business-premium-grant"],
-          ["Microsoft Nonprofits eligibility guidelines", "https://www.microsoft.com/nonprofits/eligibility"],
           ["Microsoft 365 for nonprofits — get started", "https://learn.microsoft.com/microsoft-365/nonprofit/"],
-          ["m365maps.com — visual SKU comparisons", "https://m365maps.com/"]
+          ["Microsoft Nonprofits eligibility guidelines", "https://www.microsoft.com/nonprofits/eligibility"]
         ],
         actions: [
           { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
         ]
       },
-      result_profile_smb: {
+      result_npo_e5: {
         result: true,
-        badge: "Small / mid-size business",
+        badge: "M365 E5 — Nonprofit",
         badgeClass: "badge-premium",
-        title: "Small / mid-size business (≤ 300 seats) — Microsoft 365 Business Basic / Standard / Premium",
-        sub: "Commercial organizations with a hard 300-seat cap across Business SKUs. Above 300 seats you must move to the Enterprise (E) family.",
-        license: "Microsoft 365 Business Basic, Standard, or Premium per user (hard 300-seat cap across all Business SKUs combined). Premium is the smallest tier that includes Defender for Business + Intune + Entra ID P1.",
-        decisionBasis: "You picked SMB. Microsoft's Business family has a hard, contractually enforced 300-seat cap across all Business SKUs combined. The recommendation is the lowest Business tier that covers the security posture you actually deploy — Business Premium is the smallest SKU that includes Defender for Business, Intune, and Entra ID P1. At 300+ seats Microsoft requires the tenant to switch to Enterprise SKUs.",
+        title: "Microsoft 365 E5 — Nonprofit Staff Pricing",
+        sub: "Enterprise E5 at NSP rates — for nonprofits above 300 seats that need Defender XDR + Purview E5 + Entra ID P2.",
+        license: "Microsoft 365 E5 at Nonprofit Staff Pricing, per user (no seat cap)",
+        decisionBasis: "You picked Nonprofit, are above 300 seats, AND need E5-tier security / compliance / identity. M365 E5 at NSP rates is the enterprise-tier security-and-compliance SKU for larger nonprofits — same entitlements as commercial E5.",
         bullets: [
-          "Microsoft 365 Business Basic — Exchange Online (50 GB), Teams, SharePoint, OneDrive, Office for the web only. No desktop Office apps. Lowest cost.",
-          "Microsoft 365 Business Standard — Business Basic + desktop Office apps (Word, Excel, PowerPoint, Outlook, OneNote, Access [Win only]) + Publisher [Win only] + Bookings + Loop. Still NO security / compliance / device-management premium tooling.",
-          "Microsoft 365 Business Premium — Business Standard + Microsoft Defender for Business + Intune (MDM/MAM) + Entra ID P1 + Defender for Office 365 P1 + AIP P1. The right baseline for any SMB serious about security.",
-          "Hard 300-seat cap (across ALL Business SKUs combined). At 301 seats Microsoft requires you to switch the whole tenant to Enterprise SKUs — plan the cutover before you reach 280 seats.",
-          "Mixing Business + Enterprise SKUs in the same tenant is supported but messy — different policy templates light up, and some Enterprise-only features (Defender XDR, Purview E5, Entra ID P2) won't work for Business-licensed users.",
-          "Upgrade paths to consider per role: Microsoft 365 Copilot Business (Copilot + Microsoft 365 Chat for SMB), Microsoft Defender Suite for Business Premium (adds Entra ID P2 + Defender XDR + Purview Suite), Teams Phone with Calling Plan."
+          "Same feature shape as commercial E5 — Defender Suite + Purview E5 + Entra ID P2 bundled in.",
+          "No seat cap — the right tier for nonprofits >300 seats with serious security / compliance needs.",
+          "Add Microsoft 365 Copilot at NSP rates per user as needed (or evaluate M365 E7 if also adding Entra Suite + Agent 365).",
+          "Requires active Microsoft Nonprofits enrollment and annual re-validation."
         ],
         docs: [
-          ["Compare Microsoft 365 Business plans (Basic / Standard / Premium)", "https://www.microsoft.com/microsoft-365/business/compare-all-plans"],
-          ["Microsoft 365 Business Premium overview", "https://learn.microsoft.com/microsoft-365/business-premium/"],
-          ["M365 Comparison table — Small &amp; Medium Business plans (PDF)", "https://aka.ms/M365BusinessPlans"],
-          ["Microsoft 365 Business 300-seat limit and how to switch to Enterprise", "https://learn.microsoft.com/microsoft-365/commerce/subscriptions/upgrade-to-different-plan"],
-          ["Microsoft Defender Suite for Business Premium", "https://learn.microsoft.com/defender-xdr/microsoft-defender-suite-for-business-premium"],
-          ["Microsoft 365 Copilot Business", "https://learn.microsoft.com/microsoft-365/copilot/microsoft-365-copilot-licensing"],
-          ["m365maps.com — Business maps", "https://m365maps.com/"]
+          ["Microsoft for Nonprofits — products & pricing", "https://www.microsoft.com/nonprofits"],
+          ["Microsoft 365 for nonprofits — get started", "https://learn.microsoft.com/microsoft-365/nonprofit/"],
+          ["Microsoft Nonprofits eligibility guidelines", "https://www.microsoft.com/nonprofits/eligibility"]
         ],
         actions: [
           { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
         ]
       },
-      result_profile_external_id: {
+      result_extid_free: {
         result: true,
-        badge: "External ID / B2B guest",
-        badgeClass: "badge-info",
-        title: "External ID / B2B guest — billed by Monthly Active Users (MAU), not per-user license",
-        sub: "Guests, partners, vendors, and contractors invited into your tenant are licensed under Entra External ID's MAU model — not a per-seat M365 license.",
-        license: "No per-seat license. Microsoft Entra External ID is billed by Monthly Active Users (first 50,000 MAU per tenant free); premium P1 / P2 / Verified ID layer on at per-MAU rates.",
-        decisionBasis: "You picked External ID / B2B guest. The Microsoft Entra External ID pricing page explicitly bills guest identities by Monthly Active Users (MAU), not per-seat M365 licenses. The first 50,000 MAU per tenant are free; premium features (P1 / P2 / Verified ID) layer on at per-MAU rates. Guests don't need M365 service licenses to consume content shared with them.",
+        badge: "External ID — free MAU tier",
+        badgeClass: "badge-success",
+        title: "Entra External ID — Free MAU tier",
+        sub: "Basic B2B collaboration. First 50,000 Monthly Active Users (MAU) per tenant are free; no per-seat M365 license needed.",
+        license: "No per-seat license. Microsoft Entra External ID free MAU tier (first 50,000 MAU per tenant free)",
+        decisionBasis: "You picked External ID and confirmed basic B2B collaboration is enough — no risk-based CA, no PIM, no Verified ID. The free MAU tier covers normal guest collaboration scenarios for most tenants.",
         bullets: [
-          "Monthly Active Users (MAU) — Entra External ID counts unique guest users who authenticate at least once in a calendar month. Microsoft grants the first 50,000 MAU free per tenant; beyond that, billed monthly.",
-          "Premium features (P1 / P2) — risk-based CA, Identity Protection, PIM, Verified ID for external users are priced per MAU at the corresponding premium rate. Free tier covers basic B2B collaboration only.",
-          "Inbound vs outbound — \"B2B Collaboration\" (a guest from another Entra tenant is invited into yours) is the common pattern. \"B2B Direct Connect\" (Teams shared channels) uses cross-tenant access policies and is also free at the basic tier.",
-          "External ID for customers (CIAM) — separate product / pricing for customer-facing apps (sign-up, sign-in, social IdPs). Different from B2B and billed differently — see the External ID pricing page.",
-          "Guest accounts do NOT need an M365 service license to consume Teams / SharePoint shared with them. They use the inviting tenant's licensed resources (subject to per-service guest-access caps).",
-          "What you DO license per-guest: any M365 service the guest uses heavily as their own (rare — usually means a real licensed user account, not a guest), and any premium Entra External ID feature (P1/P2/Verified ID) you want enforced against the guest population.",
-          "Governance: use Entra ID Governance access reviews + entitlement management to expire guests automatically. Without governance, guest sprawl is a real audit / data-exfil risk."
+          "First 50,000 Monthly Active Users (MAU) per tenant are free — covers basic B2B invitations + shared content access.",
+          "Includes B2B Collaboration (invite guests from other Entra tenants) and B2B Direct Connect (Teams shared channels) at the basic tier.",
+          "Guests do NOT need an M365 service license to consume shared Teams / SharePoint content — they use the inviting tenant's licensed resources.",
+          "Beyond 50,000 MAU per tenant, billed monthly at the free-tier per-MAU rate.",
+          "Step up to External ID P1/P2 only when you actually need premium features (risk-based CA, Identity Protection, PIM for guests, Verified ID)."
         ],
         docs: [
           ["Microsoft Entra External ID — overview", "https://learn.microsoft.com/entra/external-id/external-identities-overview"],
           ["External ID pricing & billing model (MAU)", "https://learn.microsoft.com/entra/external-id/external-identities-pricing"],
-          ["B2B collaboration overview", "https://learn.microsoft.com/entra/external-id/what-is-b2b"],
-          ["B2B Direct Connect (shared channels)", "https://learn.microsoft.com/entra/external-id/b2b-direct-connect-overview"],
+          ["B2B collaboration overview", "https://learn.microsoft.com/entra/external-id/what-is-b2b"]
+        ],
+        actions: [
+          { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
+        ]
+      },
+      result_extid_p2: {
+        result: true,
+        badge: "External ID — P2 MAU",
+        badgeClass: "badge-premium",
+        title: "Entra External ID — Premium P2 MAU pricing",
+        sub: "Premium features (risk-based CA, Identity Protection, PIM for guests) priced per active MAU.",
+        license: "Microsoft Entra External ID Premium P2 — per Monthly Active User in scope of premium policies",
+        decisionBasis: "You picked External ID and need premium identity features for guests — risk-based Conditional Access, Identity Protection, or PIM for external users. External ID P2 MAU pricing covers premium features per active guest user.",
+        bullets: [
+          "External ID Premium P2 enables risk-based Conditional Access, premium risk detections, and PIM workflows scoped to external identities.",
+          "Billed per Monthly Active User in scope of the premium policy — not a flat per-tenant fee.",
+          "External ID P1 (risk-based CA without Identity Protection's premium detections) is a cheaper option if you don't need P2's risk evaluation.",
+          "Free MAU tier (first 50,000 per tenant) still applies to the underlying B2B collaboration — premium pricing is purely the uplift for premium feature scope."
+        ],
+        docs: [
+          ["External ID pricing & billing model (MAU)", "https://learn.microsoft.com/entra/external-id/external-identities-pricing"],
+          ["Microsoft Entra External ID — overview", "https://learn.microsoft.com/entra/external-id/external-identities-overview"],
+          ["Identity Protection — risks", "https://learn.microsoft.com/entra/id-protection/concept-identity-protection-risks"]
+        ],
+        actions: [
+          { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
+        ]
+      },
+      result_extid_verified: {
+        result: true,
+        badge: "External ID — Verified ID",
+        badgeClass: "badge-info",
+        title: "Microsoft Entra Verified ID — per credential issued",
+        sub: "Decentralized verifiable credentials for high-trust scenarios. Priced per credential issued.",
+        license: "Microsoft Entra Verified ID — per verifiable credential issued (separate from MAU pricing)",
+        decisionBasis: "You picked External ID and need to issue Microsoft Entra Verified ID credentials. Verified ID is priced separately from the MAU model — per verifiable credential issued — and is the right SKU for decentralized identifier scenarios.",
+        bullets: [
+          "Verified ID lets you issue verifiable credentials (W3C VCs) to guests, employees, or customers for high-trust scenarios (employment verification, partner attestation, etc.).",
+          "Pricing is per credential issued, not per MAU — separate billing meter from External ID free/P1/P2.",
+          "If you also need premium identity features (risk-based CA, PIM) for the same guests, layer External ID P1 or P2 on top.",
+          "Microsoft Entra Suite bundles Verified ID + Internet Access + Private Access + Governance + P2 — evaluate Entra Suite when scaling Verified ID for many user populations."
+        ],
+        docs: [
+          ["Microsoft Entra Verified ID", "https://learn.microsoft.com/entra/verified-id/decentralized-identifier-overview"],
+          ["External ID pricing & billing model (MAU)", "https://learn.microsoft.com/entra/external-id/external-identities-pricing"],
+          ["Microsoft Entra Suite overview", "https://learn.microsoft.com/entra/fundamentals/entra-suite"]
+        ],
+        actions: [
+          { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
+        ]
+      },
+      result_extid_ciam: {
+        result: true,
+        badge: "External ID for customers (CIAM)",
+        badgeClass: "badge-info",
+        title: "Microsoft Entra External ID for customers (CIAM)",
+        sub: "Customer-facing apps with sign-up / sign-in / social identity providers. Separate product and pricing from B2B.",
+        license: "Microsoft Entra External ID for customers (CIAM) — separate MAU-based pricing tier from B2B; see External ID pricing page",
+        decisionBasis: "You picked External ID and confirmed the use case is customer-facing apps (CIAM), not B2B partners. External ID for customers is a separate product line with its own pricing and feature set, optimized for consumer sign-up / sign-in / social IdPs.",
+        bullets: [
+          "Use for customer-facing apps that need sign-up / sign-in / social identity providers (Google, Facebook, Apple, Microsoft Account).",
+          "Separate billing meter from B2B External ID — see the External ID pricing page for current CIAM MAU rates.",
+          "Custom branded sign-up / sign-in pages, user attribute collection, and self-service password reset are included.",
+          "Replaces the legacy Azure AD B2C product line for new tenants.",
+          "B2B partners and CIAM customers are separately licensed — do not mix the two scenarios in the same MAU bucket."
+        ],
+        docs: [
           ["External ID for customers (CIAM)", "https://learn.microsoft.com/entra/external-id/customers/overview-customers-ciam"],
-          ["Govern guest access with access reviews", "https://learn.microsoft.com/entra/id-governance/manage-guest-access-with-access-reviews"]
+          ["External ID pricing & billing model (MAU)", "https://learn.microsoft.com/entra/external-id/external-identities-pricing"],
+          ["Microsoft Entra External ID — overview", "https://learn.microsoft.com/entra/external-id/external-identities-overview"]
         ],
         actions: [
           { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
@@ -3482,7 +4170,7 @@
     function govCloudFromHistory() {
       for (let i = state.history.length - 1; i >= 0; i--) {
         const h = state.history[i];
-        if (h.id === "gov_cloud" && h.value) return h.value;
+        if ((h.id === "gov_cloud" || h.id === "q_gov_profile_cloud") && h.value) return h.value;
       }
       return null;
     }
