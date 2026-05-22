@@ -31,6 +31,19 @@
   --color-error: #a4262c;
   --color-purple: #5c2d91;
 
+  /* Theme-aware success / error tokens for tinted-fill UI (toggle buttons,
+     answer pills, summary-row highlights). Light-theme defaults use slightly
+     darker greens / reds than `--color-success` / `--color-error` so they
+     remain AA-readable when used as text on a tinted background. */
+  --color-success-fg: #1a7f37;
+  --color-error-fg: #b32a2a;
+  --color-success-bg: rgba(26, 127, 55, 0.12);
+  --color-error-bg: rgba(179, 42, 42, 0.1);
+  --color-success-bg-subtle: rgba(26, 127, 55, 0.06);
+  --color-error-bg-subtle: rgba(179, 42, 42, 0.06);
+  --color-success-pill-bg: rgba(26, 127, 55, 0.08);
+  --color-error-pill-bg: rgba(179, 42, 42, 0.08);
+
   --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.06);
   --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.1);
   --shadow-modal: 0 24px 60px rgba(0, 0, 0, 0.18);
@@ -79,6 +92,14 @@
   --color-bg-tint: #273447;
   --color-border: #374151;
   --color-border-strong: #4b5563;
+  --color-success-fg: #4ac26b;
+  --color-error-fg: #ff7b7b;
+  --color-success-bg: rgba(74, 194, 107, 0.18);
+  --color-error-bg: rgba(255, 123, 123, 0.18);
+  --color-success-bg-subtle: rgba(74, 194, 107, 0.12);
+  --color-error-bg-subtle: rgba(255, 123, 123, 0.12);
+  --color-success-pill-bg: rgba(74, 194, 107, 0.15);
+  --color-error-pill-bg: rgba(255, 123, 123, 0.15);
   --shadow-card: 0 6px 20px rgba(0, 0, 0, 0.35);
   --shadow-card-hover: 0 10px 28px rgba(0, 0, 0, 0.45);
   --footer-bg: #0a0f1a;
@@ -97,6 +118,14 @@
     --color-bg-tint: #273447;
     --color-border: #374151;
     --color-border-strong: #4b5563;
+    --color-success-fg: #4ac26b;
+    --color-error-fg: #ff7b7b;
+    --color-success-bg: rgba(74, 194, 107, 0.18);
+    --color-error-bg: rgba(255, 123, 123, 0.18);
+    --color-success-bg-subtle: rgba(74, 194, 107, 0.12);
+    --color-error-bg-subtle: rgba(255, 123, 123, 0.12);
+    --color-success-pill-bg: rgba(74, 194, 107, 0.15);
+    --color-error-pill-bg: rgba(255, 123, 123, 0.15);
     --shadow-card: 0 6px 20px rgba(0, 0, 0, 0.35);
     --shadow-card-hover: 0 10px 28px rgba(0, 0, 0, 0.45);
     --footer-bg: #0a0f1a;

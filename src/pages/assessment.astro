@@ -520,11 +520,8 @@ const description =
     color: var(--color-text-soft);
   }
   .scope-breakdown__legend-star {
-    color: #b32a2a;
+    color: var(--color-error-fg);
     font-weight: 700;
-  }
-  :root[data-theme="dark"] .scope-breakdown__legend-star {
-    color: #e04848;
   }
 
   /* ===== Interactive / Show-all mode toggle =====================
@@ -619,21 +616,24 @@ const description =
     color: var(--color-text);
   }
   .scope-status--yes {
-    color: #1a7f37;
+    color: var(--color-success-fg);
   }
   .scope-status--no {
-    color: #b32a2a;
-  }
-  :root[data-theme="dark"] .scope-status--yes {
-    color: #4ac26b;
-  }
-  :root[data-theme="dark"] .scope-status--no {
-    color: #ff7b7b;
+    color: var(--color-error-fg);
   }
 
   /* ===== Per-item decision row (interactive mode) ==============
      Sits inside each scope-item__body when interactive mode is on
-     and the item is scopeable. Two Yes/No buttons + optional Clear. */
+     and the item is scopeable. Two Yes/No buttons + optional Clear.
+
+     Mechanically mirrors `.btn` (inline-flex centering, font-weight 600
+     baseline, font-size var(--fs-sm), :active translateY, same transition
+     set, [disabled] handling, focus-visible ring) so both button systems
+     feel like they're from the same design system. The visual *idiom*
+     differs intentionally — main Yes/No are filled commit buttons
+     (the primary action), sub-card Yes/No are neutral toggle buttons
+     (two equal-weight choices). Selection swaps the interior fill to a
+     success / error tint rather than adding an outer halo. */
   .scope-item__decide {
     display: flex;
     flex-direction: column;
@@ -645,16 +645,10 @@ const description =
     border-radius: var(--radius);
   }
   .scope-item[data-answered="yes"] > summary {
-    background: rgba(26, 127, 55, 0.06);
+    background: var(--color-success-bg-subtle);
   }
   .scope-item[data-answered="no"] > summary {
-    background: rgba(179, 42, 42, 0.06);
-  }
-  :root[data-theme="dark"] .scope-item[data-answered="yes"] > summary {
-    background: rgba(74, 194, 107, 0.12);
-  }
-  :root[data-theme="dark"] .scope-item[data-answered="no"] > summary {
-    background: rgba(255, 123, 123, 0.12);
+    background: var(--color-error-bg-subtle);
   }
   .scope-item__decide-label {
     font-size: 0.92rem;
@@ -667,53 +661,82 @@ const description =
     gap: 0.5rem;
   }
   .scope-decide-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
     flex: 0 1 auto;
     min-width: 9rem;
     padding: 0.5rem 0.9rem;
-    background: var(--color-card-bg, var(--color-bg));
-    border: 1px solid var(--color-border);
+    background: var(--color-bg);
+    border: 1px solid var(--color-border-strong);
     border-radius: var(--radius);
     cursor: pointer;
     font: inherit;
-    font-weight: 500;
+    font-weight: 600;
+    font-size: var(--fs-sm);
+    line-height: 1.2;
     color: var(--color-text);
+    white-space: nowrap;
     transition:
+      background 0.15s,
       border-color 0.15s,
-      background 0.15s;
+      color 0.15s,
+      transform 0.05s;
   }
   .scope-decide-btn:hover {
+    background: var(--color-bg-tint);
     border-color: var(--ms-blue);
+    color: var(--ms-blue);
   }
   .scope-decide-btn:focus-visible {
     outline: 2px solid var(--ms-blue);
     outline-offset: 2px;
   }
+  .scope-decide-btn:active {
+    transform: translateY(1px);
+  }
+  .scope-decide-btn[disabled],
+  .scope-decide-btn[aria-disabled="true"] {
+    opacity: 0.5;
+    pointer-events: none;
+  }
   .scope-decide-btn--yes.scope-decide-btn--active {
-    background: rgba(26, 127, 55, 0.12);
-    border-color: #1a7f37;
-    color: #1a7f37;
-    font-weight: 600;
+    background: var(--color-success-bg);
+    border-color: var(--color-success-fg);
+    color: var(--color-success-fg);
+    font-weight: 700;
+  }
+  .scope-decide-btn--yes.scope-decide-btn--active:hover {
+    background: var(--color-success-bg);
+    border-color: var(--color-success-fg);
+    color: var(--color-success-fg);
   }
   .scope-decide-btn--no.scope-decide-btn--active {
-    background: rgba(179, 42, 42, 0.1);
-    border-color: #b32a2a;
-    color: #b32a2a;
-    font-weight: 600;
+    background: var(--color-error-bg);
+    border-color: var(--color-error-fg);
+    color: var(--color-error-fg);
+    font-weight: 700;
   }
-  :root[data-theme="dark"] .scope-decide-btn--yes.scope-decide-btn--active {
-    background: rgba(74, 194, 107, 0.18);
-    border-color: #4ac26b;
-    color: #4ac26b;
+  .scope-decide-btn--no.scope-decide-btn--active:hover {
+    background: var(--color-error-bg);
+    border-color: var(--color-error-fg);
+    color: var(--color-error-fg);
   }
-  :root[data-theme="dark"] .scope-decide-btn--no.scope-decide-btn--active {
-    background: rgba(255, 123, 123, 0.18);
-    border-color: #ff7b7b;
-    color: #ff7b7b;
-  }
+  /* Clear button — tertiary action, composes with btn-ghost feel
+     (transparent border, soft text, bg tint on hover). */
   .scope-decide-btn--clear {
     min-width: 5.5rem;
-    font-size: 0.88rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    background: transparent;
+    border-color: transparent;
     color: var(--color-text-soft);
+  }
+  .scope-decide-btn--clear:hover {
+    background: var(--color-bg-tint);
+    border-color: transparent;
+    color: var(--color-text);
   }
 
   /* Per-item answer pill shown in the summary header strip. */
@@ -726,20 +749,12 @@ const description =
     border: 1px solid currentColor;
   }
   .scope-item__answer-pill--yes {
-    color: #1a7f37;
-    background: rgba(26, 127, 55, 0.08);
+    color: var(--color-success-fg);
+    background: var(--color-success-pill-bg);
   }
   .scope-item__answer-pill--no {
-    color: #b32a2a;
-    background: rgba(179, 42, 42, 0.08);
-  }
-  :root[data-theme="dark"] .scope-item__answer-pill--yes {
-    color: #4ac26b;
-    background: rgba(74, 194, 107, 0.15);
-  }
-  :root[data-theme="dark"] .scope-item__answer-pill--no {
-    color: #ff7b7b;
-    background: rgba(255, 123, 123, 0.15);
+    color: var(--color-error-fg);
+    background: var(--color-error-pill-bg);
   }
 
   /* ===== Yes/No commit buttons — recommendation styling ==========
