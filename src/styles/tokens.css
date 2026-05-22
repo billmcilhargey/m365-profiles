@@ -92,6 +92,13 @@
   --color-bg-tint: #273447;
   --color-border: #374151;
   --color-border-strong: #4b5563;
+  /* Accent-tint tokens — light-mode values are near-white blue tints used
+     as subtle accent backgrounds (callouts, hover/active states, hero
+     gradients, halos). In dark mode they must resolve to a subtle
+     dark-blue tint instead, otherwise any text rendered on top becomes
+     light-on-light and disappears. */
+  --ms-blue-light: #23355c;
+  --ms-blue-lighter: #1a2942;
   --color-success-fg: #4ac26b;
   --color-error-fg: #ff7b7b;
   --color-success-bg: rgba(74, 194, 107, 0.18);
@@ -118,6 +125,8 @@
     --color-bg-tint: #273447;
     --color-border: #374151;
     --color-border-strong: #4b5563;
+    --ms-blue-light: #23355c;
+    --ms-blue-lighter: #1a2942;
     --color-success-fg: #4ac26b;
     --color-error-fg: #ff7b7b;
     --color-success-bg: rgba(74, 194, 107, 0.18);
