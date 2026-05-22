@@ -231,8 +231,8 @@ export const SOURCES = Object.freeze(
       url: "https://learn.microsoft.com/purview/insider-risk-management-configure#subscriptions-and-licensing",
     },
     PURVIEW_EDISCOVERY_LICENSING: {
-      label: "eDiscovery — subscription and licensing",
-      url: "https://learn.microsoft.com/purview/ediscovery-subscription-licensing",
+      label: "eDiscovery — subscription and licensing (Purview service description)",
+      url: "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-purview-service-description#microsoft-purview-ediscovery",
     },
     PURVIEW_SECURITY_COMPLIANCE_GUIDANCE: {
       label: "Microsoft 365 Security & Compliance — licensing guidance",

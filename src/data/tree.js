@@ -1,5 +1,224 @@
 // Decision-tree data. Edit nodes here, then run `npm run validate-tree`.
 // Node shapes: choice | question (yes/no) | info | result.
+
+// ---------------------------------------------------------------------------
+// Shared mini-card breakdowns
+//
+// These constants are referenced from multiple umbrella questions so we only
+// maintain the source-of-truth in one place. Edit here once and every
+// question that references them (the upstream Defender / Purview umbrella +
+// the "ALSO need..." breadth follow-ups) picks up the change.
+//
+// DEFENDER_SUITE_MINI_CARDS  — used by `q_defender` (the admin's own-Defender
+//   trigger check) and `q_purview_e5_breadth` (the "after Purview Yes, do you
+//   ALSO need Defender?" follow-up). Five cards: Defender for Office 365 P2,
+//   Defender for Endpoint P2, Defender for Identity (tenant-wide *
+//   informational), Defender for Cloud Apps, Defender XDR.
+//
+// PURVIEW_E5_BREADTH_MINI_CARDS — used by `q_defender_breadth` (the "after
+//   Defender Yes, do you ALSO need Purview?" follow-up). Four focused cards
+//   covering the most common per-user Purview E5 triggers: IRM, Communication
+//   Compliance, eDiscovery (Premium), Audit (Premium). The full 12-card
+//   Purview breakdown lives inline on `q_purview_e5` (the upstream umbrella);
+//   the breadth-question version is a focused recap, not a duplicate.
+// ---------------------------------------------------------------------------
+
+const DEFENDER_SUITE_MINI_CARDS = [
+  {
+    name: "Defender for Office 365 Plan 2",
+    sku: "M365 E5 / M365 E5 Security / Defender for Office 365 P2 standalone / Office 365 E5",
+    scope: "tenant-wide-scopeable",
+    scopeNote:
+      "Tenant-wide by default but scopeable down to licensed mailboxes. Microsoft's Defender for Office 365 service description and the Standard / Strict preset security policies apply Safe Links, Safe Attachments, anti-phishing impersonation protection, Safe Attachments for SharePoint / OneDrive / Teams, Threat Explorer, Automated Investigation and Response (AIR), and Attack Simulation Training across the whole tenant unless you scope them. Admins should scope each policy (Safe Links, Safe Attachments, anti-phish, ASR Training campaigns) to only the user mailboxes / shared mailboxes / resource mailboxes / Microsoft 365 groups that actually hold a Defender for Office 365 P2 entitlement \u2014 either by using the preset policy 'Users, groups, and domains' include lists, or by building custom policies with explicit recipient scoping. Microsoft Product Terms require a per-mailbox licence for every mailbox covered by the scope you configure (user mailbox, shared mailbox, resource mailbox, room, or equipment).",
+    inScopeMeans:
+      "this user's Exchange Online mailbox falls inside the recipient scope of a Safe Links / Safe Attachments / anti-phish policy (or the Standard / Strict preset), OR they are enrolled in Attack Simulation Training as a trainee.",
+    notInScopeMeans:
+      "every Defender for Office 365 P2 policy explicitly excludes this user's mailbox (or they have no Exchange Online mailbox at all), AND they are not enrolled in any ASR Training campaign. They still get the always-on EOP anti-malware / anti-spam baseline that comes with every Exchange Online mailbox SKU.",
+    examples: [
+      "Yes (licensed correctly): this user holds M365 E5; their mailbox is in scope of the Strict preset, so Safe Links rewrites their URLs and Safe Attachments sandboxes their attachments.",
+      "Yes (under-licensed \u2014 needs uplift): this user holds M365 E3 only and the tenant's Safe Links policy is scoped to 'all users' \u2014 silently covering them. Per Product Terms, each protected mailbox needs a P2 entitlement; either uplift to E5 / E5 Security / Defender Suite add-on, or exclude their mailbox from the policy.",
+      "Yes: this user is enrolled as a trainee in an Attack Simulation Training campaign \u2014 ASR Training requires a P2 entitlement on the trainee.",
+      "No (current licence already covers it): this user holds M365 E3 and every Defender for Office 365 policy is scoped to the 'mdo-p2-licensed' group; their mailbox is explicitly excluded. They keep the EOP baseline at no extra cost.",
+      "No (tenant-vs-user note \u2014 unlicensed user): this user has no Exchange Online mailbox at all (e.g. an Entra-only break-glass account); Defender for Office 365 has no mailbox footprint to protect them and the licence trigger never fires."
+    ],
+    docs: [
+      ["Microsoft Defender for Office 365 service description", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-defender-service-description#microsoft-defender-for-office-365"],
+      ["Recipient filters for Defender for Office 365 policies", "https://learn.microsoft.com/defender-office-365/recipient-filters-in-preset-security-policies"],
+      ["Preset security policies (Standard / Strict)", "https://learn.microsoft.com/defender-office-365/preset-security-policies"],
+      ["Defender for Office 365 plans and pricing", "https://learn.microsoft.com/defender-office-365/mdo-security-comparison"]
+    ]
+  },
+  {
+    name: "Defender for Endpoint Plan 2",
+    sku: "M365 E5 / M365 E5 Security / Defender for Endpoint P2 standalone (per-user or per-device)",
+    scope: "per-device",
+    scopeNote:
+      "Per onboarded endpoint. Microsoft's Defender for Endpoint licensing guide allows two purchase models: per-user (each user covers up to 5 devices \u2014 the M365 E5 / E5 Security / Defender Suite add-on path) or per-device standalone (typically used for shared / kiosk / OT endpoints). EDR, attack-surface-reduction reporting, automated investigation, advanced hunting on device data, vulnerability management, and threat-and-vulnerability remediation all require a P2 entitlement on the device. Defender for Endpoint Plan 1 (bundled in M365 E3 / E5 / F3 / Business Premium) provides next-gen AV + manual response / ASR rules only \u2014 no EDR / AIR / advanced hunting.",
+    inScopeMeans:
+      "this user's Windows, macOS, Linux, iOS, or Android device is onboarded to Defender for Endpoint and shows up in Device Inventory under their identity, AND the Defender for Endpoint experience the device reports is P2 (EDR + AIR + advanced hunting), not Plan 1.",
+    notInScopeMeans:
+      "this user has no Defender for Endpoint sensor on any device they use, OR every device they use runs Plan 1 only (next-gen AV + ASR rules, no EDR / advanced hunting).",
+    examples: [
+      "Yes (licensed correctly): this user holds M365 E5; their managed laptop is onboarded to Defender for Endpoint P2 and shows up in Device Inventory under their identity.",
+      "Yes (under-licensed \u2014 needs uplift): this user holds M365 E3 and their laptop is silently onboarded to Defender for Endpoint P2 via group-based onboarding. P2 needs an E5 / E5 Security / Defender Suite add-on / per-user P2 entitlement on the user (or per-device on the endpoint) \u2014 uplift, or move the device back to Plan 1.",
+      "No (current licence already covers it): this user holds M365 E3, which bundles Defender for Endpoint Plan 1. Their laptop reports Plan 1 telemetry only \u2014 no EDR / advanced hunting \u2014 and no P2 licence trigger fires.",
+      "No: this user only ever uses an unmanaged personal device with no Defender sensor of any plan, or an Azure VM jumpbox that has no Defender for Endpoint sensor installed."
+    ],
+    docs: [
+      ["Defender for Endpoint licensing options", "https://learn.microsoft.com/defender-endpoint/minimum-requirements#licensing-requirements"],
+      ["Compare Defender for Endpoint plans (P1 vs P2)", "https://learn.microsoft.com/defender-endpoint/defender-endpoint-plan-1-2"]
+    ]
+  },
+  {
+    name: "Defender for Identity",
+    sku: "M365 E5 / M365 E5 Security / EMS E5 / Defender for Identity standalone",
+    scope: "tenant-wide-not-scopeable",
+    scopeNote:
+      "Technically tenant-wide and not scopeable. The Microsoft Defender service description states verbatim that \u201CMicrosoft Defender for Identity features are enabled at the tenant level for all users within the tenant\u201D and that the service \u201Cisn't currently capable of limiting benefits to specific users.\u201D The sensor on Domain Controllers / AD FS / AD CS / Entra Connect observes every account in the monitored forest \u2014 you cannot scope it to a subset. Microsoft Product Terms still require a per-user Defender for Identity / EMS E5 / M365 E5 / E5 Security / Defender Suite add-on licence for every user who benefits from the service. Microsoft's Secure Future Initiative (Secure by Default principle) recommends enabling identity-threat protection like MDI on every tenant that has on-premises AD.",
+    inScopeMeans:
+      "the tenant has deployed any Defender for Identity sensor (on a Domain Controller, AD FS, AD CS, or Entra Connect server) \u2014 every user monitored by that sensor benefits, including this user.",
+    notInScopeMeans:
+      "the tenant has not deployed any Defender for Identity sensor on any Domain Controller, AD FS, AD CS, or Entra Connect server.",
+    examples: [
+      "Yes: any Defender for Identity sensor is running anywhere in the tenant's monitored forest \u2014 this user (along with every other monitored user) is a beneficiary and needs a licence.",
+      "No: a greenfield / cloud-only tenant with no on-prem AD and no Defender for Identity sensors deployed; the licence is not yet triggered for anyone."
+    ],
+    docs: [
+      ["Microsoft Defender for Identity service description", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-defender-service-description#microsoft-defender-for-identity"],
+      ["Defender for Identity prerequisites (licensing)", "https://learn.microsoft.com/defender-for-identity/deploy/prerequisites-sensor-version-2#licensing-requirements"],
+      ["Microsoft Product Terms", "https://www.microsoft.com/licensing/terms/"],
+      ["Microsoft Secure Future Initiative (SFI)", "https://www.microsoft.com/en-us/trust-center/security/secure-future-initiative"]
+    ]
+  },
+  {
+    name: "Defender for Cloud Apps",
+    sku: "M365 E5 / M365 E5 Security / EMS E5 / Defender for Cloud Apps standalone",
+    scope: "tenant-wide-scopeable",
+    scopeNote:
+      "Tenant-wide by default but scopeable. The Microsoft Defender service description states \u201CBy default, Microsoft Defender for Cloud Apps is enabled at the tenant level for all users within the tenant\u201D and then provides an explicit Scoped Deployment capability so admins can limit the service to licensed users / groups. Microsoft Product Terms require a per-user licence for every user covered by the scope you configure \u2014 Conditional Access App Control sessions, file / activity / OAuth-app policies, and attributed Cloud Discovery activity all count.",
+    inScopeMeans:
+      "this user's identity is included in the configured Scoped Deployment (or no Scoped Deployment is configured, so the tenant default applies), AND Defender for Cloud Apps activity / file / OAuth / session policies cover them.",
+    notInScopeMeans:
+      "a Scoped Deployment explicitly excludes this user's identity, AND no Conditional Access App Control or activity policy targets them.",
+    examples: [
+      "Yes (licensed correctly): this user holds M365 E5; a Conditional Access App Control policy routes their Salesforce / ServiceNow sessions through the Defender for Cloud Apps reverse-proxy for download restrictions.",
+      "Yes (under-licensed \u2014 needs uplift): this user holds M365 E3 and the tenant has no Scoped Deployment configured \u2014 so Defender for Cloud Apps is silently watching them. Either uplift to E5 / E5 Security / Defender Suite add-on, or configure Scoped Deployment to exclude them.",
+      "No (current licence already covers it): Scoped Deployment is configured to include only the Sales group; this user is in IT and explicitly excluded.",
+      "No: the tenant has Defender for Cloud Apps disabled / has never connected any apps; no per-user licence is triggered for anyone."
+    ],
+    docs: [
+      ["Microsoft Defender for Cloud Apps service description", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-defender-service-description#microsoft-defender-for-cloud-apps"],
+      ["Defender for Cloud Apps scoped deployment", "https://learn.microsoft.com/defender-cloud-apps/scoped-deployment"],
+      ["Defender for Cloud Apps editions and licensing", "https://learn.microsoft.com/defender-cloud-apps/editions-cloud-app-security"]
+    ]
+  },
+  {
+    name: "Microsoft Defender XDR (correlation and incident layer)",
+    sku: "Entitled wherever at least one of the four components above is licensed for this user; no separate per-user SKU",
+    scope: "tenant-wide-scopeable",
+    scopeNote:
+      "Tenant-level entitlement layered on top of the four components. Defender XDR is the cross-workload correlation, incident grouping, advanced hunting (KQL), automated investigation, and unified portal experience at security.microsoft.com. It does not have a separate per-user SKU. Customers gain Defender XDR automatically when they license any of Defender for Office 365 P2, Defender for Endpoint P2, Defender for Identity, or Defender for Cloud Apps \u2014 and visibility / response scope for any given user is limited to whichever of those four components are licensed for that user, mailbox, or device.",
+    inScopeMeans:
+      "this user has at least one of the four underlying Defender components licensed for them \u2014 Defender XDR is automatically entitled and correlates incidents across the components they hold.",
+    notInScopeMeans:
+      "this user holds none of the four underlying Defender components; Defender XDR has nothing to correlate for them.",
+    examples: [
+      "Yes (licensed correctly): this user holds M365 E5, so all four Defender workloads light up in the unified Defender XDR portal and incidents span email + endpoint + identity for them.",
+      "Yes (Defender Suite add-on path): this user holds M365 E3 + Defender Suite add-on \u2014 same Defender XDR experience, layered on the E3 base.",
+      "No (current licence already covers it): this user holds M365 E3 (bundles Defender for Endpoint Plan 1 only); incidents from their device appear in the Defender portal but without P2 advanced hunting / AIR / cross-workload correlation."
+    ],
+    docs: [
+      ["What is Microsoft Defender XDR", "https://learn.microsoft.com/defender-xdr/microsoft-365-defender"],
+      ["Defender XDR prerequisites and licensing", "https://learn.microsoft.com/defender-xdr/prerequisites"]
+    ]
+  }
+];
+
+const PURVIEW_E5_BREADTH_MINI_CARDS = [
+  {
+    name: "Insider Risk Management (IRM)",
+    sku: "M365 E5 / E5 Compliance / IRM standalone",
+    scope: "per-user",
+    scopeNote:
+      "Per-user feature. Microsoft Purview IRM policies score user signals (data theft by departing users, security policy violations, healthcare PHI, data leaks by priority users, risky AI usage). Microsoft Product Terms require a per-user E5 / E5 Compliance / IRM-standalone licence for every user whose activity an IRM policy is allowed to score. Adaptive Protection adds no independent licence requirement beyond IRM.",
+    inScopeMeans:
+      "this user (or their device) is included in the In-Scope users list of at least one IRM policy, or in a Priority Users group used by an IRM policy.",
+    notInScopeMeans:
+      "this user is not in the In-Scope list of any IRM policy AND not in any Priority Users group \u2014 their activity isn't scored.",
+    examples: [
+      "Yes (licensed correctly): this user holds M365 E5 and is in the 'Priority Users \u2014 IT staff' IRM group.",
+      "Yes (under-licensed \u2014 needs uplift): this user holds M365 E3 only but the tenant silently put them in an IRM Priority Users group. Uplift to E5 / E5 Compliance / IRM standalone, or remove them from scope.",
+      "No: this user holds M365 E3 and the tenant excludes them from every IRM policy \u2014 no E5 trigger fires."
+    ],
+    docs: [
+      ["IRM service description", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-365-tenantlevel-services-licensing-guidance#microsoft-purview-insider-risk-management"],
+      ["IRM licensing prerequisites", "https://learn.microsoft.com/purview/insider-risk-management-configure-settings#prerequisites"]
+    ]
+  },
+  {
+    name: "Communication Compliance",
+    sku: "M365 E5 / E5 Compliance / Communication Compliance standalone",
+    scope: "per-user",
+    scopeNote:
+      "Per-user feature. Microsoft Purview Communication Compliance policies scan Exchange / Teams / Yammer / Viva Engage messages (plus optional connectors like Slack, Bloomberg, WhatsApp) for the users you scope in, looking for harassment, threats, regulatory violations, IP leaks. Microsoft Product Terms require a per-user E5 / E5 Compliance / CC-standalone licence for every user whose communications a CC policy scans.",
+    inScopeMeans:
+      "this user is in the user-scope of at least one Communication Compliance policy \u2014 their Exchange / Teams / Viva Engage messages are scanned.",
+    notInScopeMeans:
+      "this user is excluded from every Communication Compliance policy \u2014 none of their messages are scanned.",
+    examples: [
+      "Yes (licensed correctly): this user holds M365 E5; their Teams DMs are scanned by the 'Workplace conduct' CC policy.",
+      "Yes (under-licensed \u2014 needs uplift): this user holds M365 E3 only and is silently in scope of a FINRA / SEC CC policy. Uplift to E5 / E5 Compliance / CC standalone, or remove them from scope.",
+      "No: this user holds M365 E3 and is excluded from every CC policy."
+    ],
+    docs: [
+      ["Communication Compliance service description", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-365-tenantlevel-services-licensing-guidance#microsoft-purview-communication-compliance"],
+      ["Communication Compliance licensing", "https://learn.microsoft.com/purview/communication-compliance-solution-overview#subscriptions-and-licensing"]
+    ]
+  },
+  {
+    name: "eDiscovery (Premium)",
+    sku: "M365 E5 / E5 Compliance / E5 eDiscovery & Audit / eDiscovery Premium standalone",
+    scope: "per-user",
+    scopeNote:
+      "Per-user (custodian + reviewer) feature. Microsoft Purview eDiscovery (Premium) provides advanced case workflow \u2014 custodian holds, advanced collection, review-set analytics, near-duplicate / threading, predictive coding (ML relevance), export to Relativity. Microsoft Product Terms require a per-user Premium licence for every named custodian and every reviewer who opens Review Sets. eDiscovery (Standard) \u2014 basic search + holds without the custodian workflow \u2014 is bundled in E3.",
+    inScopeMeans:
+      "this user is either (a) named as a custodian on at least one Premium eDiscovery case, OR (b) a reviewer who opens / works inside Review Sets.",
+    notInScopeMeans:
+      "this user is neither a Premium eDiscovery custodian nor a Review-Set reviewer. They can still be searched via Standard eDiscovery, which is included in E3.",
+    examples: [
+      "Yes (licensed correctly): this user holds M365 E5; they are a Premium eDiscovery reviewer working inside Review Sets on a litigation matter.",
+      "Yes (under-licensed \u2014 needs uplift): this user holds M365 E3 only and is added as a custodian on a Premium case. Uplift to E5 / E5 Compliance / E5 eDiscovery & Audit / Premium standalone \u2014 or downgrade the case to eDiscovery (Standard).",
+      "No (current licence already covers it): this user holds M365 E3 and is only ever searched via eDiscovery (Standard) \u2014 included in E3, no Premium custodian status."
+    ],
+    docs: [
+      ["eDiscovery (Premium) service description", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-365-tenantlevel-services-licensing-guidance#microsoft-purview-ediscovery-premium"],
+      ["eDiscovery (Premium) subscriptions and licensing", "https://learn.microsoft.com/purview/ediscovery-premium-get-started#subscriptions-and-licensing"]
+    ]
+  },
+  {
+    name: "Audit (Premium)",
+    sku: "M365 E5 / E5 Compliance / E5 eDiscovery & Audit / Audit Premium standalone",
+    scope: "per-user",
+    scopeNote:
+      "Per-user feature, tenant-enabled. Audit (Premium) is enabled tenant-wide by default once an eligible SKU is present, but the service description states explicitly: \u201C1-year retention of audit logs and the auditing of crucial events only apply to users with the appropriate license\u201D and \u201C10-year retention of audit logs only applies to users with the appropriate add-on license.\u201D Crucial events (MailItemsAccessed, SearchQueryInitiated, Send, MessageBind) and 1-year (or optional 10-year) retention require a per-user Premium licence on the audited user. Tenant-vs-user note: an unlicensed user (no mailbox SKU at all) generates only limited Entra-level audit signals regardless of what the tenant holds, because the high-value events are workload-bound (Exchange / SharePoint) and need a mailbox / OneDrive licence to even exist.",
+    inScopeMeans:
+      "this user's role or regulatory context requires (a) MailItemsAccessed / SearchQueryInitiated / Send / MessageBind crucial events, OR (b) >180-day audit-log retention (1-year default with Audit Premium, 10-year with the audit-log retention add-on).",
+    notInScopeMeans:
+      "Audit (Standard) at 180-day retention covers this user's investigation / compliance needs (Standard event set + 180 days are bundled into M365 E3).",
+    examples: [
+      "Yes (licensed correctly): this user holds M365 E5 + a privileged role \u2014 their session / mailbox / search events need MailItemsAccessed-grade forensics on demand.",
+      "Yes (under-licensed \u2014 needs uplift): this user holds M365 E3 only and an investigation requires MailItemsAccessed beyond what Standard provides. Uplift to E5 / E5 Compliance / E5 eDiscovery & Audit / Audit Premium standalone, or accept the Standard-tier signals.",
+      "No (current licence already covers it): this user holds M365 E3; Audit (Standard) at 180-day retention covers their needs with no crucial-event requirement.",
+      "No (tenant-vs-user note \u2014 unlicensed user): this user is an Entra-only break-glass account with no mailbox SKU. Even with Audit Premium enabled tenant-wide, there's no Exchange / SharePoint footprint to record MailItemsAccessed / SearchQueryInitiated for them \u2014 assign a mailbox first if mailbox-level forensics are required."
+    ],
+    docs: [
+      ["Audit (Premium) service description", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-365-tenantlevel-services-licensing-guidance#microsoft-purview-audit-premium"],
+      ["Auditing solutions overview", "https://learn.microsoft.com/purview/audit-solutions-overview"],
+      ["Manage audit log retention policies", "https://learn.microsoft.com/purview/audit-log-retention-policies"]
+    ]
+  }
+];
+
 export const TREE = {
   gov_cloud: {
     choice: true,
@@ -92,7 +311,7 @@ export const TREE = {
         sublabel: "Office, Teams, Outlook, OneDrive, SharePoint user on a desktop or laptop. Two short questions → exact E3 / E3+Copilot / E5 / E7 recommendation.",
         icon: "3",
         tone: "primary",
-        target: "q_iw_security"
+        target: "q_iw_platform"
       },
       {
         label: "Frontline worker (F1 / F3)",
@@ -127,7 +346,7 @@ export const TREE = {
         sublabel: "Commercial business with no more than 300 seats. Two short questions → exact Business Basic / Standard / Premium recommendation.",
         icon: "8",
         tone: "primary",
-        target: "q_smb_office"
+        target: "q_smb_collab"
       },
       {
         label: "External ID / B2B guest / CIAM",
@@ -182,6 +401,90 @@ export const TREE = {
       { label: "← Back to account-scope choice", target: "start_choice", tone: "secondary" }
     ]
   },
+  info_teams_phone: {
+    info: true,
+    badge: "Add-on deep-dive",
+    badgeClass: "badge-info",
+    title: "Teams Phone licensing — the four flavors",
+    sub: "Cloud control plane vs. minutes — how to pick Teams Phone Standard, Calling Plan, Direct Routing, or Operator Connect.",
+    paragraphs: [
+      "Microsoft Teams Phone replaces a PBX with a cloud calling stack inside Microsoft Teams. The confusing part is that there are FOUR ways to license it, and you have to pick the cloud control plane separately from how Microsoft Teams gets to the PSTN (the phone network).",
+      "STEP 1 — pick the cloud control plane. Teams Phone Standard (~$8 / user / month) is the basic license: it gives the user a Teams phone number, voicemail, call queues, auto attendants, and the ability to make and receive PSTN calls — but does NOT include any minutes. Teams Phone with Calling Plan bundles Standard PLUS Microsoft as the carrier with included minutes (Domestic ~$12 / user / month — 3,000 outbound domestic minutes; Domestic + International ~$24 / user / month — 600 international minutes added). Microsoft 365 E5 / E7 include Teams Phone Standard at no extra cost (you still need to add a Calling Plan or BYO carrier to actually make calls).",
+      "STEP 2 — pick how calls reach the PSTN. Option A: Microsoft Calling Plan (the bundled-minutes SKUs above). Microsoft is your carrier; available in ~33 countries; cheapest if Microsoft sells it where you operate. Option B: Direct Routing — bring your own SIP trunks via a certified Session Border Controller (SBC) and pair it with Teams Phone Standard. Most flexible (any carrier in any country), most operational overhead (you run the SBC). Option C: Operator Connect — a curated marketplace of telco carriers (AT&T, BT, Verizon, Telstra, etc.) that integrate directly with Teams Phone Standard; you sign a contract with the carrier, they handle the SBC and provisioning. Lower lift than Direct Routing, fewer countries than DR but more than Calling Plan.",
+      "STEP 3 — pick add-ons. Microsoft Teams Shared Devices (~$8 / device / month) is a device license for shared phones (lobby, conference rooms) — it covers Teams Phone Standard for that device. Common Area Phone is the Standard equivalent for shared phones. Communication Credits cover overage minutes, international toll, and inbound toll-free.",
+      "RULE OF THUMB. ≤ 500 users in a Microsoft Calling-Plan country with predictable domestic-only calling → Teams Phone with Domestic Calling Plan. Larger / international / regulated industries → Direct Routing or Operator Connect with Teams Phone Standard. Already on Microsoft 365 E5 / E7 → Standard is included, just add a calling path."
+    ],
+    docs: [
+      ["Teams Phone — overview", "https://www.microsoft.com/microsoft-teams/microsoft-teams-phone"],
+      ["Teams Phone — plans and pricing", "https://www.microsoft.com/microsoft-teams/compare-microsoft-teams-options"],
+      ["Teams Phone Standard vs Calling Plan vs Direct Routing vs Operator Connect (PSTN comparison)", "https://learn.microsoft.com/microsoftteams/pstn-connectivity"],
+      ["Microsoft Calling Plans — country and region availability", "https://learn.microsoft.com/microsoftteams/calling-plan-landing-page"],
+      ["Direct Routing — plan", "https://learn.microsoft.com/microsoftteams/direct-routing-plan"],
+      ["Operator Connect — overview", "https://learn.microsoft.com/microsoftteams/operator-connect-plan"],
+      ["Teams Shared Devices license", "https://learn.microsoft.com/microsoftteams/teams-add-on-licensing/microsoft-teams-rooms-licensing#microsoft-teams-shared-devices-license"],
+      ["Communication Credits — overview", "https://learn.microsoft.com/microsoftteams/what-are-communications-credits"]
+    ],
+    actions: [
+      { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
+    ]
+  },
+  info_windows_365: {
+    info: true,
+    badge: "Add-on deep-dive",
+    badgeClass: "badge-info",
+    title: "Windows 365 & Cloud PC licensing",
+    sub: "Windows 365 Business vs. Enterprise vs. Frontline vs. Azure Virtual Desktop — when each is the right choice.",
+    paragraphs: [
+      "A Cloud PC is a Windows 11 desktop hosted by Microsoft and streamed to any device (Windows, Mac, iPad, browser). Microsoft sells it in two parallel SKU families that don't interchange: Windows 365 (fixed-price per-user Cloud PC) and Azure Virtual Desktop (per-user license + consumption-priced Azure VM).",
+      "Windows 365 BUSINESS — ≤ 300 seats hard cap. Sold to small / mid-size business at a fixed per-user / per-month price by VM SKU (2 vCPU / 4 GB / 128 GB starts ~$31; 8 vCPU / 32 GB / 512 GB tops out ~$162). Includes Microsoft Defender Antivirus and the Windows 365 user portal — does NOT require an Intune license or Microsoft 365 E3. Best for SMBs that need a few Cloud PCs without a domain.",
+      "Windows 365 ENTERPRISE — unlimited seats. Same fixed per-user pricing, but requires the assigned user already have Windows 11 / Windows 10 Enterprise licensing (Microsoft 365 E3 / E5 / F3 / A3 / A5 / Business Premium all include it) AND Microsoft Intune. The Cloud PC is provisioned into your tenant, joins Microsoft Entra (or Hybrid AD-joined), and is managed by Intune like any physical PC. Best for enterprise standardization, BYOD scenarios, contractor workstations, and developer environments.",
+      "Windows 365 FRONTLINE — shift-worker model. One license covers up to 3 frontline users sharing a Cloud PC pool, with concurrency-based assignment. Sized for shift work where a Cloud PC is only used during the worker's shift. Significantly cheaper per-seat than Windows 365 Enterprise when the use pattern is truly shift-based.",
+      "AZURE VIRTUAL DESKTOP (AVD) — consumption-priced alternative. The Windows / Microsoft 365 license cost is the same Enterprise inclusion, but the desktop runs on Azure VMs you size and pay for by the hour (with auto-scale, hibernate, and reserved-instance discounts). More flexible than Windows 365 (multi-session Windows 11, custom images, app streaming, RemoteApp), more complex to operate. Best for very large fleets where consumption pricing beats fixed Cloud PC pricing, or for app-streaming and multi-session scenarios Windows 365 doesn't cover."
+    ],
+    docs: [
+      ["Windows 365 — overview", "https://www.microsoft.com/windows-365"],
+      ["Windows 365 Business vs Enterprise comparison", "https://learn.microsoft.com/windows-365/business/compare-plans"],
+      ["Windows 365 Enterprise — requirements", "https://learn.microsoft.com/windows-365/enterprise/requirements"],
+      ["Windows 365 Frontline — overview", "https://learn.microsoft.com/windows-365/enterprise/windows-365-frontline-overview"],
+      ["Azure Virtual Desktop — pricing", "https://azure.microsoft.com/pricing/details/virtual-desktop/"],
+      ["Choose between Windows 365 and AVD", "https://learn.microsoft.com/windows-365/business/windows-365-business-vs-enterprise"]
+    ],
+    actions: [
+      { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
+    ]
+  },
+  info_workload_addons: {
+    info: true,
+    badge: "Add-on deep-dive",
+    badgeClass: "badge-info",
+    title: "Workload add-ons — Viva, Project, Visio, Power Platform",
+    sub: "When to layer Microsoft Viva, Project, Visio, Power BI, Power Apps, or Copilot Studio on top of a base SKU.",
+    paragraphs: [
+      "Microsoft sells most workloads (analytics, project, diagramming, BI, low-code, agent platforms) as add-on SKUs on top of a base Microsoft 365 / Office 365 SKU. The decision is always: does the bundled tier in my base SKU cover the use case, or do I need a paid add-on per user?",
+      "MICROSOFT VIVA. Viva Connections is included with most Microsoft 365 / Office 365 SKUs. Viva Engage core (formerly Yammer) is included. Paid uplift = Viva Suite (~$12 / user / month) bundling Viva Insights (advanced personal + team analytics, Glint integration), Viva Goals (OKRs, formerly Ally.io), Viva Learning (Premium content library), Viva Topics (knowledge AI — now deprecated but still in the Suite), and Viva Engage Premium (Storyline + Leadership Corner). Best fit: HR / People Analytics, OKR-driven orgs, large enterprises with internal learning programs. Microsoft 365 Copilot license is NOT a substitute for Viva Suite — they're complementary.",
+      "MICROSOFT PROJECT. Project Plan 1 (~$10 / user / month) — web-only project / task list. Project Plan 3 (~$30 / user / month) — Plan 1 + Project desktop app + Resource Management. Project Plan 5 (~$55 / user / month) — Plan 3 + portfolio analytics + demand management. Pick by feature need: most casual PMs only need Plan 1; PMO / portfolio offices need Plan 5.",
+      "MICROSOFT VISIO. Visio Plan 1 (~$5 / user / month) — web-only diagramming. Visio Plan 2 (~$15 / user / month) — Plan 1 + Visio desktop app + Data Visualizer + Process Advisor. Most architects / engineers / business analysts want Plan 2.",
+      "POWER BI. Power BI Pro (~$10 / user / month, included in Microsoft 365 E5 / E7 / A5 / G5) — author + share reports in My Workspace and Pro workspaces. Power BI Premium Per User / PPU (~$20 / user / month) — Pro + paginated reports + AI features + 100 GB datasets. Power BI Premium Per Capacity (~$5,000 / capacity / month) — dedicated capacity, no per-user limit for consumers, required for Premium-only features at scale. Microsoft Fabric (capacity-priced from ~$262 / month F2 SKU) — supersedes Power BI Premium Per Capacity for new deployments and adds Data Engineering, Data Science, Real-Time Analytics, and OneLake.",
+      "POWER APPS & POWER AUTOMATE. Seeded usage rights for premium connectors are NOT included in any Microsoft 365 / Office 365 SKU — base SKUs only include Power Apps for Microsoft 365 (standard connectors only, customizing SharePoint / Teams data). Paid: Power Apps Premium (~$20 / user / month, formerly Per User Plan) — unlimited apps + premium connectors + Dataverse + custom AI. Power Apps Per App (~$5 / user / app / month) — 1 specific app. Power Automate Premium (~$15 / user / month) — premium connectors in flows. Power Automate Process (~$150 / bot / month) — Process Mining + RPA bot. Microsoft Sentinel-style consumption pricing for Power Automate hosted RPA.",
+      "COPILOT STUDIO. ~$200 / tenant / month (25,000 messages) — build agents / copilots that integrate with Microsoft 365 Copilot, Teams, custom websites, etc. Required for any agent built with Copilot Studio that's not just a Microsoft 365 Copilot extension. Microsoft 365 Copilot per-user license is separate (~$30 / user / month) and required for the user invoking the agent inside Microsoft 365 apps.",
+      "MICROSOFT 365 COPILOT. ~$30 / user / month add-on (requires a base Microsoft 365 / Office 365 SKU with Outlook, Word, Excel, PowerPoint, Teams, OneDrive). The base SKU question (E3 vs E5 vs E7 vs Business Standard / Premium vs A3 / A5 vs G3 / G5) is answered first, then Copilot layers on top. Microsoft 365 Copilot Chat (formerly Bing Chat Enterprise) is included with most paid Microsoft 365 / Office 365 SKUs at no extra cost — only the in-app Copilot in Word / Excel / PowerPoint / Outlook / Teams requires the paid Copilot license."
+    ],
+    docs: [
+      ["Microsoft Viva — plans and pricing", "https://www.microsoft.com/microsoft-viva/pricing"],
+      ["Microsoft Project — plans", "https://www.microsoft.com/microsoft-365/project/compare-microsoft-project-management-software"],
+      ["Microsoft Visio — plans", "https://www.microsoft.com/microsoft-365/visio/compare-visio-options"],
+      ["Power BI pricing", "https://www.microsoft.com/power-platform/products/power-bi/pricing"],
+      ["Microsoft Fabric pricing", "https://azure.microsoft.com/pricing/details/microsoft-fabric/"],
+      ["Power Apps pricing", "https://www.microsoft.com/power-platform/products/power-apps/pricing"],
+      ["Power Automate pricing", "https://www.microsoft.com/power-platform/products/power-automate/pricing"],
+      ["Copilot Studio pricing", "https://www.microsoft.com/microsoft-copilot/microsoft-copilot-studio"],
+      ["Microsoft 365 Copilot — overview", "https://www.microsoft.com/microsoft-365/copilot/business"],
+      ["Power Platform licensing overview (the authoritative guide)", "https://learn.microsoft.com/power-platform/admin/pricing-billing-skus"]
+    ],
+    actions: [
+      { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
+    ]
+  },
   // result_primary_account was previously a fuzzy result that said
   // "buy a base service license (E3 / Business Premium / F3) PLUS re-run
   // the admin tree to get the premium tier." That left the user with two
@@ -207,7 +510,7 @@ export const TREE = {
       ["Compare Microsoft 365 Enterprise plans", "https://www.microsoft.com/microsoft-365/enterprise/microsoft365-plans-and-pricing"]
     ],
     actions: [
-      { label: "Find the base service license →", target: "q_iw_security", tone: "primary" },
+      { label: "Find the base service license →", target: "q_iw_platform", tone: "primary" },
       { label: "Run the privileged-admin add-on tree →", target: "start", tone: "secondary" },
       { label: "← Back to account-scope choice", target: "start_choice", tone: "secondary" }
     ]
@@ -330,14 +633,18 @@ export const TREE = {
         name: "Adaptive Protection",
         sku: "M365 E5 / E5 Compliance / Purview Suite",
         scope: "per-user",
-        scopeNote: "Per-user. Adaptive Protection assigns risk levels to users based on IRM signals and dynamically applies DLP / Conditional Access controls — only users with an E5-tier Purview licence are evaluated.",
-        inScopeMeans: "this user is in scope of Adaptive Protection (i.e. an in-scope IRM user whose risk level drives downstream DLP / CA enforcement).",
+        scopeNote: "Per-user. Adaptive Protection sits on top of Insider Risk Management — it reads each in-scope IRM user's risk level (Minor / Moderate / Elevated) and dynamically tightens DLP rules or Conditional Access conditions for users whose risk has risen. Because it consumes IRM signals, it requires the same E5-tier Purview licence that IRM does on every user it evaluates. Adaptive Protection adds NO independent licence requirement beyond IRM — if the user is already in scope of IRM (and therefore licensed for E5-tier Purview), they are covered for Adaptive Protection too.",
+        inScopeMeans: "this user is an in-scope IRM user (in at least one IRM policy's user scope) AND the tenant has Adaptive Protection enabled, so their IRM risk level drives downstream DLP or Conditional Access enforcement on them.",
+        notInScopeMeans: "either (a) this user is excluded from every IRM policy scope (so Adaptive Protection never assigns them a risk level), OR (b) the tenant has not enabled Adaptive Protection at all. In either case, Adaptive Protection adds no E5-tier licence trigger for this user separate from the IRM call.",
         examples: [
-          "Yes: The admin is an in-scope IRM user; their Adaptive Protection risk level dynamically tightens DLP rules on their endpoint.",
-          "No: The admin is excluded from every IRM policy, so Adaptive Protection never assigns them a risk level."
+          "Yes (licensed correctly): This user already holds M365 E5 and is in scope of an IRM data-theft policy. Adaptive Protection raises them to 'Elevated' risk and a DLP rule blocks USB egress from their endpoint. The same E5-tier IRM licence covers this.",
+          "Yes (under-licensed — needs uplift): This user holds M365 E3 but is included in the user scope of an IRM policy with Adaptive Protection on. Adaptive Protection (and IRM itself) require an E5-tier licence — assign M365 E5 / E5 Compliance / Purview Suite to this user.",
+          "No: This user is excluded from every IRM policy scope; Adaptive Protection never evaluates them. No E5-tier uplift triggered by Adaptive Protection.",
+          "No: The tenant has not enabled Adaptive Protection (no Adaptive Protection conditions exist in DLP / CA). Adaptive Protection is not a licensing trigger for any user."
         ],
         docs: [
-          ["Adaptive Protection overview", "https://learn.microsoft.com/purview/insider-risk-management-adaptive-protection"]
+          ["Adaptive Protection overview", "https://learn.microsoft.com/purview/insider-risk-management-adaptive-protection"],
+          ["Purview service description — Insider Risk Management licensing", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-purview-service-description#microsoft-purview-insider-risk-management"]
         ]
       },
       {
@@ -360,49 +667,63 @@ export const TREE = {
         name: "Premium eDiscovery (eDiscovery Premium)",
         sku: "M365 E5 / E5 Compliance / Purview Suite",
         scope: "per-user",
-        scopeNote: "Per-user — required on BOTH custodians (whose mailboxes / OneDrive / Teams are searched) AND eDiscovery users (case members who run premium searches, review sets, predictive coding).",
-        inScopeMeans: "this user is either added as a custodian in any premium case, OR is an eDiscovery case member running premium-tier searches / review sets / analytics.",
-        notInScopeMeans: "this user only runs Standard (Core) eDiscovery searches, which are included in E3.",
+        scopeNote: "Per-user — required on BOTH (a) custodians whose Exchange mailbox / OneDrive / SharePoint site / Teams chat is preserved, collected, or reviewed in a Premium case, AND (b) eDiscovery users who actually run Premium-tier workflows (custodian management, legal-hold notifications, review sets, advanced indexing, analytics, predictive coding / TAR, Premium search of Copilot interactions). Standard-tier eDiscovery — case creation, basic search, basic legal hold, export — is already covered by E3 / A3 / G3 and does NOT trigger a Premium SKU on this user.",
+        inScopeMeans: "this user is either (a) named as a custodian on a Premium eDiscovery case, OR (b) owns / is a member of an Exchange mailbox / SharePoint site / Teams channel that is on hold or whose content is included in a Premium case's Search, Collection, or Review set, OR (c) personally performs any Premium-tier eDiscovery activity (review sets, predictive coding, advanced indexing, legal-hold notification workflow, Premium search of Copilot interactions).",
+        notInScopeMeans: "this user is NOT a custodian on any Premium case, NONE of their content is on hold or included in a Premium Search / Collection / Review set, AND they personally only perform Standard-tier eDiscovery activities (case creation, basic search, basic legal hold, export). Standard-tier work is already covered by their existing E3 / A3 / G3 — no Premium SKU is added on their account.",
         examples: [
-          "Yes: The admin is named as a custodian on an active premium case.",
-          "Yes: The eDiscovery Manager runs review sets / predictive coding in a premium case.",
-          "No: The admin only runs Standard content searches across the tenant."
+          "Yes: This user is named as a custodian on an active Premium eDiscovery case (their mailbox / OneDrive / Teams content is being preserved or reviewed).",
+          "Yes: This user owns an Exchange mailbox or SharePoint site that's on hold or included in a Premium case's Search / Collection / Review set — even if they never touch the Purview portal.",
+          "Yes: The eDiscovery Manager runs Review sets, Predictive coding (TAR), or Premium search of Copilot interactions.",
+          "No: This user only runs Standard searches and basic legal holds (no Premium workflows), AND none of their own content is in scope of any Premium case.",
+          "No: This user has an Exchange mailbox in the tenant but is not a custodian on any Premium case and their content is not included in any Premium Search / Collection / Review set."
         ],
         docs: [
-          ["eDiscovery subscription / licensing", "https://learn.microsoft.com/purview/ediscovery-subscription-licensing"],
-          ["eDiscovery (Premium) overview", "https://learn.microsoft.com/purview/ediscovery-overview"]
+          ["Purview service description — eDiscovery licensing", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-purview-service-description#microsoft-purview-ediscovery"],
+          ["eDiscovery solutions and Standard vs Premium comparison", "https://learn.microsoft.com/purview/ediscovery"],
+          ["New unified eDiscovery experience (Purview portal)", "https://learn.microsoft.com/purview/edisc"]
         ]
       },
       {
         name: "Auto-labeling (sensitivity & retention)",
         sku: "M365 E5 / E5 Compliance / Purview Suite",
         scope: "per-user",
-        scopeNote: "Per-user. Manual labelling is included in E3; SERVICE-SIDE auto-labelling of files / emails / SharePoint sites — and auto-application of retention labels — requires an E5-tier licence per user benefiting.",
-        inScopeMeans: "this user's mailbox / OneDrive / SharePoint content is targeted by an auto-labelling policy that automatically applies sensitivity or retention labels to their files / emails.",
-        notInScopeMeans: "this user only applies sensitivity labels MANUALLY in Office apps (manual labelling is E3).",
+        scopeNote: "Per-user. Automatic application of labels — whether sensitivity labels driven by SITs / trainable classifiers, or retention labels driven by SITs / classifiers / adaptive policy scopes — requires an E5-tier licence on every user whose content is scanned and labelled. Both the SERVICE-SIDE policy run (Exchange / OneDrive / SharePoint mailbox-and-site crawl) and the CLIENT-SIDE recommend / automatic mode in Office apps count as auto-labelling.",
+        inScopeMeans: "any one of the following applies to this user: (a) a service-side auto-labelling policy is configured to scan their Exchange mailbox / OneDrive / SharePoint site and apply sensitivity labels, (b) a retention-label policy is configured to auto-apply retention labels to their content (via SIT, trainable classifier, or adaptive policy scope), or (c) they use the client-side automatic / recommended-label mode of sensitivity labelling in Office apps.",
+        notInScopeMeans: "this user is not in scope of any auto-labelling policy — no sensitivity-label auto-policy targets their mailbox / OneDrive / SharePoint site, no retention-label auto-apply policy targets their content, and they only apply labels manually (picking a label themselves in Word / Outlook / OneDrive / SharePoint, or having an admin manually tag a document).",
         examples: [
-          "Yes: An auto-labelling policy scans the admin's OneDrive and auto-applies 'Confidential' to files matching a PII pattern.",
-          "No: The admin manually picks sensitivity labels in Word; no auto-policy targets their content."
+          "Yes: A service-side auto-labelling policy scans this user's OneDrive and auto-applies 'Confidential' to files matching a PII pattern.",
+          "Yes: An auto-apply retention-label policy uses a trainable classifier to tag this user's contracts in SharePoint with a '7-year contract' label.",
+          "Yes: This user has the Office apps configured to automatically recommend / apply sensitivity labels based on content inspection.",
+          "No: This user only picks sensitivity labels manually from the Office app label picker; no auto-policy scans or labels their content.",
+          "No: An admin applies retention labels to a specific SharePoint library by hand; no auto-apply policy is configured against this user's locations."
         ],
         docs: [
           ["Apply a sensitivity label automatically", "https://learn.microsoft.com/purview/apply-sensitivity-label-automatically"],
-          ["Auto-apply retention labels", "https://learn.microsoft.com/purview/retention-label-flow"]
+          ["Auto-apply retention labels", "https://learn.microsoft.com/purview/retention-label-flow"],
+          ["Purview service description — sensitivity labelling licensing", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-purview-service-description#microsoft-purview-information-protection-sensitivity-labeling"]
         ]
       },
       {
         name: "Records Management",
         sku: "M365 E5 / E5 Compliance / Purview Suite",
         scope: "per-user",
-        scopeNote: "Per-user. Declaring records, event-based retention, file plan / disposition review, and proof-of-disposition all require E5-tier per user whose content is retained as a record.",
-        inScopeMeans: "this user's content (mailbox / OneDrive / SharePoint) is subject to a retention LABEL policy that declares items as records, or they participate in disposition review.",
-        notInScopeMeans: "the user is only under basic retention POLICIES (E3-included), with no record-declaration / disposition-review label applied.",
+        scopeNote: "Per-user, per Microsoft Product Terms. The Microsoft Purview service description (Data Lifecycle & Records Management) splits retention into two licence tiers. E3 / A3 / G3 / F1 / F3 / Business Premium ALREADY grant the right to be in scope of: plain retain-or-delete retention POLICIES (org-wide or location-wide), retention LABEL creation, and label PUBLISHING / manual application. An E5-tier licence (M365 E5, E5 Compliance, Purview Suite, or the Information Protection & Governance add-on) is required ONLY for users who benefit from the records-management label settings — declaring items as records (or regulatory records), event-based retention, auto-relabel-at-end-of-period, disposition review, file-plan management, Priority cleanup, or adaptive-scope retention policies. 'Benefit' also covers Purview-portal roles: Records Management, Retention Management, Disposition Management, and the View-Only variants. SharePoint site VISITORS do NOT benefit and do NOT need a licence.",
+        inScopeMeans: "any one of the following applies to this user: (a) a retention label that DECLARES items as records (or regulatory records) is applied to their Exchange mailbox / OneDrive / SharePoint / Teams content, (b) an EVENT-BASED retention label, an AUTO-RELABEL-at-end-of-period label, or a label that triggers DISPOSITION REVIEW is applied to their content, (c) they hold a Records-Management-tier role in the Purview portal (Records Management, Retention Management, Disposition Management, View-Only Records Management, View-Only Retention Management), (d) they personally sit on a disposition review (named reviewer), OR (e) they are an OWNER or MEMBER of a SharePoint site or Microsoft 365 Group that uses file-plan management, Priority cleanup, an adaptive-scope retention policy, or any record-declaring label policy.",
+        notInScopeMeans: "this user's content is only under plain retain-or-delete behaviour — an org-wide / location-wide retention policy, or a published retention label that simply keeps / deletes content after a fixed period. No record (or regulatory-record) declaration, no event-based retention, no auto-relabel, no disposition review on their content, no file-plan / Priority-cleanup / adaptive-scope policy targets them. They do not personally hold a Records-Management-tier role, and they are not a named disposition reviewer. (SharePoint site VISITORS on a site that DOES use these features are also out of scope — visitors do not benefit and do not need a licence.)",
         examples: [
-          "Yes: A 'Contract – 7yr Record' label that declares items as records is applied to the admin's OneDrive.",
-          "No: The user is only under a basic 'retain everything for 3 years' retention policy."
+          "Yes (licensed correctly): This user already holds M365 E5; a 'Contract – 7-year Record' label that declares items as records is applied to their OneDrive. No uplift needed — E5 grants the right to be in scope.",
+          "Yes (under-licensed — needs uplift): This user only holds M365 E3 and is named as a Disposition Reviewer in Purview. Microsoft Product Terms require an E5-tier licence for that role — assign M365 E5 / E5 Compliance / Purview Suite to this user.",
+          "Yes (under-licensed — needs uplift): This user holds M365 E3 and owns a SharePoint site whose library has an EVENT-BASED retention label (e.g. tied to an 'employee-departure' event) applied to documents. Per the service description, site owners and members benefiting from E5-only label settings need an E5-tier licence.",
+          "No (E3 already covers it): This user holds M365 E3 and is only under a retention POLICY that keeps Exchange items for 3 years then deletes them — no labels, no record declaration. E3 grants the right to be in scope of plain retention policies; no uplift needed.",
+          "No (E3 already covers it): This user holds M365 E3; a published 'Keep for 5 years then delete' retention label is applied to their SharePoint library. The label does not declare items as records, is not event-based, and triggers no disposition review. E3 grants the right to be in scope of label publishing / manual apply; no uplift needed.",
+          "No (visitor — does not benefit): This user has no Records-Management-tier licence and is only a VISITOR on a SharePoint site that uses record-declaring labels. Per the Purview service description, site visitors do not benefit from the service and do not need an E5-tier licence."
         ],
         docs: [
           ["Records Management overview", "https://learn.microsoft.com/purview/records-management"],
-          ["Disposition of content", "https://learn.microsoft.com/purview/disposition"]
+          ["Disposition of content", "https://learn.microsoft.com/purview/disposition"],
+          ["Limits for retention policies and retention label policies", "https://learn.microsoft.com/purview/retention-limits"],
+          ["Purview service description — Data Lifecycle & Records Management licensing (E3 vs E5 split)", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-purview-service-description#microsoft-purview-data-lifecycle--records-management"],
+          ["Microsoft Product Terms", "https://www.microsoft.com/licensing/terms/"]
         ]
       },
       {
@@ -445,53 +766,67 @@ export const TREE = {
         name: "Information Barriers",
         sku: "M365 E5 / E5 Compliance / Purview Suite",
         scope: "per-user",
-        scopeNote: "Per-user. Each user assigned to a segment (and therefore subject to communication restrictions in Teams / SharePoint / OneDrive) needs the E5-tier licence.",
-        inScopeMeans: "this user is assigned to an Information Barriers segment and is therefore prevented from communicating / collaborating with users in incompatible segments.",
-        notInScopeMeans: "Information Barriers segments exist but this user is not assigned to any segment.",
+        scopeNote: "Per-user. Information Barriers (IB) restrict who can communicate / collaborate with whom across Teams / SharePoint / OneDrive / Exchange. The Microsoft Purview service description states that 'users belonging to segments defined under Assigned Segments require licenses.' This is a true per-user trigger — only users who are ASSIGNED to a segment need the E5-tier licence, no matter how many segments the tenant has defined. Defining segments alone is a tenant-level configuration step and does not licence anyone; ASSIGNMENT is the licensable event.",
+        inScopeMeans: "this user is assigned to an Information Barriers segment and is therefore subject to enforced communication / collaboration restrictions with users in incompatible segments.",
+        notInScopeMeans: "Information Barriers segments may exist in the tenant, but this user is NOT assigned to any segment — they sit outside the segmented population (e.g. they're an IB admin who only configures policies, or they're an employee whose role is not walled-off). No restriction is enforced against them, so they do not benefit from the service and the per-user IB licence is not triggered on them.",
         examples: [
-          "Yes: The admin's account is assigned to the 'Research' segment, blocking chats with users in 'Sales'.",
-          "No: The admin only manages Information Barriers policies and is not in any segment themselves."
+          "Yes (licensed correctly): This user already holds M365 E5 and is assigned to the 'Research' segment, blocking chats with users in 'Sales'.",
+          "Yes (under-licensed — needs uplift): This user holds M365 E3 only but is assigned to the 'Investment Banking' segment for regulatory wall-off purposes. Segment assignment requires an E5-tier licence — assign M365 E5 / E5 Compliance / Purview Suite to this user.",
+          "No: This user only manages Information Barriers policies via the IB admin role and is not themselves assigned to any segment. No IB licence trigger.",
+          "No: The tenant has not defined any Information Barriers segments at all. No user is in scope and no IB licence question arises for anyone."
         ],
         docs: [
-          ["Information Barriers overview", "https://learn.microsoft.com/purview/information-barriers"]
+          ["Information Barriers overview", "https://learn.microsoft.com/purview/information-barriers"],
+          ["Purview service description — Information Barriers", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-purview-service-description#microsoft-purview-information-barriers"]
         ]
       },
       {
         name: "Privileged Access Management for Office (PAM)",
         sku: "M365 E5 / E5 Compliance / Purview Suite",
         scope: "per-user",
-        scopeNote: "Per-user. PAM gates just-in-time approval for high-risk Exchange Online / Office 365 tasks (e.g. mailbox export, journaling). Requestors and approvers both need the licence.",
-        inScopeMeans: "this user is a requestor (an Office admin needing JIT approval for a privileged task) OR an approver in a PAM approval group.",
-        notInScopeMeans: "the tenant has not configured PAM for Office (note: this is separate from Entra PIM — different feature).",
+        scopeNote: "Per-user — both REQUESTORS and APPROVERS. PAM for Office gates just-in-time approval for high-risk Exchange Online / Office 365 tasks (mailbox export, journaling, certain transport-rule and DLP-policy changes, etc.). Enabling PAM for Office is a tenant prerequisite; once enabled, every user who can REQUEST a PAM-gated task and every user who APPROVES one (member of a PAM approver group) needs an E5-tier Purview licence. IMPORTANT: PAM for Office is a DIFFERENT feature from Entra Privileged Identity Management (PIM). Entra PIM gates Entra / Azure RBAC role activation and is licensed under Entra ID P2 — do NOT count Entra PIM usage as a PAM-for-Office trigger here.",
+        inScopeMeans: "the tenant has enabled PAM for Office AND this user is either (a) an admin / role-holder REQUIRED to go through a PAM JIT approval to perform their privileged Exchange / O365 tasks, OR (b) a member of a PAM APPROVER group who reviews and approves those requests.",
+        notInScopeMeans: "either (a) the tenant has not enabled PAM for Office (no PAM JIT workflow exists for any Exchange / O365 task — in which case no user is licensable on PAM grounds), OR (b) PAM is enabled but this specific user neither requests nor approves any PAM-gated task. Holding non-PAM-gated Exchange admin rights, or using Entra PIM only, does not put this user in scope of PAM for Office.",
         examples: [
-          "Yes: The admin can only run New-MailboxExportRequest after a PAM-approved JIT activation.",
-          "No: The admin holds permanent Exchange Online admin rights and the tenant has not enabled Office PAM."
+          "Yes (licensed correctly): This user already holds M365 E5; PAM for Office is enabled and they must request JIT activation to run New-MailboxExportRequest.",
+          "Yes (under-licensed — needs uplift): This user holds M365 E3 and is a member of the 'PAM Approvers' group reviewing JIT requests for Exchange admin tasks. Both requestors and approvers need an E5-tier licence — assign M365 E5 / E5 Compliance / Purview Suite to this user.",
+          "No: The tenant has not enabled PAM for Office; no PAM JIT workflow exists for any Exchange / O365 task. PAM is not a licence trigger for any user.",
+          "No: This user holds permanent Exchange admin rights and performs no PAM-gated tasks (and is not a PAM approver). PAM for Office does not trigger an E5-tier requirement on them.",
+          "No (different feature): This user activates Entra roles via Entra PIM only — that is licensed under Entra ID P2, not under E5 Compliance / PAM for Office. Do not record this as a PAM trigger."
         ],
         docs: [
-          ["Privileged Access Management for Office 365", "https://learn.microsoft.com/purview/privileged-access-management"]
+          ["Privileged Access Management for Office 365", "https://learn.microsoft.com/purview/privileged-access-management"],
+          ["PAM for Office vs Entra PIM — differences", "https://learn.microsoft.com/purview/privileged-access-management-overview"]
         ]
       },
       {
         name: "Audit (Premium)",
-        sku: "M365 E5 / E5 Compliance / Purview Suite",
+        sku: "M365 E5 / E5 Compliance / E5 eDiscovery & Audit / Purview Suite",
         scope: "per-user",
-        scopeNote: "Per-user. Premium audit (1-year retention by default, longer with add-on; high-value events like MailItemsAccessed, Send, SearchQueryInitiated) requires E5-tier per audited user. E3 gets Standard audit (180-day retention, fewer events).",
-        inScopeMeans: "this user's high-value audit events (MailItemsAccessed, Send, SearchQueryInitiated, etc.) are being recorded — i.e. they have an E5-tier licence assigned and Audit (Premium) is enabled.",
-        notInScopeMeans: "this user only has E3 — Standard audit applies (no MailItemsAccessed, 180-day retention).",
+        scopeNote: "Per-user, per Microsoft Product Terms — with a tenant-level enablement step that does NOT license anyone on its own. Audit (Premium) is 'enabled at the tenant level for all users that benefit from the service' by default, but the Microsoft Purview service description states verbatim that '1-year retention of audit logs and the auditing of crucial events only apply to users with the appropriate license' and that '10-year retention of audit logs only applies to users with the appropriate add-on license.' Premium gives you (a) the crucial events MailItemsAccessed (mailbox accessed / read), Send, SearchQueryInitiated, MessageBind, and the broader high-value-event set used in IR / forensic investigations, plus (b) 1-year audit retention by default (10 years with the Audit add-on). Standard audit — sign-ins, admin actions, and a baseline set of mailbox / SharePoint / Teams activity at 180-day retention — comes with E3 / A3 / G3 / F3 / Business Premium and the equivalent Office 365 SKUs. An UNLICENSED user (no M365 / O365 mailbox SKU at all) generates only limited Entra-level audit signals regardless of what the tenant holds, because the high-value events are workload-bound (Exchange / SharePoint) and need a mailbox / OneDrive licence to even exist.",
+        inScopeMeans: "this user's role or regulatory context requires either (a) the high-value Premium events — e.g. MailItemsAccessed to detect a mailbox compromise on an executive / finance / admin account, SearchQueryInitiated for insider-investigation lookbacks, Send / MessageBind for outbound-exfil review — OR (b) audit-log retention beyond 180 days (annual regulatory audit, multi-quarter incident lookback, legal-hold-style retention of audit records).",
+        notInScopeMeans: "this user's investigative / compliance needs are met by Standard audit signals (sign-ins, admin actions, baseline mailbox / SharePoint / Teams activity) at 180-day retention. They are not the subject of a regulatory or forensic requirement that depends on the high-value Premium events or on multi-year audit retention.",
         examples: [
-          "Yes: The admin's mailbox-access events are recorded as MailItemsAccessed and retained for 1+ year.",
-          "No: The admin only has E3; their audit data is 180-day retention with no MailItemsAccessed records."
+          "Yes (licensed correctly): This user already holds M365 E5; the security team relies on MailItemsAccessed to investigate any mailbox compromise on this executive account. No uplift needed — E5 grants the right to Premium events and 1-year retention.",
+          "Yes (under-licensed — needs uplift): This user holds M365 E3 only, but they are a finance executive whose mailbox MUST have MailItemsAccessed recorded for fraud investigation. Standard audit on E3 does NOT record MailItemsAccessed — assign M365 E5 / E5 Compliance / E5 eDiscovery & Audit / Purview Suite to this user.",
+          "Yes (under-licensed — needs uplift): This user holds M365 E3 but is in scope of a regulatory regime that requires audit retention longer than 180 days. Standard audit caps at 180 days — uplift to an E5-tier licence (and optionally the 10-year Audit add-on) for this user.",
+          "No (current licence already covers it): This user holds M365 E3 and only needs sign-in history and admin-action history at 180-day retention for routine troubleshooting. Standard audit on E3 covers this; no uplift needed.",
+          "No (current licence already covers it): This user holds M365 E3, has no high-value-target profile, and is not in scope of any forensic / regulatory requirement that depends on MailItemsAccessed or multi-year retention. Standard audit suffices.",
+          "No (tenant-vs-user note — unlicensed user): This user has NO M365 / O365 mailbox SKU (e.g. an Entra-only account with no Exchange mailbox). Even though the tenant has Audit (Premium) enabled tenant-wide for its licensed users, this account has no Exchange footprint to generate MailItemsAccessed and gets only baseline Entra audit. No Audit (Premium) uplift on this user is meaningful — give them a mailbox SKU first, then revisit whether Premium audit is warranted."
         ],
         docs: [
           ["Audit (Premium)", "https://learn.microsoft.com/purview/audit-premium"],
-          ["Audit log retention policies", "https://learn.microsoft.com/purview/audit-log-retention-policies"]
+          ["Audit log retention policies", "https://learn.microsoft.com/purview/audit-log-retention-policies"],
+          ["Crucial events for investigations (MailItemsAccessed, Send, SearchQueryInitiated)", "https://learn.microsoft.com/purview/audit-premium#crucial-events-for-investigations"],
+          ["Purview service description — Audit (Standard) and Audit (Premium)", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-purview-service-description#microsoft-purview-audit-premium"],
+          ["Microsoft Product Terms", "https://www.microsoft.com/licensing/terms/"]
         ]
       }
     ],
     techDocs: [
       ["Microsoft Purview service description — which users need a license", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-purview-service-description#which-users-need-a-license"],
       ["Insider Risk Management — permissions vs. licensing", "https://learn.microsoft.com/purview/insider-risk-management-configure#subscriptions-and-licensing"],
-      ["Purview eDiscovery licensing (custodians AND eDiscovery users)", "https://learn.microsoft.com/purview/ediscovery-subscription-licensing"],
+      ["Purview eDiscovery licensing (custodians AND eDiscovery users)", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-purview-service-description#microsoft-purview-ediscovery"],
       ["Audit (Premium)", "https://learn.microsoft.com/purview/audit-premium"]
     ],
     yes: "q_purview_e5_breadth",
@@ -521,109 +856,7 @@ export const TREE = {
     },
     breakdownIntro:
       "The Microsoft Defender Suite is four components plus a correlation layer, and each component is scoped differently per Microsoft's official service descriptions: Defender for Office 365 P2 is tenant-wide but scopeable (policies default to all mailboxes; admins should scope Safe Links / Safe Attachments / anti-phish policies to licensed mailboxes only), Defender for Endpoint P2 is per-device (enrollment-based), Defender for Identity is tenant-wide and not scopeable (the sensor sees every account in the forest), Defender for Cloud Apps is tenant-wide but scopeable (Scoped Deployment lets you limit it), and Defender XDR is the correlation layer that lights up wherever any of the four components is licensed. Answer Yes to the umbrella question if at least one component covers the admin personally. Starred (*) cards are tenant-wide and not scopeable \u2014 they are informational only and do not count toward 'at least one applies'; expand them for Microsoft's two official statements (SFI and Product Terms) and decide the licence call for those features separately.",
-    productBreakdown: [
-      {
-        name: "Defender for Office 365 Plan 2",
-        sku: "M365 E5 / M365 E5 Security / Defender for Office 365 P2 standalone / Office 365 E5",
-        scope: "tenant-wide-scopeable",
-        scopeNote:
-          "Tenant-wide by default but scopeable down to licensed mailboxes. Microsoft's Defender for Office 365 service description and the Standard / Strict preset security policies apply Safe Links, Safe Attachments, anti-phishing impersonation protection, Safe Attachments for SharePoint / OneDrive / Teams, Threat Explorer, Automated Investigation and Response (AIR), and Attack Simulation Training across the whole tenant unless you scope them. Admins should scope each policy (Safe Links, Safe Attachments, anti-phish, ASR Training campaigns) to only the user mailboxes / shared mailboxes / resource mailboxes / Microsoft 365 groups that actually hold a Defender for Office 365 P2 entitlement — either by using the preset policy 'Users, groups, and domains' include lists, or by building custom policies with explicit recipient scoping. Microsoft Product Terms require a per-mailbox licence for every mailbox covered by the scope you configure (user mailbox, shared mailbox, resource mailbox, room, or equipment).",
-        inScopeMeans:
-          "the admin's own Exchange Online mailbox falls inside the recipient scope of a Safe Links / Safe Attachments / anti-phish policy (or the Standard / Strict preset), or is enrolled in Attack Simulation Training as a trainee.",
-        notInScopeMeans:
-          "every Defender for Office 365 P2 policy explicitly excludes the admin's mailbox (or the admin has no Exchange Online mailbox at all), and they are not enrolled in any ASR Training campaign — they only operate the Defender portal for other users.",
-        examples: [
-          "Yes: the admin's mailbox is included in the 'Strict' preset security policy that applies Safe Links and Safe Attachments across the tenant.",
-          "Yes: the admin is enrolled as a trainee in an Attack Simulation Training campaign targeted at the IT department group.",
-          "No: every Safe Links / Safe Attachments / anti-phish policy is scoped to the 'mdo-p2-licensed' Microsoft 365 group, and the admin's break-glass account is deliberately excluded."
-        ],
-        docs: [
-          ["Microsoft Defender for Office 365 service description", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-defender-service-description#microsoft-defender-for-office-365"],
-          ["Recipient filters for Defender for Office 365 policies", "https://learn.microsoft.com/defender-office-365/recipient-filters-in-preset-security-policies"],
-          ["Preset security policies (Standard / Strict)", "https://learn.microsoft.com/defender-office-365/preset-security-policies"],
-          ["Defender for Office 365 plans and pricing", "https://learn.microsoft.com/defender-office-365/mdo-security-comparison"]
-        ]
-      },
-      {
-        name: "Defender for Endpoint Plan 2",
-        sku: "M365 E5 / M365 E5 Security / Defender for Endpoint P2 standalone (per-user or per-device)",
-        scope: "per-device",
-        scopeNote:
-          "Per onboarded endpoint. Microsoft's Defender for Endpoint licensing guide allows two purchase models: per-user (each user covers up to 5 devices, the M365 E5 / E5 Security path) or per-device standalone (typically used for shared / kiosk / OT endpoints). EDR, attack-surface-reduction reporting, automated investigation, advanced hunting on device data, vulnerability management, and threat-and-vulnerability remediation all require a P2 entitlement on the device.",
-        inScopeMeans:
-          "the admin's own Windows, macOS, Linux, iOS, or Android device is onboarded to Defender for Endpoint (visible in the Defender portal's Device Inventory) under their identity.",
-        notInScopeMeans:
-          "the admin uses a Privileged Access Workstation that is enrolled separately under a service account, or never operates from a managed device that reports to Defender for Endpoint.",
-        examples: [
-          "Yes: the admin's managed laptop is onboarded to Defender for Endpoint and shows up under their user in the Device Inventory.",
-          "No: the admin only ever uses an Azure VM jumpbox that has no Defender for Endpoint sensor installed."
-        ],
-        docs: [
-          ["Defender for Endpoint licensing options", "https://learn.microsoft.com/defender-endpoint/minimum-requirements#licensing-requirements"],
-          ["Compare Defender for Endpoint plans", "https://learn.microsoft.com/defender-endpoint/defender-endpoint-plan-1-2"]
-        ]
-      },
-      {
-        name: "Defender for Identity",
-        sku: "M365 E5 / M365 E5 Security / EMS E5 / Defender for Identity standalone",
-        scope: "tenant-wide-not-scopeable",
-        scopeNote:
-          "Technically tenant-wide and not scopeable. The Microsoft Defender service description states verbatim that \u201CMicrosoft Defender for Identity features are enabled at the tenant level for all users within the tenant\u201D and that the service \u201Cisn't currently capable of limiting benefits to specific users.\u201D The sensor on Domain Controllers / AD FS / AD CS / Entra Connect observes every account in the monitored forest \u2014 you cannot scope it to a subset. Microsoft Product Terms still require a per-user Defender for Identity / EMS E5 / M365 E5 licence for every user who benefits from the service. Microsoft's Secure Future Initiative (Secure by Default principle) recommends enabling identity-threat protection like MDI on every tenant that has on-premises AD.",
-        inScopeMeans:
-          "the tenant has deployed any Defender for Identity sensor (on a Domain Controller, AD FS, AD CS, or Entra Connect server) \u2014 every user monitored by that sensor benefits, including the admin.",
-        notInScopeMeans:
-          "the tenant has not deployed any Defender for Identity sensor on any Domain Controller, AD FS, AD CS, or Entra Connect server.",
-        examples: [
-          "Yes: any Defender for Identity sensor is running anywhere in the tenant's monitored forest \u2014 the admin (along with every other monitored user) is a beneficiary and needs a licence.",
-          "No: a greenfield tenant with no Defender for Identity sensors deployed; the licence is not yet triggered for anyone."
-        ],
-        docs: [
-          ["Microsoft Defender for Identity service description", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-defender-service-description#microsoft-defender-for-identity"],
-          ["Defender for Identity prerequisites (licensing)", "https://learn.microsoft.com/defender-for-identity/deploy/prerequisites-sensor-version-2#licensing-requirements"],
-          ["Microsoft Product Terms", "https://www.microsoft.com/licensing/terms/"],
-          ["Microsoft Secure Future Initiative (SFI)", "https://www.microsoft.com/en-us/trust-center/security/secure-future-initiative"]
-        ]
-      },
-      {
-        name: "Defender for Cloud Apps",
-        sku: "M365 E5 / M365 E5 Security / EMS E5 / Defender for Cloud Apps standalone",
-        scope: "tenant-wide-scopeable",
-        scopeNote:
-          "Tenant-wide by default but scopeable. The Microsoft Defender service description states \u201CBy default, Microsoft Defender for Cloud Apps is enabled at the tenant level for all users within the tenant\u201D and then provides an explicit Scoped Deployment capability so admins can limit the service to licensed users / groups. Microsoft Product Terms require a per-user licence for every user covered by the scope you configure \u2014 Conditional Access App Control sessions, file / activity / OAuth-app policies, and attributed Cloud Discovery activity all count.",
-        inScopeMeans:
-          "the admin's identity is included in the configured Scoped Deployment, or no scoped deployment is configured (so the tenant default applies), and Defender for Cloud Apps activity / file / OAuth / session policies cover them.",
-        notInScopeMeans:
-          "a Scoped Deployment explicitly excludes the admin's identity, and no Conditional Access App Control or activity policy targets them.",
-        examples: [
-          "Yes: a Conditional Access App Control policy routes the admin's Salesforce / ServiceNow / Microsoft 365 sessions through Defender for Cloud Apps reverse-proxy for download restrictions.",
-          "No: Scoped Deployment is configured to include only the Sales group; the admin is in IT and explicitly excluded."
-        ],
-        docs: [
-          ["Microsoft Defender for Cloud Apps service description", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-defender-service-description#microsoft-defender-for-cloud-apps"],
-          ["Defender for Cloud Apps scoped deployment", "https://learn.microsoft.com/defender-cloud-apps/scoped-deployment"],
-          ["Defender for Cloud Apps licensing data-sheet", "https://learn.microsoft.com/defender-cloud-apps/editions-cloud-app-security"]
-        ]
-      },
-      {
-        name: "Microsoft Defender XDR (correlation and incident layer)",
-        sku: "Entitled wherever at least one of the four components above is licensed",
-        scope: "tenant-wide-scopeable",
-        scopeNote:
-          "Tenant-level entitlement. Defender XDR is the cross-workload correlation, incident grouping, advanced hunting (KQL), automated investigation, and unified portal experience at security.microsoft.com. It does not have a separate per-user SKU. Customers gain Defender XDR automatically when they license any of Defender for Office 365 P2, Defender for Endpoint P2, Defender for Identity, or Defender for Cloud Apps — and visibility / response scope is limited to whichever components are licensed for the affected user, mailbox, or device.",
-        inScopeMeans:
-          "the tenant has at least one Defender component licensed and the admin's role lets them see incidents that include the admin's own protected assets.",
-        notInScopeMeans:
-          "the tenant has no Defender components licensed (Defender XDR has nothing to correlate), or the admin's role does not include incident visibility.",
-        examples: [
-          "Yes: the tenant holds M365 E5 for every information worker, so all four Defender workloads light up in the unified Defender XDR portal and incidents span email + endpoint + identity.",
-          "No: the tenant licenses Defender for Endpoint P1 only — Defender XDR does not show advanced incident correlation across other workloads because those components aren't licensed."
-        ],
-        docs: [
-          ["What is Microsoft Defender XDR", "https://learn.microsoft.com/defender-xdr/microsoft-365-defender"],
-          ["Defender XDR prerequisites and licensing", "https://learn.microsoft.com/defender-xdr/prerequisites"]
-        ]
-      }
-    ],
+    productBreakdown: DEFENDER_SUITE_MINI_CARDS,
     examples: [
       "Yes: the admin's mailbox is in scope of the Strict preset security policy and their laptop is onboarded to Defender for Endpoint — they need a Defender Suite-tier licence (E5 / E5 Security / Defender Suite add-on).",
       "No: a SOC analyst signs into the Defender portal as Security Operator to investigate incidents across the fleet, but their cloud-only admin account has no mailbox, no managed device, and no synced identity — no per-user Defender licence is required for that account."
@@ -826,6 +1059,10 @@ export const TREE = {
       yes: "the user is in scope for BOTH Purview E5 and Defender — buy full M365 E5.",
       no: "only Purview is in scope — buy the M365 E5 Compliance add-on on the existing base."
     },
+    breakdownIntro:
+      "You already answered Yes to Purview E5. Now we're asking the symmetric question about the Defender Suite \u2014 because if this user needs BOTH, full M365 E5 is the single cheapest SKU; if they only need Purview, the E5 Compliance add-on on top of E3 is meaningfully cheaper. The Defender Suite is four protection workloads plus a correlation layer: Defender for Office 365 P2 (mailbox), Defender for Endpoint P2 (device), Defender for Identity (on-prem AD, tenant-wide-not-scopeable *), Defender for Cloud Apps (SaaS sessions), and Defender XDR (the correlation portal). Expand each card to see how that workload is scoped per Microsoft's service description, what 'in scope' means for this user in plain language with licensed-vs-unlicensed walkthroughs, and Microsoft's source citations. Answer Yes below if this user is in scope of at least ONE Defender workload as a protected asset (mailbox, device, or identity). Starred (*) cards are tenant-wide and not scopeable \u2014 they are informational only and do not count toward 'at least one applies'.",
+    productBreakdown: DEFENDER_SUITE_MINI_CARDS,
+    productBreakdownAggregation: "any",
     techDocs: [
       ["M365 security & compliance licensing guidance", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-365-security-compliance-licensing-guidance"],
       ["Compare Microsoft 365 Enterprise plans", "https://www.microsoft.com/microsoft-365/enterprise/microsoft365-plans-and-pricing"],
@@ -838,6 +1075,10 @@ export const TREE = {
     step: { major: 3, sub: 3, subTotal: 5, label: "Premium service features" },
     question: "Does this user ALSO need Microsoft Purview E5 features (Insider Risk Management, Communication Compliance, premium eDiscovery, Audit Premium)?",
     help: "M365 E5 bundles the Defender Suite AND Purview E5. If you need both for the same user, full E5 is the single cheapest SKU. The Defender Suite add-on (formerly E5 Security) covers ONLY Defender — cheaper when Purview E5 isn't in scope.",
+    breakdownIntro:
+      "You already answered Yes to the Defender Suite. Now we're asking the symmetric question about Purview E5 \u2014 because if this user needs BOTH, full M365 E5 is the single cheapest SKU; if they only need Defender, the Defender Suite add-on (formerly E5 Security) on top of E3 is meaningfully cheaper. The four most common per-user Purview E5 triggers are: Insider Risk Management (IRM), Communication Compliance, eDiscovery (Premium), and Audit (Premium). Expand each card to see how that feature is scoped, what 'in scope' means for this user in plain language with licensed-vs-unlicensed walkthroughs, and Microsoft's source citations. Answer Yes below if this user is in scope of at least ONE of these Purview E5 features. (The upstream Purview umbrella has the full 12-card breakdown including Endpoint DLP, Records Management, Adaptive Protection, Information Barriers, Customer Lockbox, Customer Key, PAM, and Auto-labeling \u2014 these four are the most common triggers.)",
+    productBreakdown: PURVIEW_E5_BREADTH_MINI_CARDS,
+    productBreakdownAggregation: "any",
     rationale: {
       why: "Buying E5 once is usually cheaper than stacking E3 + Defender Suite + E5 Compliance. But the Defender Suite add-on alone is meaningfully cheaper when Purview isn't in scope.",
       yes: "the user is in scope for BOTH Defender and Purview E5 — buy full M365 E5.",
@@ -920,8 +1161,13 @@ export const TREE = {
         icon: "6",
         tone: "primary",
         target: "result_intune_aea"
-      },
-      { label: "← Back to feature-count question", icon: "\u2190", tone: "ghost", target: "q_intune_breadth" }
+      }
+      // Note: no in-card "← Back to feature-count question" option here.
+      // The global "← Back" button in the assessment controls already
+      // pops q_intune_breadth back into view via the canonical history
+      // pop. Adding an in-card back-target was a tree-level cycle (it
+      // PUSHED q_intune_which_one onto history instead of popping it),
+      // which surfaced as "answer-driven cycle" in test-tree-walk.mjs.
     ]
   },
   q_p2_bundle_check: {
@@ -1058,8 +1304,42 @@ export const TREE = {
   },
 
   // ---------- Profile flow disambiguation questions ----------
+  // q_iw_platform forks the Information Worker path between Microsoft 365
+  // (full suite: Office + Windows + Intune + Entra ID P1) and Office 365
+  // (cloud productivity only — no Windows licence, no Intune, no Entra P1).
+  // O365 is ~$11–22 / user / month cheaper than the matching M365 tier and is
+  // the right base when the customer licenses Windows + Intune + Entra
+  // separately (BYOD, Mac/Linux fleets, EMS-only deals, third-party MDM),
+  // and "Microsoft 365 Apps for Enterprise" (no cloud services at all) is
+  // a niche apps-only fork below that.
+  q_iw_platform: {
+    step: { major: 2, sub: 1, subTotal: 3, label: "Knowledge worker tier" },
+    question: "Does this user's organization want Microsoft to ALSO license Windows 11 Enterprise + Microsoft Intune device management + Microsoft Entra ID P1 (Conditional Access, group-based licensing, MFA enforcement via CA, SSPR, password protection) under the SAME per-user SKU as Office?",
+    help: "This is the canonical Microsoft 365 vs Office 365 fork. M365 E-series = Office + Windows + EMS (Intune + Entra ID P1/P2) bundled. O365 E-series = Office cloud productivity ONLY (Exchange / Teams / SharePoint / OneDrive / desktop Office) — no Windows licence, no Intune, no Entra ID P1 included. O365 is roughly $11–$22 / user / month cheaper than the matching M365 tier and is the right base when the org licenses Windows + Intune + EMS separately (e.g. BYOD, Mac / Linux fleets, third-party MDM, existing EMS-only enrolment, or Windows Volume Licensing handled by procurement). Microsoft Product Terms allow EMS E3 / EMS E5 to be added per-user on top of any O365 base.",
+    rationale: {
+      why: "Microsoft sells the same Office cloud productivity stack under TWO SKU families: M365 (bundles Windows + Intune + EMS) and O365 (cloud productivity only). They are NOT the same SKU. The right answer depends on how the org licenses Windows, Intune, and Entra ID for this user.",
+      yes: "this user gets Windows + Intune + Entra ID P1 under the same SKU — continue down the M365 path (E3 / E3 + Copilot / E5 / E7).",
+      no: "Windows / Intune / Entra ID are licensed separately (or the user is on Mac / Linux / BYOD with third-party MDM) — drop into the O365 sub-tree (O1 / O3 / O5 / Apps for Enterprise)."
+    },
+    examples: [
+      "Yes: Standard Windows-fleet knowledge worker — IT provisions a Windows 11 laptop, enrols it in Intune, applies Conditional Access. M365 E3 / E5 bundles all of that.",
+      "Yes: Mixed environment but the customer wants ONE SKU for simplicity — M365 covers Windows even if they choose not to deploy it for every user.",
+      "No: BYOD shop — every employee brings their own Mac or PC, no Intune, no managed Windows image. Office 365 E3 / E5 plus standalone Entra ID P1 (or EMS E3) per user is cheaper.",
+      "No: Mac / Linux engineering team — Windows licence has no value to them; the org runs Jamf / third-party MDM. O365 + EMS layered for the few who need Entra P1.",
+      "No: Customer already owns Windows VL + Intune via a separate EA negotiation — buying it again inside M365 would double-pay. O365 is the clean answer."
+    ],
+    techDocs: [
+      ["Compare Microsoft 365 Enterprise vs Office 365 Enterprise plans", "https://www.microsoft.com/microsoft-365/enterprise/microsoft365-plans-and-pricing"],
+      ["Office 365 Enterprise service description", "https://learn.microsoft.com/office365/servicedescriptions/office-365-platform-service-description/office-365-platform-service-description"],
+      ["Microsoft Product Terms — Universal License Terms", "https://www.microsoft.com/licensing/terms/product/UniversalLicenseTerms/all"],
+      ["M365 Maps — Microsoft 365 vs Office 365 comparison", "https://m365maps.com/Microsoft%20365%20Enterprise.htm"],
+      ["Enterprise Mobility + Security (EMS) plans", "https://www.microsoft.com/microsoft-365/enterprise-mobility-security/compare-plans-and-pricing"]
+    ],
+    yes: "q_iw_security",
+    no: "q_iw_o365_collab"
+  },
   q_iw_security: {
-    step: { major: 2, sub: 1, subTotal: 2, label: "Knowledge worker tier" },
+    step: { major: 2, sub: 2, subTotal: 3, label: "Knowledge worker tier" },
     question: "Do these users need E5-tier security or compliance — Microsoft Defender XDR, Defender for Endpoint P2, Defender for Identity, Defender for Cloud Apps, Microsoft Purview E5 (IRM / Communication Compliance / premium eDiscovery / Audit Premium / endpoint DLP), or Entra ID P2 (PIM, Identity Protection)?",
     help: "M365 E5 bundles all of those for one per-user price. E3 (or E3 + Copilot add-on) is the cheapest path when none of those are needed.",
     rationale: {
@@ -1075,7 +1355,7 @@ export const TREE = {
     no: "q_iw_copilot_addon"
   },
   q_iw_copilot_bundle: {
-    step: { major: 2, sub: 2, subTotal: 2, label: "Knowledge worker tier" },
+    step: { major: 2, sub: 3, subTotal: 3, label: "Knowledge worker tier" },
     question: "Does this user ALSO need Microsoft 365 Copilot, Microsoft Entra Suite (Internet Access / Private Access / Verified ID), AND Agent 365 — all bundled in a single per-user SKU?",
     help: "M365 E7 (generally available since May 1, 2026) bundles E5 + Copilot + Entra Suite + Agent 365 in one license — typically cheaper than stacking the four add-ons.",
     rationale: {
@@ -1092,7 +1372,7 @@ export const TREE = {
     no: "result_iw_e5"
   },
   q_iw_copilot_addon: {
-    step: { major: 2, sub: 2, subTotal: 2, label: "Knowledge worker tier" },
+    step: { major: 2, sub: 3, subTotal: 3, label: "Knowledge worker tier" },
     question: "Does this user need Microsoft 365 Copilot (in Word / Excel / PowerPoint / Outlook / Teams, or Copilot Studio agents grounded in tenant data)?",
     help: "The Copilot add-on layers on M365 E3 per user. It does NOT require a base-plan upgrade.",
     rationale: {
@@ -1107,8 +1387,96 @@ export const TREE = {
     yes: "result_iw_e3_copilot",
     no: "result_iw_e3"
   },
+  // ---------- Office 365 sub-tree ----------
+  // Triggered when q_iw_platform = No (org does NOT need Windows + Intune +
+  // Entra P1 bundled with Office). Three short questions narrow down to
+  // Microsoft 365 Apps for Enterprise (Office apps only, no cloud services)
+  // / Office 365 E1 (web only) / Office 365 E3 (desktop + cloud) /
+  // Office 365 E5 (E3 + Defender for Office P2 + Power BI Pro + Teams Phone).
+  q_iw_o365_collab: {
+    step: { major: 2, sub: 2, subTotal: 3, label: "Knowledge worker tier" },
+    question: "Does this user need cloud collaboration services — Exchange Online mailbox + Microsoft Teams + SharePoint + OneDrive — or ONLY the installed Office desktop apps (Word / Excel / PowerPoint / Outlook running locally on their device)?",
+    help: "Microsoft 365 Apps for Enterprise is the desktop Office apps as a per-user SKU with NO Exchange, NO Teams, NO SharePoint, NO OneDrive for Business cloud services. It's the right SKU when the user's mailbox / chat / file-share comes from a third-party service (Google Workspace, on-premises Exchange, IBM Notes, Zimbra, etc.) and Office is all that's needed from Microsoft. Office 365 E1 / E3 / E5 all include the cloud services.",
+    rationale: {
+      why: "M365 Apps for Enterprise (~$12 / user / month) is a meaningful saving over Office 365 E3 (~$23) when the customer truly does not consume Microsoft cloud collab. The trade-off: no mailbox, no Teams, no SharePoint sites, no OneDrive — those have to come from somewhere else.",
+      yes: "the user needs Exchange / Teams / SharePoint / OneDrive — continue to the O365 tier question.",
+      no: "the user only needs desktop Office apps — Microsoft 365 Apps for Enterprise is the answer."
+    },
+    examples: [
+      "Yes: Standard knowledge worker who uses Outlook for email, Teams for meetings / chat, SharePoint for the intranet, and OneDrive for personal files — O3 or O5.",
+      "No: Engineer on a Google Workspace org who only needs Excel + PowerPoint installed for Office-format compatibility with external partners — M365 Apps for Enterprise.",
+      "No: Migration scenario — org is still on on-premises Exchange / Skype for Business and has not moved to Microsoft cloud yet, but users need Office locally."
+    ],
+    techDocs: [
+      ["Microsoft 365 Apps for Enterprise overview", "https://learn.microsoft.com/microsoft-365-apps/deploy/about-microsoft-365-apps"],
+      ["Office 365 E1 / E3 / E5 service description", "https://learn.microsoft.com/office365/servicedescriptions/office-365-platform-service-description/office-365-platform-service-description"],
+      ["M365 Maps — Apps for Enterprise", "https://m365maps.com/Microsoft%20365%20Apps%20for%20enterprise.htm"]
+    ],
+    yes: "q_iw_o365_tier",
+    no: "result_iw_apps"
+  },
+  q_iw_o365_tier: {
+    step: { major: 2, sub: 3, subTotal: 3, label: "Knowledge worker tier" },
+    question: "Does this user need Office 365 E5-tier premium services — Microsoft Defender for Office 365 Plan 2 (Safe Links / Safe Attachments / anti-phish impersonation + Attack Simulation Training), Microsoft Purview E5 (Audit Premium, eDiscovery Premium, IRM, Communication Compliance, Customer Lockbox), Power BI Pro, OR Microsoft Teams Phone Standard?",
+    help: "Office 365 E5 bundles those four uplifts (DfO P2 + Purview E5 + Power BI Pro + Teams Phone Standard) at one per-user price. Without any of those, Office 365 E3 (or E1 for web-only users) is meaningfully cheaper. NOTE: Office 365 E5 does NOT include Entra ID P2, Defender for Endpoint, Defender for Identity, or Defender for Cloud Apps — those need EMS E5 / Defender Suite / standalone SKUs added on top.",
+    rationale: {
+      why: "Office 365 E5 is the premium O365 tier. Buying O3 + DfO P2 + Power BI Pro + Audit Premium + Teams Phone separately is more expensive than O5 once you stack 3+ of those. If the user only needs the standard collab + desktop apps, O3 is the answer; if they live in the browser, O1 saves another $12 / user / month.",
+      yes: "the user needs O5-tier premium — Office 365 E5 is the answer.",
+      no: "continue to the desktop-apps question (O3 vs O1)."
+    },
+    techDocs: [
+      ["Compare Office 365 plans (E1 / E3 / E5)", "https://www.microsoft.com/microsoft-365/business/compare-office-365-plans"],
+      ["Defender for Office 365 P2 service description", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-defender-service-description#microsoft-defender-for-office-365"],
+      ["Power BI Pro included in Office 365 E5", "https://learn.microsoft.com/power-bi/fundamentals/service-features-license-type"],
+      ["Teams Phone Standard included in Office 365 E5", "https://www.microsoft.com/microsoft-teams/compare-microsoft-teams-options"]
+    ],
+    yes: "result_iw_o5",
+    no: "q_iw_o365_desktop"
+  },
+  q_iw_o365_desktop: {
+    step: { major: 2, sub: 3, subTotal: 3, label: "Knowledge worker tier" },
+    question: "Does this user need INSTALLED desktop Office apps (Word / Excel / PowerPoint / Outlook running locally on Windows or Mac) — or is Office for the web (browser + mobile apps with the 10.9-inch screen limit) enough?",
+    help: "Office 365 E1 (~$10 / user / month) includes Exchange (50 GB), Teams, SharePoint, OneDrive (1 TB), and Office for the web / mobile — but NOT the installed desktop apps. Office 365 E3 (~$23) adds the installed desktop apps + larger 100 GB mailbox + unlimited online archive + DLP. The 10.9-inch screen rule from Microsoft's mobile apps service description means Office on a tablet larger than 10.9 inches (most iPads, Surface) requires a commercial-use right that E1 does NOT carry on the desktop.",
+    rationale: {
+      why: "Office 365 E1 is the cheapest O365 tier with cloud collab. If the user only needs to read / light-edit in the browser and on their phone, E1 saves $13 / user / month over E3. The moment they need installed Outlook / Word / Excel locally, E3 is the floor.",
+      yes: "the user needs installed desktop Office — Office 365 E3 is the answer.",
+      no: "the user lives in the browser — Office 365 E1 is the answer."
+    },
+    techDocs: [
+      ["Compare Office 365 plans (E1 / E3 / E5)", "https://www.microsoft.com/microsoft-365/business/compare-office-365-plans"],
+      ["Office mobile apps — commercial-use rights & 10.9-inch screen rule", "https://learn.microsoft.com/office365/servicedescriptions/office-applications-service-description/office-applications-service-description"],
+      ["Exchange Online plans (E1 = 50 GB, E3 = 100 GB)", "https://www.microsoft.com/microsoft-365/exchange/compare-microsoft-exchange-online-plans"]
+    ],
+    yes: "result_iw_o3",
+    no: "result_iw_o1"
+  },
+  q_smb_collab: {
+    step: { major: 2, sub: 1, subTotal: 3, label: "SMB tier" },
+    question: "Does this user need MICROSOFT cloud collaboration services (Exchange Online mailbox, Microsoft Teams, SharePoint Online, OneDrive for Business) — OR do they ONLY need the installed Office apps (Word / Excel / PowerPoint / Outlook) on Windows or Mac?",
+    help: "Microsoft 365 Apps for Business is the SMB-tier apps-only SKU — installed Office on up to 5 devices + 1 TB OneDrive, no Exchange / Teams / SharePoint cloud services. Cheaper than Business Basic / Standard / Premium when the org gets email and chat from a third party (Google Workspace, on-prem Exchange, etc.) or doesn't need them at all.",
+    rationale: {
+      why: "Apps for Business is a separate Business-family SKU sold at the same 300-seat cap as the Basic / Standard / Premium tier — but excludes every Microsoft cloud service except 1 TB OneDrive. Many small businesses run Google Workspace for email + chat and just need Office apps for documents — those orgs over-pay if they buy Business Standard or Premium.",
+      yes: "user needs cloud Exchange / Teams / SharePoint — continue to the Business Basic / Standard / Premium tree.",
+      no: "user only needs installed Office apps + OneDrive — buy Microsoft 365 Apps for Business."
+    },
+    examples: [
+      "Yes example: 40-person law firm that wants Outlook + Teams + a shared SharePoint document library + Word / Excel on every laptop. Continue to the Business tree.",
+      "Yes example: 80-person SaaS startup running Microsoft 365 for email and meetings; needs the full collaboration stack. Continue to the Business tree.",
+      "No example: 25-person agency on Google Workspace for Gmail + Google Meet that just needs installed Word / Excel for client deliverables. M365 Apps for Business is the right SKU.",
+      "No example: 12-person CPA firm that uses on-premises Exchange + an old SharePoint server but wants modern Office desktop apps + cloud OneDrive on laptops. M365 Apps for Business.",
+      "No example: 60-person manufacturing back-office on Slack + Gmail; documents live on a NAS but employees need Excel. Apps for Business covers it."
+    ],
+    techDocs: [
+      ["Microsoft 365 Apps for Business — overview", "https://www.microsoft.com/microsoft-365/business/microsoft-365-apps-for-business"],
+      ["Compare Microsoft 365 Business plans (Apps for Business + Basic / Standard / Premium)", "https://www.microsoft.com/microsoft-365/business/compare-all-plans"],
+      ["Office applications service description (Apps for Business install rights)", "https://learn.microsoft.com/office365/servicedescriptions/office-applications-service-description/office-applications-service-description"],
+      ["Microsoft 365 Business 300-seat limit (applies to Apps for Business too)", "https://learn.microsoft.com/microsoft-365/commerce/subscriptions/upgrade-to-different-plan"]
+    ],
+    yes: "q_smb_office",
+    no: "result_smb_apps"
+  },
   q_smb_office: {
-    step: { major: 2, sub: 1, subTotal: 2, label: "SMB tier" },
+    step: { major: 2, sub: 2, subTotal: 3, label: "SMB tier" },
     question: "Do users need the desktop Office apps installed (Word / Excel / PowerPoint / Outlook running on Windows or Mac), or is Office for the web enough?",
     help: "Business Basic = web/mobile Office only. Business Standard = Basic + installed desktop apps. Business Premium = Standard + Defender for Business + Intune + Entra ID P1.",
     rationale: {
@@ -1124,7 +1492,7 @@ export const TREE = {
     no: "q_smb_security_basic"
   },
   q_smb_security: {
-    step: { major: 2, sub: 2, subTotal: 2, label: "SMB tier" },
+    step: { major: 2, sub: 3, subTotal: 3, label: "SMB tier" },
     question: "Do you need Microsoft Defender for Business + Microsoft Intune device management + Microsoft Entra ID P1 (Conditional Access + MFA enforcement + group-based licensing)?",
     help: "Business Premium is the only Business SKU that bundles serious security + device management + Conditional Access.",
     rationale: {
@@ -1134,13 +1502,14 @@ export const TREE = {
     },
     techDocs: [
       ["Microsoft 365 Business Premium overview", "https://learn.microsoft.com/microsoft-365/business-premium/"],
-      ["Compare Microsoft 365 Business plans", "https://www.microsoft.com/microsoft-365/business/compare-all-plans"]
+      ["Compare Microsoft 365 Business plans", "https://www.microsoft.com/microsoft-365/business/compare-all-plans"],
+      ["Microsoft Defender for Business — overview", "https://learn.microsoft.com/defender-business/mdb-overview"]
     ],
     yes: "result_smb_premium",
     no: "result_smb_standard"
   },
   q_smb_security_basic: {
-    step: { major: 2, sub: 2, subTotal: 2, label: "SMB tier" },
+    step: { major: 2, sub: 3, subTotal: 3, label: "SMB tier" },
     question: "Do you need Microsoft Defender for Business + Microsoft Intune device management + Microsoft Entra ID P1 (Conditional Access + MFA enforcement + group-based licensing)?",
     help: "Business Premium is the only Business SKU that bundles serious security + device management + Conditional Access. It includes installed Office too.",
     rationale: {
@@ -1150,7 +1519,8 @@ export const TREE = {
     },
     techDocs: [
       ["Microsoft 365 Business Premium overview", "https://learn.microsoft.com/microsoft-365/business-premium/"],
-      ["Compare Microsoft 365 Business plans", "https://www.microsoft.com/microsoft-365/business/compare-all-plans"]
+      ["Compare Microsoft 365 Business plans", "https://www.microsoft.com/microsoft-365/business/compare-all-plans"],
+      ["Microsoft Defender for Business — overview", "https://learn.microsoft.com/defender-business/mdb-overview"]
     ],
     yes: "result_smb_premium",
     no: "result_smb_basic"
@@ -1183,7 +1553,7 @@ export const TREE = {
       no: { ineligible: true }
     },
     yes: "q_frontline_workplace",
-    no: "q_iw_security"
+    no: "q_iw_platform"
   },
   q_frontline_workplace: {
     step: { major: 2, sub: 2, subTotal: 14, label: "Frontline · eligibility · workplace pattern" },
@@ -1212,7 +1582,7 @@ export const TREE = {
       no: { ineligible: true }
     },
     yes: "q_frontline_exclusion",
-    no: "q_iw_security"
+    no: "q_iw_platform"
   },
   q_frontline_exclusion: {
     step: { major: 2, sub: 3, subTotal: 14, label: "Frontline · eligibility · exclusions" },
@@ -1244,7 +1614,7 @@ export const TREE = {
       no: { ineligible: true }
     },
     yes: "q_frontline_desktop_apps",
-    no: "q_iw_security"
+    no: "q_iw_platform"
   },
   q_frontline_desktop_apps: {
     step: { major: 2, sub: 4, subTotal: 14, label: "Frontline · feature gap" },
@@ -1653,7 +2023,7 @@ export const TREE = {
       ["Why separate admin accounts matter", "https://learn.microsoft.com/entra/identity/role-based-access-control/best-practices"]
     ],
     actions: [
-      { label: "Find the exact license →", target: "q_iw_security", tone: "primary" },
+      { label: "Find the exact license →", target: "q_iw_platform", tone: "primary" },
       { label: "← Back to question", target: "start", tone: "secondary" }
     ]
   },
@@ -1863,7 +2233,7 @@ export const TREE = {
       "If you later need Defender XDR / Endpoint P2 too, upgrading the user from E3 + E5 Compliance to full E5 is the cleanest path."
     ],
     docs: [
-      ["Microsoft Purview eDiscovery licensing", "https://learn.microsoft.com/purview/ediscovery-subscription-licensing"],
+      ["Microsoft Purview eDiscovery licensing", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-purview-service-description#microsoft-purview-ediscovery"],
       ["Insider Risk Management — subscriptions & licensing", "https://learn.microsoft.com/purview/insider-risk-management-configure#subscriptions-and-licensing"],
       ["M365 Maps — E5 Compliance comparison", "https://m365maps.com/Microsoft%20365%20E5%20Compliance.htm"]
     ]
@@ -2148,6 +2518,9 @@ export const TREE = {
       ["Microsoft Licensing — Microsoft 365 + Teams 2025 packaging update", "https://www.microsoft.com/en-us/licensing/news/Microsoft365-Teams-2025"]
     ],
     actions: [
+      { label: "Deep-dive: Teams Phone licensing", target: "info_teams_phone", tone: "secondary" },
+      { label: "Deep-dive: Windows 365 / Cloud PC", target: "info_windows_365", tone: "secondary" },
+      { label: "Deep-dive: Viva / Project / Visio / Power Platform / Copilot add-ons", target: "info_workload_addons", tone: "secondary" },
       { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
     ]
   },
@@ -2170,6 +2543,149 @@ export const TREE = {
       ["Microsoft 365 Copilot licensing", "https://learn.microsoft.com/microsoft-365/copilot/microsoft-365-copilot-licensing"],
       ["Microsoft Entra Suite overview", "https://learn.microsoft.com/entra/fundamentals/entra-suite"],
       ["Microsoft Licensing — Microsoft 365 + Teams 2025 packaging update", "https://www.microsoft.com/en-us/licensing/news/Microsoft365-Teams-2025"]
+    ],
+    actions: [
+      { label: "Deep-dive: Teams Phone licensing", target: "info_teams_phone", tone: "secondary" },
+      { label: "Deep-dive: Windows 365 / Cloud PC", target: "info_windows_365", tone: "secondary" },
+      { label: "Deep-dive: Viva / Project / Visio / Power Platform / Copilot add-ons", target: "info_workload_addons", tone: "secondary" },
+      { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
+    ]
+  },
+  result_iw_apps: {
+    result: true,
+    badge: "M365 Apps for Enterprise",
+    badgeClass: "badge-info",
+    title: "Microsoft 365 Apps for Enterprise",
+    sub: "Installed Office desktop apps as a per-user SKU — NO Exchange, Teams, SharePoint, or OneDrive cloud services.",
+    license: "Microsoft 365 Apps for Enterprise, per user (~$12 / user / month)",
+    decisionBasis: "You picked Information / knowledge worker, declined the full M365 bundle, AND said the user only needs the installed Office apps (no Microsoft cloud email / Teams / SharePoint). M365 Apps for Enterprise is the apps-only SKU — meaningfully cheaper than any Office 365 E-tier when the user gets mail / chat / file-share from a third-party service.",
+    bullets: [
+      "Installed Office desktop apps (Word / Excel / PowerPoint / Outlook / OneNote / Access / Publisher on Windows; Word / Excel / PowerPoint / Outlook on Mac) on up to 5 PCs/Macs + 5 tablets + 5 phones per user.",
+      "Includes 1 TB OneDrive for Business storage for the user — this is the ONE cloud service bundled.",
+      "Does NOT include Exchange Online (no mailbox), Microsoft Teams, SharePoint Online, Loop, or Forms cloud services. Mail and collaboration must come from a third party (Google Workspace, on-prem Exchange, IBM Notes, etc.) or be added as standalone SKUs.",
+      "Does NOT include Windows licence, Microsoft Intune, Microsoft Entra ID P1, or any Defender / Purview features.",
+      "EEA (European Economic Area) tenants: the apps-only SKU is sold under the same name worldwide \u2014 no separate \"No Teams\" variant needed because there's no Teams to unbundle.",
+      "Step up to Office 365 E1 / E3 / E5 if cloud collab (Exchange / Teams / SharePoint) is needed, OR to Microsoft 365 E3 / E5 if Windows + Intune are also needed."
+    ],
+    docs: [
+      ["Microsoft 365 Apps for Enterprise \u2014 overview", "https://learn.microsoft.com/microsoft-365-apps/deploy/about-microsoft-365-apps"],
+      ["Office applications service description", "https://learn.microsoft.com/office365/servicedescriptions/office-applications-service-description/office-applications-service-description"],
+      ["M365 Maps \u2014 Apps for Enterprise", "https://m365maps.com/Microsoft%20365%20Apps%20for%20enterprise.htm"],
+      ["Microsoft 365 Apps for Enterprise pricing", "https://www.microsoft.com/microsoft-365/business/microsoft-365-apps-for-enterprise"]
+    ],
+    actions: [
+      { label: "\u2190 Back to profile selector", target: "start_choice", tone: "secondary" }
+    ]
+  },
+  result_iw_o1: {
+    result: true,
+    badge: "Office 365 E1",
+    badgeClass: "badge-info",
+    title: "Office 365 E1",
+    sub: "Cheapest Enterprise O365 tier \u2014 cloud collab (Exchange 50 GB + Teams + SharePoint + OneDrive) with Office for the web / mobile only. NO installed desktop Office apps.",
+    license: "Office 365 E1, per user (~$10 / user / month)",
+    decisionBasis: "You picked Information / knowledge worker, declined the full M365 bundle, picked O365 cloud collab over apps-only, declined O5-tier premium services, AND said installed desktop Office apps are not required. Office 365 E1 is the cheapest O365 SKU that includes cloud collab \u2014 the user lives in the browser + mobile apps.",
+    bullets: [
+      "Exchange Online Plan 1 (50 GB mailbox), Microsoft Teams, SharePoint Online, OneDrive for Business (1 TB), Office for the web (Word / Excel / PowerPoint / Outlook / OneNote in the browser).",
+      "Office mobile apps with commercial-use rights on devices with a screen \u2264 10.9 inches \u2014 iPhones and most Android phones qualify; iPads and Surface tablets generally do NOT (Microsoft's service description rule).",
+      "NO installed desktop Office apps (no installed Outlook / Word / Excel / PowerPoint on Windows or Mac). If installed apps are needed, step up to Office 365 E3.",
+      "NO Windows licence, NO Microsoft Intune, NO Microsoft Entra ID P1. Add EMS E3 (~$10.60 / user / month) or buy Entra ID P1 standalone if Conditional Access / Intune is needed.",
+      "EEA tenants (post EU antitrust ruling): buy the \"Office 365 E1 (no Teams) EEA\" SKU + Microsoft Teams Enterprise as a separate per-user SKU.",
+      "Step up to Office 365 E3 when installed desktop apps are needed (or to a 100 GB mailbox)."
+    ],
+    docs: [
+      ["Compare Office 365 plans (E1 / E3 / E5)", "https://www.microsoft.com/microsoft-365/business/compare-office-365-plans"],
+      ["Office 365 service description", "https://learn.microsoft.com/office365/servicedescriptions/office-365-platform-service-description/office-365-platform-service-description"],
+      ["Office mobile apps \u2014 10.9-inch screen rule", "https://learn.microsoft.com/office365/servicedescriptions/office-applications-service-description/office-applications-service-description"],
+      ["Microsoft Licensing \u2014 Microsoft 365 + Teams 2025 packaging update (EEA No-Teams SKUs)", "https://www.microsoft.com/en-us/licensing/news/Microsoft365-Teams-2025"],
+      ["M365 Maps \u2014 Office 365 E1", "https://m365maps.com/Office%20365%20E1.htm"]
+    ],
+    actions: [
+      { label: "\u2190 Back to profile selector", target: "start_choice", tone: "secondary" }
+    ]
+  },
+  result_iw_o3: {
+    result: true,
+    badge: "Office 365 E3",
+    badgeClass: "badge-premium",
+    title: "Office 365 E3",
+    sub: "Office cloud productivity \u2014 Exchange 100 GB + Teams + SharePoint + OneDrive + installed desktop Office apps. NO Windows / Intune / Entra ID P1.",
+    license: "Office 365 E3, per user (~$23 / user / month) \u2014 about $13 / user / month less than Microsoft 365 E3",
+    decisionBasis: "You picked Information / knowledge worker, declined the full M365 bundle, picked O365 cloud collab, declined O5-tier premium services, AND said installed desktop Office apps ARE needed. Office 365 E3 is the workhorse O365 tier \u2014 same Office productivity as M365 E3 minus the Windows + Intune + Entra P1 bundle.",
+    bullets: [
+      "Installed Office desktop apps (Word / Excel / PowerPoint / Outlook / OneNote / Access / Publisher) on up to 5 PCs / Macs + 5 tablets + 5 phones per user.",
+      "Exchange Online Plan 2 (100 GB mailbox + unlimited online archive), Microsoft Teams, SharePoint Online, OneDrive (1 TB+, expandable).",
+      "Includes Microsoft Purview baseline (manual sensitivity labels, basic eDiscovery, baseline DLP, Office Message Encryption), Microsoft Defender for Office 365 Plan 1 (Safe Links / Safe Attachments / anti-phish basic), Azure Information Protection P1.",
+      "NO Windows licence, NO Microsoft Intune, NO Microsoft Entra ID P1 \u2014 add EMS E3 (~$10.60 / user / month) if Intune + Conditional Access are needed (Office 365 E3 + EMS E3 \u2248 Microsoft 365 E3 in features but you pay for them as two separate line items).",
+      "NO Defender for Endpoint, NO Defender for Identity, NO Defender for Cloud Apps, NO Purview E5 (IRM / Audit Premium / eDiscovery Premium / Communication Compliance), NO Entra ID P2 (PIM / Identity Protection).",
+      "EEA tenants: buy the \"Office 365 E3 (no Teams) EEA\" SKU + Microsoft Teams Enterprise as a separate per-user SKU.",
+      "Step up to Office 365 E5 when Defender for Office P2 / Purview E5 / Power BI Pro / Teams Phone are needed; switch to Microsoft 365 E3 when Windows + Intune + Entra P1 should be bundled."
+    ],
+    docs: [
+      ["Compare Office 365 plans (E1 / E3 / E5)", "https://www.microsoft.com/microsoft-365/business/compare-office-365-plans"],
+      ["Office 365 service description", "https://learn.microsoft.com/office365/servicedescriptions/office-365-platform-service-description/office-365-platform-service-description"],
+      ["Enterprise Mobility + Security (EMS) plans", "https://www.microsoft.com/microsoft-365/enterprise-mobility-security/compare-plans-and-pricing"],
+      ["Microsoft Licensing \u2014 Microsoft 365 + Teams 2025 packaging update (EEA No-Teams SKUs)", "https://www.microsoft.com/en-us/licensing/news/Microsoft365-Teams-2025"],
+      ["M365 Maps \u2014 Office 365 E3", "https://m365maps.com/Office%20365%20E3.htm"]
+    ],
+    actions: [
+      { label: "\u2190 Back to profile selector", target: "start_choice", tone: "secondary" }
+    ]
+  },
+  result_iw_o5: {
+    result: true,
+    badge: "Office 365 E5",
+    badgeClass: "badge-premium",
+    title: "Office 365 E5",
+    sub: "O5 = O3 + Defender for Office 365 P2 + Microsoft Purview E5 + Power BI Pro + Teams Phone Standard. Still NO Windows / Intune / Entra ID P2.",
+    license: "Office 365 E5, per user (~$38 / user / month) \u2014 about $20 / user / month less than Microsoft 365 E5",
+    decisionBasis: "You picked Information / knowledge worker, declined the full M365 bundle, picked O365 cloud collab, AND need O5-tier premium services. Office 365 E5 bundles DfO P2 + Purview E5 + Power BI Pro + Teams Phone \u2014 cheaper than buying O3 + those four as add-ons, and meaningfully cheaper than M365 E5 if Windows / Intune / Entra P2 are licensed separately.",
+    bullets: [
+      "Everything in Office 365 E3 (installed Office apps + 100 GB Exchange + Teams + SharePoint + OneDrive + DfO P1 + AIP P1).",
+      "Microsoft Defender for Office 365 Plan 2 \u2014 Safe Links / Safe Attachments / anti-phish impersonation + Threat Explorer + Automated Investigation and Response (AIR) + Attack Simulation Training.",
+      "Microsoft Purview E5 \u2014 Insider Risk Management, Communication Compliance, eDiscovery Premium (custodian / hold / review), Audit Premium (1-year retention + MailItemsAccessed crucial events), Customer Lockbox, Customer Key (HSM-backed), Information Barriers, Privileged Access Management for Office, automatic labelling.",
+      "Power BI Pro per user \u2014 publish / share / consume Pro workspaces and reports.",
+      "Microsoft Teams Phone Standard \u2014 PSTN calling control plane (calling plan / direct routing / operator connect minutes are EXTRA).",
+      "Does NOT include Defender for Endpoint, Defender for Identity, Defender for Cloud Apps, Microsoft Entra ID P2 (PIM / Identity Protection), Microsoft Intune, or Windows licence \u2014 add EMS E5 (~$16.40 / user / month) for those, OR step up to Microsoft 365 E5 to bundle everything.",
+      "EEA tenants: buy the \"Office 365 E5 (no Teams) EEA\" SKU + Microsoft Teams Enterprise as a separate per-user SKU \u2014 Teams Phone Standard still ships separately in the EEA bundle.",
+      "Common stack: Office 365 E5 + EMS E5 = the OLD \"Microsoft 365 E5\" buy pattern from before M365 was bundled \u2014 still valid and sometimes priced better than M365 E5 depending on EA / CSP terms."
+    ],
+    docs: [
+      ["Compare Office 365 plans (E1 / E3 / E5)", "https://www.microsoft.com/microsoft-365/business/compare-office-365-plans"],
+      ["Microsoft Purview service description \u2014 E5 features", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-purview-service-description"],
+      ["Microsoft Defender for Office 365 P2 service description", "https://learn.microsoft.com/office365/servicedescriptions/microsoft-365-service-descriptions/microsoft-365-tenantlevel-services-licensing-guidance/microsoft-defender-service-description#microsoft-defender-for-office-365"],
+      ["Power BI Pro licensing", "https://learn.microsoft.com/power-bi/fundamentals/service-features-license-type"],
+      ["Microsoft Licensing \u2014 Microsoft 365 + Teams 2025 packaging update (EEA No-Teams SKUs)", "https://www.microsoft.com/en-us/licensing/news/Microsoft365-Teams-2025"],
+      ["M365 Maps \u2014 Office 365 E5", "https://m365maps.com/Office%20365%20E5.htm"]
+    ],
+    actions: [
+      { label: "Deep-dive: Teams Phone licensing", target: "info_teams_phone", tone: "secondary" },
+      { label: "Deep-dive: Viva / Project / Visio / Power Platform / Copilot add-ons", target: "info_workload_addons", tone: "secondary" },
+      { label: "\u2190 Back to profile selector", target: "start_choice", tone: "secondary" }
+    ]
+  },
+  result_smb_apps: {
+    result: true,
+    badge: "M365 Apps for Business",
+    badgeClass: "badge-info",
+    title: "Microsoft 365 Apps for Business",
+    sub: "Installed Office desktop apps — Word / Excel / PowerPoint / Outlook on Windows or Mac, plus 1 TB OneDrive. NO Exchange / Teams / SharePoint cloud services.",
+    license: "Microsoft 365 Apps for Business, per user (≤ 300 seat hard cap shared with the other Business SKUs)",
+    decisionBasis: "You picked SMB and said the user does NOT need Microsoft cloud collaboration (Exchange / Teams / SharePoint). M365 Apps for Business is the apps-only Business-tier SKU — cheaper than Business Basic / Standard / Premium when the org gets email and chat from a third party (Google Workspace, on-prem Exchange, etc.) or doesn't need them at all.",
+    bullets: [
+      "Installed Office desktop apps (Word / Excel / PowerPoint / Outlook / OneNote on Windows; Word / Excel / PowerPoint / Outlook on Mac) on up to 5 PCs/Macs + 5 tablets + 5 phones per user. Includes Access and Publisher on Windows.",
+      "Includes 1 TB OneDrive for Business storage. This is the ONE cloud service bundled.",
+      "Does NOT include Exchange Online (no mailbox), Microsoft Teams, SharePoint Online, Loop, Bookings, Clipchamp, or Stream cloud services. Mail and collaboration must come from a third party (Google Workspace, on-prem Exchange, etc.) or be added as standalone SKUs.",
+      "Does NOT include Microsoft Defender for Business, Microsoft Intune, Microsoft Entra ID P1, or any of the security / device-management uplifts in Business Premium.",
+      "Hard 300-seat cap is shared across ALL Business-tier SKUs combined (Apps for Business + Basic + Standard + Premium). At 301 seats Microsoft requires Enterprise SKUs (Microsoft 365 Apps for Enterprise or E3 / E5 / E7).",
+      "Step up to Business Basic / Standard / Premium when the org adopts Microsoft cloud collab; step up to Microsoft 365 Apps for Enterprise (no seat cap, same apps-only scope) when you exceed 300 seats."
+    ],
+    docs: [
+      ["Microsoft 365 Apps for Business — overview", "https://www.microsoft.com/microsoft-365/business/microsoft-365-apps-for-business"],
+      ["Office applications service description", "https://learn.microsoft.com/office365/servicedescriptions/office-applications-service-description/office-applications-service-description"],
+      ["Compare Microsoft 365 Business plans", "https://www.microsoft.com/microsoft-365/business/compare-all-plans"],
+      ["Microsoft 365 Business 300-seat limit (applies to Apps for Business too)", "https://learn.microsoft.com/microsoft-365/commerce/subscriptions/upgrade-to-different-plan"],
+      ["M365 Maps — Apps for Business", "https://m365maps.com/Microsoft%20365%20Apps%20for%20business.htm"]
     ],
     actions: [
       { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
@@ -2245,6 +2761,9 @@ export const TREE = {
       ["Microsoft Product Terms — Microsoft 365 Business Online Services (300-seat cap is a Product Terms Use Right)", "https://www.microsoft.com/licensing/terms/productoffering/MicrosoftOffice365/EAEAS"]
     ],
     actions: [
+      { label: "Deep-dive: Teams Phone licensing", target: "info_teams_phone", tone: "secondary" },
+      { label: "Deep-dive: Windows 365 / Cloud PC", target: "info_windows_365", tone: "secondary" },
+      { label: "Deep-dive: Viva / Project / Visio / Power Platform / Copilot add-ons", target: "info_workload_addons", tone: "secondary" },
       { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
     ]
   },
@@ -2270,6 +2789,8 @@ export const TREE = {
       ["M365 Comparison table — Enterprise & Frontline plans (PDF)", "https://aka.ms/M365EnterprisePlans"]
     ],
     actions: [
+      { label: "Deep-dive: Teams Phone licensing", target: "info_teams_phone", tone: "secondary" },
+      { label: "Deep-dive: Windows 365 / Cloud PC", target: "info_windows_365", tone: "secondary" },
       { label: "← Back to profile selector", target: "start_choice", tone: "secondary" }
     ]
   },

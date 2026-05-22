@@ -99,6 +99,17 @@ const description =
           already know the answer and just need the SKU details and the Microsoft Learn references.
           Generated at build time from the same data the assessment uses.
         </p>
+        <label class="ref-search-wrap">
+          <span class="visually-hidden">Filter recommendations</span>
+          <input
+            type="search"
+            class="ref-search"
+            placeholder="Filter by SKU, profile, or keyword (e.g. Copilot, F3, Defender, Cloud PC)…"
+            autocomplete="off"
+            aria-label="Filter recommendations"
+          />
+          <span class="ref-search__count" aria-live="polite"></span>
+        </label>
       </header>
 
       {
@@ -114,7 +125,13 @@ const description =
                     const bullets = node.bullets ?? [];
                     const sources = node.docs ?? node.techDocs ?? [];
                     return (
-                      <article class="card ref-card" id={id}>
+                      <article
+                        class="card ref-card"
+                        id={id}
+                        data-search={[id, node.title, node.sub ?? "", node.badge ?? "", ...bullets]
+                          .join(" ")
+                          .toLowerCase()}
+                      >
                         {node.badge && (
                           <span class={`badge ${node.badgeClass ?? "badge-success"}`}>
                             {node.badge}
@@ -153,7 +170,7 @@ const description =
                             </ol>
                           </details>
                         )}
-                        <a class="ref-card__cta" href={`${base}/assessment#${id}`}>
+                        <a class="ref-card__cta" href={`${base}/assessment?entry=${id}`}>
                           Run the tree to land here →
                         </a>
                       </article>
@@ -171,7 +188,11 @@ const description =
             <h2>Other results</h2>
             <div class="grid grid--2">
               {ungrouped.map(({ id, node }) => (
-                <article class="card ref-card" id={id}>
+                <article
+                  class="card ref-card"
+                  id={id}
+                  data-search={[id, node.title, node.sub ?? ""].join(" ").toLowerCase()}
+                >
                   <h3>{node.title}</h3>
                   {node.sub && <p class="ref-card__sub">{node.sub}</p>}
                 </article>
@@ -275,4 +296,74 @@ const description =
     font-weight: 600;
     font-size: var(--fs-sm);
   }
+  .ref-search-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+    max-width: 760px;
+  }
+  .ref-search {
+    flex: 1;
+    padding: 0.6rem 0.9rem;
+    border: 1px solid var(--color-border, #d0d0d0);
+    border-radius: var(--radius-md, 6px);
+    font-size: var(--fs-md);
+    font-family: inherit;
+    background: var(--color-bg, #fff);
+    color: var(--color-text, #111);
+  }
+  .ref-search:focus {
+    outline: 2px solid var(--ms-blue);
+    outline-offset: 1px;
+  }
+  .ref-search__count {
+    color: var(--color-text-soft);
+    font-size: var(--fs-sm);
+    white-space: nowrap;
+  }
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .ref-section[hidden] {
+    display: none;
+  }
 </style>
+
+<script is:inline>
+  (function () {
+    const input = document.querySelector(".ref-search");
+    const count = document.querySelector(".ref-search__count");
+    if (!input || !count) return;
+    const cards = Array.from(document.querySelectorAll(".ref-card[data-search]"));
+    const sections = Array.from(document.querySelectorAll(".ref-section"));
+    const total = cards.length;
+    function render() {
+      const q = input.value.trim().toLowerCase();
+      let visible = 0;
+      for (const card of cards) {
+        const hay = card.getAttribute("data-search") || "";
+        const match = q === "" || hay.includes(q);
+        card.style.display = match ? "" : "none";
+        if (match) visible++;
+      }
+      // Hide sections that have zero visible cards
+      for (const section of sections) {
+        const sectionCards = section.querySelectorAll(".ref-card[data-search]");
+        const anyVisible = Array.from(sectionCards).some((c) => c.style.display !== "none");
+        section.toggleAttribute("hidden", sectionCards.length > 0 && !anyVisible);
+      }
+      count.textContent = q ? `${visible} of ${total} match` : `${total} results`;
+    }
+    input.addEventListener("input", render);
+    render();
+  })();
+</script>

@@ -1,6 +1,6 @@
 ---
 import { siteLinks, externalSources, repoLinks } from "@lib/links";
-import { APP_VERSION } from "@lib/version";
+import { APP_VERSION, BUILD_DATE } from "@lib/version";
 import { BRAND } from "@lib/brand";
 import { baseUrl } from "@lib/paths";
 
@@ -9,6 +9,24 @@ const year = new Date().getFullYear();
 const site = siteLinks(base);
 const sources = externalSources();
 const repo = repoLinks();
+
+// Format BUILD_DATE as a short, readable date. BUILD_DATE may be an ISO
+// timestamp (CI) or a YYYY-MM-DD-ish string — Date() handles both.
+let buildDateLabel = "";
+let buildDateIso = "";
+try {
+  const d = new Date(BUILD_DATE);
+  if (!Number.isNaN(d.getTime())) {
+    buildDateIso = d.toISOString();
+    buildDateLabel = d.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  }
+} catch {
+  // ignore — buildDateLabel stays empty and we skip the badge
+}
 ---
 
 <footer class="footer" role="contentinfo">
@@ -65,7 +83,16 @@ const repo = repoLinks();
   <div class="container footer__bottom">
     <span
       >&copy; {year}
-      {BRAND.owner} · MIT Licensed · <span class="footer__version">{APP_VERSION}</span></span
+      {BRAND.owner} · MIT Licensed · <span class="footer__version">{APP_VERSION}</span>{
+        buildDateLabel && (
+          <>
+            {" · "}
+            <span class="footer__build-date">
+              Updated <time datetime={buildDateIso}>{buildDateLabel}</time>
+            </span>
+          </>
+        )
+      }</span
     >
     <span
       >Microsoft, Microsoft 365, Azure, Entra, Defender, Purview, Intune, Teams, Copilot are

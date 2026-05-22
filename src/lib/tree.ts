@@ -261,12 +261,12 @@ export type Profile = {
 const PROFILE_KEY_BY_TARGET: Record<string, string> = {
   start: "admin",
   result_primary_account: "primary_account",
-  q_iw_security: "iw",
+  q_iw_platform: "iw",
   q_frontline_eligibility: "frontline",
   q_edu_security: "edu",
   q_gov_profile_cloud: "gov",
   q_npo_seats: "npo",
-  q_smb_office: "smb",
+  q_smb_collab: "smb",
   q_extid_features: "extid",
 };
 

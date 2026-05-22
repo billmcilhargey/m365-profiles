@@ -37,10 +37,16 @@ jobs:
       - name: Run quality checks (validate-tree + typecheck + lint + format)
         run: npm run check
 
+      - name: Run unit tests (tree walk + state invariants)
+        run: npm run test:walk && npm run test:state
+
       # validate-tree already ran inside `npm run check` above — call astro
       # build directly to avoid running it a second time.
       - name: Build (also type-checks pages)
         run: npx astro build
+
+      - name: Validate built site (broken-link scan)
+        run: npm run test:links
 
   links:
     name: Link check
