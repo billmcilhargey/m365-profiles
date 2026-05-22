@@ -452,21 +452,11 @@ class Assessment {
           ),
           notScopeable
             ? ""
-            : h(
-                "p",
-                null,
-                h("strong", null, "In scope when: "),
-                escapeHTML(item.inScopeMeans)
-              ),
+            : h("p", null, h("strong", null, "In scope when: "), escapeHTML(item.inScopeMeans)),
           notScopeable
             ? ""
             : when(item.notInScopeMeans, (s) =>
-                h(
-                  "p",
-                  null,
-                  h("strong", null, "Not in scope when: "),
-                  escapeHTML(s)
-                )
+                h("p", null, h("strong", null, "Not in scope when: "), escapeHTML(s))
               ),
           !notScopeable && item.examples?.length
             ? h(
@@ -573,11 +563,7 @@ class Assessment {
                   h(
                     "li",
                     null,
-                    h(
-                      "a",
-                      { href: url, target: "_blank", rel: "noopener" },
-                      escapeHTML(label)
-                    )
+                    h("a", { href: url, target: "_blank", rel: "noopener" }, escapeHTML(label))
                   )
                 )
               )
@@ -608,7 +594,11 @@ class Assessment {
               " marks items that are tenant-wide and ",
               h("em", null, "not"),
               " scopeable. These cards are ",
-              h("strong", null, "informational only \u2014 they do not push the Yes / No on this question"),
+              h(
+                "strong",
+                null,
+                "informational only \u2014 they do not push the Yes / No on this question"
+              ),
               ". Expand any starred card for the technical mechanics, the per-product Microsoft references, and Microsoft's two official statements (Secure Future Initiative and Product Terms), so you can make the call yourself."
             )
           : ""
@@ -872,11 +862,7 @@ class Assessment {
 
   private buildNodeDetails(node: TreeNode): string {
     const heading = node.title ?? node.question ?? "Assessment step";
-    const lines: (string | false)[] = [
-      heading,
-      "=".repeat(Math.min(heading.length, 80)),
-      "",
-    ];
+    const lines: (string | false)[] = [heading, "=".repeat(Math.min(heading.length, 80)), ""];
     if (node.title && node.question) lines.push(`Question: ${node.question}`, "");
     if (node.sub) lines.push(node.sub, "");
     if (node.help) lines.push("Context:", node.help, "");
@@ -911,7 +897,9 @@ class Assessment {
         lines.push(`  ▸ ${item.name}${item.sku ? `  [${item.sku}]` : ""}  (${item.scope}${star})`);
         if (item.scope === "tenant-wide-not-scopeable") {
           lines.push("      Informational only — no verdict suggested.");
-          lines.push("      This feature is tenant-wide and not scopeable, so the licensing call for this user is a judgement that depends on your reading of the Microsoft Product Terms, your tenant's technical posture, and Microsoft's Secure Future Initiative (SFI). The technical mechanics, per-product Microsoft references, and Microsoft's two official statements (SFI + Product Terms) are below — use them to make the informed decision yourself. This card does not drive the answer to the outer question.");
+          lines.push(
+            "      This feature is tenant-wide and not scopeable, so the licensing call for this user is a judgement that depends on your reading of the Microsoft Product Terms, your tenant's technical posture, and Microsoft's Secure Future Initiative (SFI). The technical mechanics, per-product Microsoft references, and Microsoft's two official statements (SFI + Product Terms) are below — use them to make the informed decision yourself. This card does not drive the answer to the outer question."
+          );
         }
         lines.push(`      How it scopes: ${item.scopeNote}`);
         if (item.scope !== "tenant-wide-not-scopeable") {
@@ -924,18 +912,36 @@ class Assessment {
         if (item.scope === "tenant-wide-not-scopeable") {
           lines.push("      * Tenant-wide and not scopeable — two Microsoft statements to weigh:");
           lines.push("        Microsoft Secure Future Initiative (SFI) — statement:");
-          lines.push("        - SFI is grounded in three principles: Secure by Design, Secure by Default, Secure Operations.");
-          lines.push("        - Per Satya Nadella's May 2024 SFI memo: \u201Csecurity protections are enabled and enforced by default, require no extra effort, and are not optional.\u201D");
-          lines.push("        - Microsoft's recommendation for tenant-wide protections like this one is to enable them — leaving them off is the riskier posture.");
-          lines.push("        - Source: https://www.microsoft.com/en-us/trust-center/security/secure-future-initiative");
-          lines.push("        - Source: https://blogs.microsoft.com/blog/2024/05/03/prioritizing-security-above-all-else/");
+          lines.push(
+            "        - SFI is grounded in three principles: Secure by Design, Secure by Default, Secure Operations."
+          );
+          lines.push(
+            "        - Per Satya Nadella's May 2024 SFI memo: \u201Csecurity protections are enabled and enforced by default, require no extra effort, and are not optional.\u201D"
+          );
+          lines.push(
+            "        - Microsoft's recommendation for tenant-wide protections like this one is to enable them — leaving them off is the riskier posture."
+          );
+          lines.push(
+            "        - Source: https://www.microsoft.com/en-us/trust-center/security/secure-future-initiative"
+          );
+          lines.push(
+            "        - Source: https://blogs.microsoft.com/blog/2024/05/03/prioritizing-security-above-all-else/"
+          );
           lines.push("        Microsoft Product Terms — statement:");
-          lines.push("        - The feature is tenant-wide and not scopeable — once on, every user who benefits is technically protected.");
-          lines.push("        - The licence, per Microsoft Product Terms, must still be assigned to every user who benefits — Microsoft simply can't enforce it technically.");
+          lines.push(
+            "        - The feature is tenant-wide and not scopeable — once on, every user who benefits is technically protected."
+          );
+          lines.push(
+            "        - The licence, per Microsoft Product Terms, must still be assigned to every user who benefits — Microsoft simply can't enforce it technically."
+          );
           lines.push("        - Source: https://www.microsoft.com/licensing/terms/");
-          lines.push("        - Source: https://www.microsoft.com/en-us/licensing/product-licensing/products");
+          lines.push(
+            "        - Source: https://www.microsoft.com/en-us/licensing/product-licensing/products"
+          );
           lines.push("        - Source: https://learn.microsoft.com/licensing/");
-          lines.push("        Both statements are official Microsoft sources. See the per-product references on this card below for the specific service description and licensing data sheet.");
+          lines.push(
+            "        Both statements are official Microsoft sources. See the per-product references on this card below for the specific service description and licensing data sheet."
+          );
         }
         if (item.docs?.length) {
           for (const [l, u] of item.docs) lines.push(`        source: ${l} — ${u}`);
