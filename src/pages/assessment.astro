@@ -776,6 +776,183 @@ const description =
   .yesno--interactive .btn--secondary-recommendation {
     opacity: 0.85;
   }
+  /* Finale state — applied to the outer Yes/No row when the user has
+     just clicked "Finish final determination" in the walkthrough. Adds
+     a one-shot pulse on the recommended button so it's unmistakable. */
+  .yesno--finale .btn--recommended {
+    box-shadow:
+      0 0 0 3px var(--ms-blue),
+      0 0 0 7px var(--ms-blue-lighter);
+    animation: walkthrough-pulse 1.4s ease-out 1;
+  }
+  @keyframes walkthrough-pulse {
+    0% {
+      transform: scale(1);
+      box-shadow:
+        0 0 0 0 var(--ms-blue),
+        0 0 0 0 var(--ms-blue-lighter);
+    }
+    50% {
+      transform: scale(1.04);
+    }
+    100% {
+      transform: scale(1);
+      box-shadow:
+        0 0 0 3px var(--ms-blue),
+        0 0 0 7px var(--ms-blue-lighter);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .yesno--finale .btn--recommended {
+      animation: none;
+    }
+  }
+
+  /* ===== Walkthrough mode (interactive sub-cards, one-at-a-time) =======
+     In walkthrough mode the productBreakdown list switches to a single
+     column so the active card has full width, with previously-answered
+     cards collapsed above it. A small header strip shows progress + a
+     Back button. After every aggregable card is answered, a "Finish
+     final determination" button appears. Clicking it reveals a reasoning
+     summary and the outer Yes/No commit row (with the computed answer
+     pulsing for prominence). */
+  .scope-breakdown--walkthrough .scope-breakdown__list,
+  .scope-breakdown--walkthrough-finished .scope-breakdown__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .walkthrough-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin: 0.85rem 0 0.5rem;
+    padding: 0.6rem 0.85rem;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+  }
+  .walkthrough-header__progress {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    min-width: 0;
+    flex: 1 1 14rem;
+  }
+  .walkthrough-header__step {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+  .walkthrough-progress {
+    width: 100%;
+    height: 0.45rem;
+    background: var(--color-border);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .walkthrough-progress__bar {
+    height: 100%;
+    background: var(--ms-blue);
+    border-radius: 999px;
+    transition: width 0.25s ease-out;
+  }
+  .walkthrough-header__back {
+    flex: 0 0 auto;
+  }
+
+  /* Reviewed cards — collapsed by default, subdued chrome so the active
+     card visually dominates. Click the summary to expand and edit. */
+  .scope-item--reviewed {
+    opacity: 0.85;
+  }
+  .scope-item--reviewed > summary {
+    background: var(--color-bg);
+  }
+  .scope-item--reviewed[data-answered="yes"] > summary {
+    background: var(--color-success-bg-subtle);
+  }
+  .scope-item--reviewed[data-answered="no"] > summary {
+    background: var(--color-error-bg-subtle);
+  }
+  .scope-item--reviewed:hover {
+    opacity: 1;
+  }
+
+  /* Active card — the one the user is currently on. Stronger border so
+     it's visually obvious which card is asking for an answer. */
+  .scope-item--active-step {
+    border-color: var(--ms-blue);
+    box-shadow: 0 0 0 1px var(--ms-blue);
+  }
+  .scope-item--active-step > summary {
+    background: var(--ms-blue-lighter);
+  }
+
+  /* "Finish final determination" button row. */
+  .walkthrough-finish {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 1rem 0 0.5rem;
+    padding: 1rem;
+    background: var(--ms-blue-lighter);
+    border: 1px dashed var(--ms-blue);
+    border-radius: var(--radius);
+    text-align: center;
+  }
+  .walkthrough-finish__intro {
+    margin: 0;
+    font-size: 0.92rem;
+    color: var(--color-text);
+  }
+  .walkthrough-finish__btn {
+    font-size: 1rem;
+    padding: 0.6rem 1.4rem;
+  }
+
+  /* Reasoning summary — shown after the user clicks Finish. The visual
+     idiom (success / error tint) reflects the computed determination so
+     the user immediately knows the verdict before reading the why. */
+  .walkthrough-summary {
+    margin: 1rem 0 0.5rem;
+    padding: 0.9rem 1rem;
+    border-radius: var(--radius);
+    border-left: 4px solid var(--ms-blue);
+    background: var(--color-bg);
+  }
+  .walkthrough-summary--yes {
+    border-left-color: var(--color-success-fg);
+    background: var(--color-success-bg-subtle);
+  }
+  .walkthrough-summary--no {
+    border-left-color: var(--color-error-fg);
+    background: var(--color-error-bg-subtle);
+  }
+  .walkthrough-summary__verdict {
+    margin: 0 0 0.35rem;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  .walkthrough-summary__why {
+    margin: 0 0 0.5rem;
+    font-size: 0.92rem;
+    line-height: 1.5;
+  }
+  .walkthrough-summary__list {
+    margin: 0.2rem 0;
+    font-size: 0.88rem;
+    color: var(--color-text-soft);
+  }
+  .walkthrough-summary__cta {
+    margin: 0.6rem 0 0;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--color-text);
+  }
 
   /* ===== Trail nested sub-answers ============================== */
   .trail__subanswers {

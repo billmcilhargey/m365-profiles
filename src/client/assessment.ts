@@ -106,6 +106,17 @@ class Assessment {
    *  false (the user reads the cards and picks overall Yes/No themselves).
    *  Per-question; resets on navigation. */
   private interactiveBreakdown = false;
+  /** Furthest aggregable-card index reached in the interactive walkthrough.
+   *  0..aggregable.length. When equal to aggregable.length, every
+   *  aggregable card has an answer and the "Finish final determination"
+   *  button is shown. Only meaningful when `interactiveBreakdown` is true.
+   *  Per-question; resets on navigation. */
+  private walkthroughStep = 0;
+  /** True after the user clicks "Finish final determination" — reveals
+   *  the reasoning summary and the outer Yes/No commit row (with the
+   *  computed answer carrying the recommendation halo). Per-question;
+   *  resets on navigation. */
+  private walkthroughFinished = false;
 
   constructor(root: HTMLElement, cfg: Config) {
     this.cfg = cfg;
@@ -164,6 +175,8 @@ class Assessment {
     this.state.currentId = targetId;
     this.pendingSubAnswers = {};
     this.interactiveBreakdown = false;
+    this.walkthroughStep = 0;
+    this.walkthroughFinished = false;
     this.captureContext();
     this.save();
     this.render();
@@ -192,12 +205,22 @@ class Assessment {
     this.state.currentId = prev.id;
     // If the question we're returning to was answered in interactive mode,
     // restore the user's per-item picks so they can review or change them.
+    // Restore them at the "finished" walkthrough state (all cards reviewed,
+    // reasoning visible) since that's where they were when they committed.
     if (prev.subAnswers?.length) {
       this.pendingSubAnswers = Object.fromEntries(prev.subAnswers.map((s) => [s.name, s.answer]));
       this.interactiveBreakdown = true;
+      const fromNode = this.cfg.tree[this.state.currentId];
+      const aggregableCount =
+        fromNode?.productBreakdown?.filter((i) => i.scope !== "tenant-wide-not-scopeable").length ??
+        0;
+      this.walkthroughStep = aggregableCount;
+      this.walkthroughFinished = true;
     } else {
       this.pendingSubAnswers = {};
       this.interactiveBreakdown = false;
+      this.walkthroughStep = 0;
+      this.walkthroughFinished = false;
     }
     this.save();
     this.render();
@@ -205,9 +228,41 @@ class Assessment {
   }
 
   private restart(): void {
+    // Hard-reset path: clear every in-memory field AND sessionStorage, then
+    // hard-navigate to /assessment?restart=1. The navigation is what gives
+    // the strongest "truly fresh" guarantee — it discards the entire JS
+    // context (so any closure-captured state goes away), defeats Safari's
+    // bfcache (which can otherwise restore old in-memory state on back/
+    // forward), and re-runs boot() which itself clears sessionStorage
+    // before constructing a new Assessment. Without the navigation, an
+    // in-place reset is correct on paper but harder to prove bulletproof
+    // across browsers and edge cases. The flicker is acceptable for an
+    // explicit "Start over" action and actually reinforces that the
+    // reset took effect.
     this.state = { currentId: this.cfg.startId, history: [], version: APP_VERSION };
     this.pendingSubAnswers = {};
     this.interactiveBreakdown = false;
+    this.walkthroughStep = 0;
+    this.walkthroughFinished = false;
+    try {
+      sessionStorage.removeItem(STORAGE_KEYS.assessmentState);
+    } catch {
+      /* ignore — falling through to navigation still clears state */
+    }
+    try {
+      const url = new URL(window.location.href);
+      // Strip any params that could pre-seed or otherwise mutate the next
+      // boot, then set the restart sentinel that boot() consumes.
+      url.searchParams.delete("entry");
+      url.searchParams.delete("fresh");
+      url.searchParams.set("restart", "1");
+      window.location.replace(url.toString());
+      return;
+    } catch {
+      /* If URL construction or replace() somehow throws (extremely rare),
+       * fall back to the in-place reset we already did above so the user
+       * still sees a fresh start_choice card on the next render. */
+    }
     this.save();
     this.render();
     this.scrollToTop();
@@ -407,11 +462,20 @@ class Assessment {
    *  user is in interactive mode, the button labels and styling reflect the
    *  live aggregation so the user can see which answer their sub-decisions
    *  imply. Either button can still be clicked to commit (the user is in
-   *  charge); sub-answers are attached to the history entry on commit. */
+   *  charge); sub-answers are attached to the history entry on commit.
+   *
+   *  In interactive mode, the row is suppressed entirely until the user
+   *  clicks "Finish final determination" — at that point the row reappears
+   *  with the computed answer carrying the `btn--recommended` halo so the
+   *  user knows exactly which button to press to continue. */
   private yesNoButtonsHTML(node: TreeNode): string {
     const items = node.productBreakdown ?? [];
     const hasBreakdown = items.length > 0;
     const interactive = this.interactiveBreakdown && hasBreakdown;
+    // In walkthrough phases 1 (answering) and 2 (Finish button visible),
+    // hide the outer commit row. It reappears in phase 3 (after Finish)
+    // with the recommendation halo on the computed answer.
+    if (interactive && !this.walkthroughFinished) return "";
     const aggregation = node.productBreakdownAggregation ?? "any";
     const aggregable = items.filter((i) => i.scope !== "tenant-wide-not-scopeable");
     const yesCount = aggregable.filter((i) => this.pendingSubAnswers[i.name] === "yes").length;
@@ -444,9 +508,15 @@ class Assessment {
       : "No";
     const yesBtnClass = `btn btn-primary ${recommendation === "yes" ? "btn--recommended" : ""} ${interactive && recommendation && recommendation !== "yes" ? "btn--secondary-recommendation" : ""}`;
     const noBtnClass = `btn btn-secondary ${recommendation === "no" ? "btn--recommended" : ""} ${interactive && recommendation && recommendation !== "no" ? "btn--secondary-recommendation" : ""}`;
+    const wrapperClasses = ["yesno"];
+    if (interactive) wrapperClasses.push("yesno--interactive");
+    // `yesno--finale` triggers the one-shot pulse on the recommended button
+    // so the user can't miss which Yes/No to click after they Finish the
+    // walkthrough. Only meaningful when the user has just finished.
+    if (interactive && this.walkthroughFinished) wrapperClasses.push("yesno--finale");
     return h(
       "div",
-      { class: `yesno ${interactive ? "yesno--interactive" : ""}` },
+      { class: wrapperClasses.join(" ") },
       h("button", { type: "button", class: yesBtnClass, "data-yes": true }, yesLabel),
       h("button", { type: "button", class: noBtnClass, "data-no": true }, noLabel)
     );
@@ -563,16 +633,50 @@ class Assessment {
     const noCount = answers.filter((a) => a === "no").length;
     const answeredCount = yesCount + noCount;
     const totalCount = aggregable.length;
-    const rows = each(items, (item) => {
+    // Walkthrough state (interactive mode only). `walkthroughStep` points at
+    // the currently-active aggregable card (0..aggregable.length). When it
+    // equals `aggregable.length`, every aggregable card has been answered
+    // and the Finish button is shown (or the reasoning box if finished).
+    const step = Math.min(this.walkthroughStep, aggregable.length);
+    const finished = this.walkthroughFinished;
+    // Source-array index of the active aggregable card. Items at source
+    // indices > this one are hidden until the walkthrough advances.
+    // When `step` === aggregable.length (all answered) or `finished`,
+    // we treat every item as visible.
+    const activeSourceIndex =
+      interactive && !finished && step < aggregable.length
+        ? items.indexOf(aggregable[step]!)
+        : items.length - 1;
+    const rows = each(items, (item, sourceIdx) => {
       const notScopeable = item.scope === "tenant-wide-not-scopeable";
       const itemAnswer = this.pendingSubAnswers[item.name];
-      // In interactive mode, auto-expand all cards so the user can answer
-      // them in order without manually opening each one.
+      // Walkthrough per-card state (only meaningful when `interactive`):
+      //   - active        : the aggregable card the user is currently on
+      //   - reviewed      : an aggregable card the user has moved past
+      //                     (collapsed; expandable for edits)
+      //   - informational : a not-scopeable advisory card (always open)
+      // Hidden cards (sourceIdx beyond the active card, and we're not yet
+      // in the finished state) return "" and aren't rendered at all.
+      let cardState: "active" | "reviewed" | "informational" | null = null;
+      if (interactive) {
+        if (sourceIdx > activeSourceIndex && !finished) return "";
+        if (notScopeable) {
+          cardState = "informational";
+        } else if (!finished && aggregable.indexOf(item) === step) {
+          cardState = "active";
+        } else {
+          cardState = "reviewed";
+        }
+      }
+      const isOpen = interactive && (cardState === "active" || cardState === "informational");
+      const classes = ["scope-item"];
+      if (cardState === "active") classes.push("scope-item--active-step");
+      if (cardState === "reviewed") classes.push("scope-item--reviewed");
       const detailsAttrs: Record<string, string | number | boolean> = {
-        class: "scope-item",
+        class: classes.join(" "),
         "data-scope": item.scope,
       };
-      if (interactive) detailsAttrs.open = true;
+      if (isOpen) detailsAttrs.open = true;
       if (interactive && itemAnswer) detailsAttrs["data-answered"] = itemAnswer;
       return h(
         "details",
@@ -601,57 +705,6 @@ class Assessment {
         h(
           "div",
           { class: "scope-item__body" },
-          // Per-item Yes/No decision row (interactive mode, scopeable items only).
-          interactive && !notScopeable
-            ? h(
-                "div",
-                {
-                  class: "scope-item__decide",
-                  role: "group",
-                  "aria-label": `Does ${item.name} apply to this user?`,
-                },
-                h("span", { class: "scope-item__decide-label" }, "Does this apply to this user?"),
-                h(
-                  "div",
-                  { class: "scope-item__decide-buttons" },
-                  h(
-                    "button",
-                    {
-                      type: "button",
-                      class: `scope-decide-btn scope-decide-btn--yes ${itemAnswer === "yes" ? "scope-decide-btn--active" : ""}`,
-                      "data-subitem-name": item.name,
-                      "data-subitem-answer": "yes",
-                      "aria-pressed": itemAnswer === "yes",
-                    },
-                    itemAnswer === "yes" ? "✓ Yes — applies" : "Yes — applies"
-                  ),
-                  h(
-                    "button",
-                    {
-                      type: "button",
-                      class: `scope-decide-btn scope-decide-btn--no ${itemAnswer === "no" ? "scope-decide-btn--active" : ""}`,
-                      "data-subitem-name": item.name,
-                      "data-subitem-answer": "no",
-                      "aria-pressed": itemAnswer === "no",
-                    },
-                    itemAnswer === "no" ? "✗ No — doesn't apply" : "No — doesn't apply"
-                  ),
-                  itemAnswer
-                    ? h(
-                        "button",
-                        {
-                          type: "button",
-                          class: "scope-decide-btn scope-decide-btn--clear",
-                          "data-subitem-name": item.name,
-                          "data-subitem-answer": "clear",
-                          "aria-label": `Clear answer for ${item.name}`,
-                        },
-                        "↺ Clear"
-                      )
-                    : ""
-                )
-              )
-            : "",
           notScopeable
             ? h(
                 "p",
@@ -784,14 +837,76 @@ class Assessment {
                   )
                 )
               )
+            : "",
+          // Per-item Yes/No decision row (interactive mode, scopeable items
+          // only). Placed at the BOTTOM of the body so the user reads "How
+          // it scopes / In scope when / Not in scope when / examples / docs"
+          // first, then decides. In walkthrough mode, answering here on the
+          // active card auto-advances to the next aggregable card.
+          interactive && !notScopeable
+            ? h(
+                "div",
+                {
+                  class: "scope-item__decide",
+                  role: "group",
+                  "aria-label": `Does ${item.name} apply to this user?`,
+                },
+                h("span", { class: "scope-item__decide-label" }, "Does this apply to this user?"),
+                h(
+                  "div",
+                  { class: "scope-item__decide-buttons" },
+                  h(
+                    "button",
+                    {
+                      type: "button",
+                      class: `scope-decide-btn scope-decide-btn--yes ${itemAnswer === "yes" ? "scope-decide-btn--active" : ""}`,
+                      "data-subitem-name": item.name,
+                      "data-subitem-answer": "yes",
+                      "aria-pressed": itemAnswer === "yes",
+                    },
+                    itemAnswer === "yes" ? "✓ Yes — applies" : "Yes — applies"
+                  ),
+                  h(
+                    "button",
+                    {
+                      type: "button",
+                      class: `scope-decide-btn scope-decide-btn--no ${itemAnswer === "no" ? "scope-decide-btn--active" : ""}`,
+                      "data-subitem-name": item.name,
+                      "data-subitem-answer": "no",
+                      "aria-pressed": itemAnswer === "no",
+                    },
+                    itemAnswer === "no" ? "✗ No — doesn't apply" : "No — doesn't apply"
+                  ),
+                  itemAnswer
+                    ? h(
+                        "button",
+                        {
+                          type: "button",
+                          class: "scope-decide-btn scope-decide-btn--clear",
+                          "data-subitem-name": item.name,
+                          "data-subitem-answer": "clear",
+                          "aria-label": `Clear answer for ${item.name}`,
+                        },
+                        "↺ Clear"
+                      )
+                    : ""
+                )
+              )
             : ""
         )
       );
     });
+    const sectionClasses = ["scope-breakdown"];
+    if (interactive) {
+      sectionClasses.push("scope-breakdown--interactive");
+      sectionClasses.push(
+        finished ? "scope-breakdown--walkthrough-finished" : "scope-breakdown--walkthrough"
+      );
+    }
     return h(
       "section",
       {
-        class: `scope-breakdown ${interactive ? "scope-breakdown--interactive" : ""}`,
+        class: sectionClasses.join(" "),
         "aria-label": "Per-product scope breakdown",
       },
       h(
@@ -899,7 +1014,157 @@ class Assessment {
             )
           : ""
       ),
-      h("div", { class: "scope-breakdown__list" }, rows)
+      // Walkthrough header (interactive mode only): progress + Back button.
+      interactive ? this.walkthroughHeaderHTML(step, totalCount, finished) : "",
+      h("div", { class: "scope-breakdown__list" }, rows),
+      // Finish button — appears once every aggregable card has an answer.
+      interactive && !finished && totalCount > 0 && step >= totalCount
+        ? this.walkthroughFinishHTML()
+        : "",
+      // Reasoning summary — appears after the user clicks Finish.
+      interactive && finished
+        ? this.walkthroughReasoningHTML(aggregable, aggregation, yesCount, noCount, totalCount)
+        : ""
+    );
+  }
+
+  /** Walkthrough header: step indicator (Card X of Y / "All N reviewed") plus
+   *  a Back button to revisit the prior card or exit the Finish view. Only
+   *  rendered in interactive walkthrough mode. */
+  private walkthroughHeaderHTML(step: number, total: number, finished: boolean): string {
+    if (total === 0) return "";
+    const displayStep = Math.min(step + 1, total);
+    const label = finished
+      ? `All ${total} card${total === 1 ? "" : "s"} reviewed — see determination below`
+      : step >= total
+        ? `All ${total} card${total === 1 ? "" : "s"} answered`
+        : `Card ${displayStep} of ${total}`;
+    const filled = finished ? total : Math.min(step, total);
+    const pct = Math.round((filled / total) * 100);
+    const showBack = finished || step > 0;
+    return h(
+      "div",
+      { class: "walkthrough-header no-print", role: "status", "aria-live": "polite" },
+      h(
+        "div",
+        { class: "walkthrough-header__progress" },
+        h("span", { class: "walkthrough-header__step" }, escapeHTML(label)),
+        h(
+          "div",
+          { class: "walkthrough-progress", "aria-hidden": "true" },
+          h("div", { class: "walkthrough-progress__bar", style: `width:${pct}%` }, "")
+        )
+      ),
+      showBack
+        ? h(
+            "button",
+            {
+              type: "button",
+              class: "btn btn-ghost walkthrough-header__back",
+              "data-walkthrough-back": true,
+            },
+            finished ? "← Back to review" : "← Back"
+          )
+        : ""
+    );
+  }
+
+  /** "Finish final determination" button — appears once every aggregable card
+   *  has an answer (step === aggregable.length) and the user has not yet
+   *  clicked Finish. Clicking it reveals the reasoning summary and the
+   *  outer Yes/No commit row with the recommended button highlighted. */
+  private walkthroughFinishHTML(): string {
+    return h(
+      "div",
+      { class: "walkthrough-finish no-print" },
+      h(
+        "p",
+        { class: "walkthrough-finish__intro" },
+        "Every card answered. Click below to lock in your picks and reveal the recommended overall Yes / No."
+      ),
+      h(
+        "button",
+        {
+          type: "button",
+          class: "btn btn-primary walkthrough-finish__btn",
+          "data-walkthrough-finish": true,
+        },
+        "✓ Finish final determination"
+      )
+    );
+  }
+
+  /** Reasoning summary box. Shown after the user clicks "Finish final
+   *  determination". Explains the computed overall in plain English (which
+   *  rule fired, which sub-cards applied / didn't), then points down to the
+   *  outer Yes/No commit row where the recommended answer has the halo. */
+  private walkthroughReasoningHTML(
+    aggregable: ProductScopeItem[],
+    aggregation: "any" | "all",
+    yesCount: number,
+    noCount: number,
+    totalCount: number
+  ): string {
+    let overall: "yes" | "no";
+    let why: string;
+    if (aggregation === "any") {
+      if (yesCount > 0) {
+        overall = "yes";
+        why = `<strong>${yesCount} of ${totalCount}</strong> apply. This question uses an <em>any</em> rule (at least one match is enough), so the overall answer is <strong class="scope-status--yes">Yes</strong>.`;
+      } else {
+        overall = "no";
+        why = `<strong>None of ${totalCount}</strong> apply. This question uses an <em>any</em> rule (at least one match is needed), so the overall answer is <strong class="scope-status--no">No</strong>.`;
+      }
+    } else if (noCount === 0 && yesCount === totalCount) {
+      overall = "yes";
+      why = `<strong>All ${totalCount}</strong> apply. This question uses an <em>all</em> rule (every criterion must pass), so the overall answer is <strong class="scope-status--yes">Yes</strong>.`;
+    } else {
+      overall = "no";
+      why = `<strong>${noCount} of ${totalCount}</strong> don't apply. This question uses an <em>all</em> rule (every criterion must pass), so the overall answer is <strong class="scope-status--no">No</strong>.`;
+    }
+    const yesItems = aggregable
+      .filter((i) => this.pendingSubAnswers[i.name] === "yes")
+      .map((i) => i.name);
+    const noItems = aggregable
+      .filter((i) => this.pendingSubAnswers[i.name] === "no")
+      .map((i) => i.name);
+    return h(
+      "div",
+      {
+        class: `walkthrough-summary walkthrough-summary--${overall} no-print`,
+        role: "region",
+        "aria-label": "Computed determination and reasoning",
+      },
+      h(
+        "p",
+        { class: "walkthrough-summary__verdict" },
+        "Computed overall: ",
+        h("strong", { class: `scope-status--${overall}` }, overall === "yes" ? "Yes" : "No")
+      ),
+      h("p", { class: "walkthrough-summary__why" }, why),
+      yesItems.length
+        ? h(
+            "p",
+            { class: "walkthrough-summary__list" },
+            h("strong", null, "Applies: "),
+            escapeHTML(yesItems.join(", "))
+          )
+        : "",
+      noItems.length
+        ? h(
+            "p",
+            { class: "walkthrough-summary__list" },
+            h("strong", null, "Doesn't apply: "),
+            escapeHTML(noItems.join(", "))
+          )
+        : "",
+      h(
+        "p",
+        { class: "walkthrough-summary__cta" },
+        "↓ Click the highlighted ",
+        h("strong", null, overall === "yes" ? "Yes" : "No"),
+        " button below to continue."
+      )
     );
   }
 
@@ -1500,30 +1765,85 @@ class Assessment {
     }
     // Productbreakdown mode toggle ("Show all" vs "Walk through interactively").
     // Toggling away from interactive preserves the user's picks, so flipping
-    // back doesn't lose work; toggling INTO interactive starts from the
-    // current pendingSubAnswers (empty for a fresh question).
+    // back doesn't lose work; toggling INTO interactive starts the walkthrough
+    // at the first unanswered aggregable card (or at the Finish-button view
+    // if every aggregable card already has an answer from a previous pass).
     const modeBtn = t.closest<HTMLElement>("[data-breakdown-mode]");
     if (modeBtn) {
       const mode = modeBtn.dataset.breakdownMode;
       const next = mode === "interactive";
       if (next !== this.interactiveBreakdown) {
         this.interactiveBreakdown = next;
+        if (next) {
+          // Seed walkthrough position from any preserved picks. We count
+          // answered aggregable items as the resume point so the user doesn't
+          // re-walk cards they've already decided on. Walking is sequential,
+          // so non-sequential picks still resume at the highest contiguous
+          // index — but we keep things simple and just count.
+          const node = this.cfg.tree[this.state.currentId];
+          const aggregable =
+            node?.productBreakdown?.filter((i) => i.scope !== "tenant-wide-not-scopeable") ?? [];
+          const answered = aggregable.filter(
+            (i) =>
+              this.pendingSubAnswers[i.name] === "yes" || this.pendingSubAnswers[i.name] === "no"
+          ).length;
+          this.walkthroughStep = answered;
+          this.walkthroughFinished = false;
+        } else {
+          this.walkthroughStep = 0;
+          this.walkthroughFinished = false;
+        }
         this.render();
       } else {
         this.bind();
       }
       return;
     }
+    // Walkthrough navigation buttons: Back (revisit prior card), Finish
+    // (lock in the computed determination → reveal the outer Yes/No row).
+    if (t.closest<HTMLElement>("[data-walkthrough-back]")) {
+      if (this.walkthroughFinished) {
+        // Step back out of the "finished" state into the Finish-button view
+        // so the user can re-open prior cards or change an answer.
+        this.walkthroughFinished = false;
+      } else if (this.walkthroughStep > 0) {
+        this.walkthroughStep -= 1;
+      }
+      this.render();
+      return;
+    }
+    if (t.closest<HTMLElement>("[data-walkthrough-finish]")) {
+      this.walkthroughFinished = true;
+      this.render();
+      return;
+    }
     // Per-item Yes/No (or Clear) decision inside a productBreakdown card.
+    // In walkthrough mode, answering the active card auto-advances to the
+    // next; clearing an earlier card rewinds the walkthrough to that point
+    // (and exits the "finished" reasoning view if we were in it).
     const subItem = t.closest<HTMLElement>("[data-subitem-name]");
     if (subItem) {
       const name = subItem.dataset.subitemName;
       const answer = subItem.dataset.subitemAnswer;
       if (name) {
+        const node = this.cfg.tree[this.state.currentId];
+        const aggregable =
+          node?.productBreakdown?.filter((i) => i.scope !== "tenant-wide-not-scopeable") ?? [];
+        const idx = aggregable.findIndex((i) => i.name === name);
         if (answer === "clear") {
           delete this.pendingSubAnswers[name];
+          if (this.interactiveBreakdown) {
+            this.walkthroughFinished = false;
+            if (idx >= 0 && idx < this.walkthroughStep) this.walkthroughStep = idx;
+          }
         } else if (answer === "yes" || answer === "no") {
           this.pendingSubAnswers[name] = answer;
+          // Auto-advance only when the user just answered the currently-
+          // active card (idx === walkthroughStep). Editing a previously-
+          // reviewed card updates the answer but keeps position.
+          if (this.interactiveBreakdown && idx === this.walkthroughStep) {
+            this.walkthroughStep = Math.min(this.walkthroughStep + 1, aggregable.length);
+          }
         }
         // Re-render so the live aggregation and styling reflect the new pick.
         this.render();
