@@ -103,6 +103,15 @@ export type TreeNode = {
    * Yes = at least one product applies to this user.
    */
   productBreakdown?: ProductScopeItem[];
+  /**
+   * How sub-item answers aggregate into the overall Yes/No when the user is
+   * in interactive breakdown mode. Defaults to "any" (overall = Yes if any
+   * one sub-item is Yes — matches the existing umbrella semantics). Use
+   * "all" for checklist gates where every sub-item must be Yes for overall
+   * Yes. Items with scope `tenant-wide-not-scopeable` are excluded from
+   * aggregation because they're rendered as informational-only cards.
+   */
+  productBreakdownAggregation?: "any" | "all";
   techDocs?: DocLink[];
   docs?: DocLink[];
   paragraphs?: string[];
@@ -116,6 +125,18 @@ export type TreeNode = {
   bullets?: string[];
   actions?: Action[];
   result?: true;
+  /**
+   * Short "License needed" line for result nodes. Used by the assessment
+   * result card and the per-profile detail page to render a quick-reference
+   * license summary above the action buttons.
+   */
+  license?: string;
+  /**
+   * Plain-English "why this lands here" paragraph for result nodes. Used by
+   * the per-profile detail page and the print/PDF handout to explain WHICH
+   * answers in the assessment drove the recommendation.
+   */
+  decisionBasis?: string;
   /** Wizard-state computed result. When set, the engine renders dynamic
    *  content from the matching wizard state slice (e.g. `state.frontline`). */
   computed?: "frontline";
@@ -185,7 +206,7 @@ export function treeStats(tree: Tree = TREE) {
  * profile selector" buttons. Following them during profile-scoped traversal
  * would cross-contaminate every profile with every other profile's results.
  */
-const PROFILE_TRAVERSAL_STOPS = new Set(["start_tenant", "start_choice", "gov_cloud"]);
+const PROFILE_TRAVERSAL_STOPS = new Set(["start_choice", "gov_cloud"]);
 
 function outgoingTargets(node: TreeNode | undefined, forProfileScope = false): string[] {
   if (!node) return [];
@@ -359,10 +380,7 @@ function resultHaystack(node: TreeNode | undefined): string {
   if (node.title) parts.push(node.title);
   if (node.sub) parts.push(node.sub);
   if (node.badge) parts.push(node.badge);
-  // Some result nodes carry an extra `license` string — capture it loosely
-  // via index-signature access without changing the public TreeNode type.
-  const license = (node as unknown as { license?: string }).license;
-  if (license) parts.push(license);
+  if (node.license) parts.push(node.license);
   // Deliberately exclude `bullets` and `decisionBasis`: those mention upsell
   // paths ("add Copilot later", "step up to E5"), which would otherwise tag
   // a baseline E3 result with the Copilot bucket.

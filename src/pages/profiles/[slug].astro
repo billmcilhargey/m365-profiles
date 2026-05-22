@@ -59,9 +59,6 @@ type ReachableResult = {
 };
 const reachable: ReachableResult[] = profile.results.map((id) => {
   const node = TREE[id] ?? ({} as TreeNode);
-  // `license` and `decisionBasis` live on result nodes but aren't on the
-  // public TreeNode type — read them via an index-signature shim.
-  const ext = node as unknown as { license?: string; decisionBasis?: string };
   return {
     id,
     node,
@@ -69,8 +66,8 @@ const reachable: ReachableResult[] = profile.results.map((id) => {
     badgeClass: node.badgeClass,
     title: node.title ?? node.badge ?? id,
     sub: node.sub,
-    license: ext.license,
-    decisionBasis: ext.decisionBasis,
+    license: node.license,
+    decisionBasis: node.decisionBasis,
     bullets: node.bullets,
   };
 });

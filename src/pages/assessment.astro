@@ -23,9 +23,9 @@ const description =
       <p class="eyebrow">Interactive assessment</p>
       <h1>Find the right Microsoft 365 license</h1>
       <p class="lede">
-        Answer a few short questions about the tenant baseline, identity profile, and feature
-        requirements. Every screen cites Microsoft Learn and other primary sources so you can verify
-        each step. Your answers stay on this device — no accounts, no tracking.
+        Answer a few short questions about the identity profile and feature requirements. Every
+        screen cites Microsoft Learn and other primary sources so you can verify each step. Your
+        answers stay on this device — no accounts, no tracking.
       </p>
     </div>
   </section>
@@ -525,6 +525,282 @@ const description =
   }
   :root[data-theme="dark"] .scope-breakdown__legend-star {
     color: #e04848;
+  }
+
+  /* ===== Interactive / Show-all mode toggle =====================
+     Sits at the top of every productBreakdown header. Two pill-style
+     buttons let the user choose:
+       • "Show all & decide overall" (default) — read the cards yourself
+         and pick the overall Yes/No below. No sub-data captured.
+       • "Walk through interactively" — answer Yes/No on each card; the
+         engine computes the overall and persists every pick to the
+         summary + PDF + trail.                                          */
+  .scope-breakdown__mode {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin: 0.85rem 0 0.25rem;
+    padding: 0.85rem 1rem;
+    background: var(--color-bg);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius);
+  }
+  .scope-breakdown__mode-label {
+    font-size: 0.92rem;
+    color: var(--color-text-soft);
+  }
+  .scope-breakdown__mode-options {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+  @media (min-width: 640px) {
+    .scope-breakdown__mode-options {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  .scope-mode-btn {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    text-align: left;
+    padding: 0.75rem 0.95rem;
+    background: var(--color-card-bg, var(--color-bg));
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    font: inherit;
+    color: var(--color-text);
+    transition:
+      border-color 0.15s,
+      background 0.15s,
+      box-shadow 0.15s;
+  }
+  .scope-mode-btn:hover {
+    border-color: var(--ms-blue);
+    background: var(--ms-blue-lighter);
+  }
+  .scope-mode-btn:focus-visible {
+    outline: 2px solid var(--ms-blue);
+    outline-offset: 2px;
+  }
+  .scope-mode-btn--active {
+    border-color: var(--ms-blue);
+    background: var(--ms-blue-lighter);
+    box-shadow: 0 0 0 2px var(--ms-blue) inset;
+  }
+  .scope-mode-btn__icon {
+    flex: 0 0 1.4rem;
+    font-size: 1.2rem;
+    line-height: 1;
+  }
+  .scope-mode-btn__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0;
+  }
+  .scope-mode-btn__title {
+    font-weight: 600;
+    color: var(--color-text);
+  }
+  .scope-mode-btn__hint {
+    font-size: 0.85rem;
+    color: var(--color-text-soft);
+    line-height: 1.35;
+  }
+  .scope-breakdown__mode-status {
+    margin: 0;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.92rem;
+    background: var(--ms-blue-lighter);
+    border-left: 3px solid var(--ms-blue);
+    border-radius: var(--radius);
+    color: var(--color-text);
+  }
+  .scope-status--yes {
+    color: #1a7f37;
+  }
+  .scope-status--no {
+    color: #b32a2a;
+  }
+  :root[data-theme="dark"] .scope-status--yes {
+    color: #4ac26b;
+  }
+  :root[data-theme="dark"] .scope-status--no {
+    color: #ff7b7b;
+  }
+
+  /* ===== Per-item decision row (interactive mode) ==============
+     Sits inside each scope-item__body when interactive mode is on
+     and the item is scopeable. Two Yes/No buttons + optional Clear. */
+  .scope-item__decide {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.7rem 0.85rem;
+    margin: 0 0 0.7rem;
+    background: var(--ms-blue-lighter);
+    border: 1px solid var(--ms-blue);
+    border-radius: var(--radius);
+  }
+  .scope-item[data-answered="yes"] > summary {
+    background: rgba(26, 127, 55, 0.06);
+  }
+  .scope-item[data-answered="no"] > summary {
+    background: rgba(179, 42, 42, 0.06);
+  }
+  :root[data-theme="dark"] .scope-item[data-answered="yes"] > summary {
+    background: rgba(74, 194, 107, 0.12);
+  }
+  :root[data-theme="dark"] .scope-item[data-answered="no"] > summary {
+    background: rgba(255, 123, 123, 0.12);
+  }
+  .scope-item__decide-label {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+  .scope-item__decide-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .scope-decide-btn {
+    flex: 0 1 auto;
+    min-width: 9rem;
+    padding: 0.5rem 0.9rem;
+    background: var(--color-card-bg, var(--color-bg));
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    font: inherit;
+    font-weight: 500;
+    color: var(--color-text);
+    transition:
+      border-color 0.15s,
+      background 0.15s;
+  }
+  .scope-decide-btn:hover {
+    border-color: var(--ms-blue);
+  }
+  .scope-decide-btn:focus-visible {
+    outline: 2px solid var(--ms-blue);
+    outline-offset: 2px;
+  }
+  .scope-decide-btn--yes.scope-decide-btn--active {
+    background: rgba(26, 127, 55, 0.12);
+    border-color: #1a7f37;
+    color: #1a7f37;
+    font-weight: 600;
+  }
+  .scope-decide-btn--no.scope-decide-btn--active {
+    background: rgba(179, 42, 42, 0.1);
+    border-color: #b32a2a;
+    color: #b32a2a;
+    font-weight: 600;
+  }
+  :root[data-theme="dark"] .scope-decide-btn--yes.scope-decide-btn--active {
+    background: rgba(74, 194, 107, 0.18);
+    border-color: #4ac26b;
+    color: #4ac26b;
+  }
+  :root[data-theme="dark"] .scope-decide-btn--no.scope-decide-btn--active {
+    background: rgba(255, 123, 123, 0.18);
+    border-color: #ff7b7b;
+    color: #ff7b7b;
+  }
+  .scope-decide-btn--clear {
+    min-width: 5.5rem;
+    font-size: 0.88rem;
+    color: var(--color-text-soft);
+  }
+
+  /* Per-item answer pill shown in the summary header strip. */
+  .scope-item__answer-pill {
+    margin-left: auto;
+    padding: 0.18rem 0.55rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    border-radius: 999px;
+    border: 1px solid currentColor;
+  }
+  .scope-item__answer-pill--yes {
+    color: #1a7f37;
+    background: rgba(26, 127, 55, 0.08);
+  }
+  .scope-item__answer-pill--no {
+    color: #b32a2a;
+    background: rgba(179, 42, 42, 0.08);
+  }
+  :root[data-theme="dark"] .scope-item__answer-pill--yes {
+    color: #4ac26b;
+    background: rgba(74, 194, 107, 0.15);
+  }
+  :root[data-theme="dark"] .scope-item__answer-pill--no {
+    color: #ff7b7b;
+    background: rgba(255, 123, 123, 0.15);
+  }
+
+  /* ===== Yes/No commit buttons — recommendation styling ==========
+     In interactive mode, the engine highlights the computed answer
+     (Yes or No) based on per-item picks. Both buttons remain clickable. */
+  .yesno--interactive .btn--recommended {
+    box-shadow:
+      0 0 0 2px var(--ms-blue),
+      0 0 0 4px var(--ms-blue-lighter);
+    position: relative;
+  }
+  .yesno--interactive .btn--recommended::after {
+    content: " ← computed";
+    font-size: 0.75rem;
+    font-weight: 500;
+    opacity: 0.7;
+    margin-left: 0.35rem;
+  }
+  .yesno--interactive .btn--secondary-recommendation {
+    opacity: 0.85;
+  }
+
+  /* ===== Trail nested sub-answers ============================== */
+  .trail__subanswers {
+    margin: 0.35rem 0 0.5rem 1.2rem;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+  .trail__suba {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.18rem 0.5rem;
+    font-size: 0.85rem;
+    border-radius: 4px;
+  }
+  .trail__suba--yes {
+    background: rgba(26, 127, 55, 0.06);
+  }
+  .trail__suba--no {
+    background: rgba(179, 42, 42, 0.06);
+  }
+  :root[data-theme="dark"] .trail__suba--yes {
+    background: rgba(74, 194, 107, 0.12);
+  }
+  :root[data-theme="dark"] .trail__suba--no {
+    background: rgba(255, 123, 123, 0.12);
+  }
+  .trail__suba-name {
+    color: var(--color-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .trail__suba-answer {
+    flex-shrink: 0;
+    font-weight: 600;
+    color: var(--color-text-soft);
   }
 
   .choices {

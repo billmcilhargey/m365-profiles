@@ -6,14 +6,19 @@ import { APP_VERSION } from "../lib/version";
 import { BRAND } from "../lib/brand";
 
 export type HandoutSummary = {
-  tenant?: string;
   profile?: string;
   title: string;
   sub?: string;
   bullets: string[];
   paragraphs: string[];
   docs: [string, string][];
-  trail: { q: string; a: string }[];
+  trail: {
+    q: string;
+    a: string;
+    /** Optional per-product picks captured when the user answered an umbrella
+     *  question in interactive breakdown mode. Absent for show-all mode. */
+    subAnswers?: { name: string; answer: "yes" | "no" }[];
+  }[];
 };
 
 const COLORS = {
@@ -130,10 +135,8 @@ export async function buildHandoutPDF(s: HandoutSummary): Promise<void> {
   );
 
   heading("Context");
-  if (s.tenant) paragraph(`Tenant baseline: ${s.tenant}`, { bold: true });
   if (s.profile) paragraph(`Profile: ${s.profile}`, { bold: true });
-  if (!s.tenant && !s.profile)
-    paragraph("(no baseline / profile recorded)", { color: COLORS.muted });
+  if (!s.profile) paragraph("(no profile recorded)", { color: COLORS.muted });
 
   heading("Recommendation");
   paragraph(s.title, { size: 13, bold: true, color: COLORS.navy });
@@ -149,6 +152,15 @@ export async function buildHandoutPDF(s: HandoutSummary): Promise<void> {
     s.trail.forEach((t, i) => {
       paragraph(`${i + 1}. ${t.q}`, { bold: true, size: 9.5 });
       paragraph(`→ ${t.a || "(no selection)"}`, { color: COLORS.muted, size: 9.5, indent: 4 });
+      if (t.subAnswers?.length) {
+        t.subAnswers.forEach((sa) => {
+          paragraph(`• ${sa.name}: ${sa.answer === "yes" ? "Yes" : "No"}`, {
+            color: COLORS.muted,
+            size: 9,
+            indent: 8,
+          });
+        });
+      }
     });
   }
 

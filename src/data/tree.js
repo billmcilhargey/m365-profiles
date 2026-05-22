@@ -1,126 +1,6 @@
 // Decision-tree data. Edit nodes here, then run `npm run validate-tree`.
 // Node shapes: choice | question (yes/no) | info | result.
 export const TREE = {
-  start_tenant: {
-    choice: true,
-    step: { major: 1, label: "What you already have" },
-    question: "What Microsoft 365 plan does your organization already have?",
-    help: "Pick what your organization already pays for today. That way we'll only recommend what you actually need on top — or tell you you're already covered. Pick \"No M365 plan yet\" if you're starting from scratch.",
-    choices: [
-      {
-        label: "Microsoft 365 E3",
-        sublabel: "Commercial Enterprise. Includes Entra ID P1, Intune base, Defender for Endpoint P1 (add-on), Purview foundations. Most premium identity / security features must be added.",
-        icon: "1",
-        tone: "primary",
-        value: "e3",
-        target: "start_choice"
-      },
-      {
-        label: "Microsoft 365 E5",
-        sublabel: "Commercial Enterprise. Includes Entra ID P2 (PIM, ID Protection, ID Governance), Defender XDR (P2 + Defender for Cloud Apps + Defender for Identity), Purview E5 suite, Power BI Pro.",
-        icon: "2",
-        tone: "primary",
-        value: "e5",
-        target: "start_choice"
-      },
-      {
-        label: "Microsoft 365 E7 (Frontier Suite)",
-        sublabel: "Commercial Enterprise. Adds the full Microsoft 365 Frontier Suite on top of E5 — includes Copilot, Entra Suite, Intune Suite, Teams Premium, Security Copilot capacity, and emerging AI features.",
-        icon: "3",
-        tone: "primary",
-        value: "e7",
-        target: "start_choice"
-      },
-      {
-        label: "Microsoft 365 Business Premium",
-        sublabel: "Commercial Business (≤300 seats). Includes Entra ID P1, Intune, Defender for Business, Defender for Office P1, Azure Information Protection P1. No Entra ID P2, no full Defender XDR, no E5 compliance.",
-        icon: "4",
-        tone: "primary",
-        value: "business",
-        target: "start_choice"
-      },
-      {
-        label: "Microsoft 365 Business Standard",
-        sublabel: "Commercial Business (≤300 seats). Office apps + Exchange + Teams + SharePoint. No Intune, no Defender, no Entra P1. Add Entra ID P1/P2 and Defender for Business à la carte for security needs.",
-        icon: "5",
-        tone: "primary",
-        value: "business_standard",
-        target: "start_choice"
-      },
-      {
-        label: "Microsoft 365 F1 (Frontline, no mailbox)",
-        sublabel: "Frontline shift worker. Teams + SharePoint + Yammer; no Exchange mailbox. Must meet Microsoft's frontline eligibility criteria. Add Entra ID P1/P2 and Defender as needed.",
-        icon: "6",
-        tone: "primary",
-        value: "f1",
-        target: "start_choice"
-      },
-      {
-        label: "Microsoft 365 F3 (Frontline)",
-        sublabel: "Frontline shift worker with 2 GB mailbox. Web/mobile Office, Teams, Intune for shared devices, Defender for Endpoint P1 (add-on). Must meet Microsoft's frontline eligibility criteria.",
-        icon: "7",
-        tone: "primary",
-        value: "f3",
-        target: "start_choice"
-      },
-      {
-        label: "Microsoft 365 A1 (Education)",
-        sublabel: "Qualifying academic institution. Web/mobile only, free for students with paid faculty. No premium identity or security included.",
-        icon: "8",
-        tone: "primary",
-        value: "a1",
-        target: "start_choice"
-      },
-      {
-        label: "Microsoft 365 A3 (Education)",
-        sublabel: "Qualifying academic institution. Equivalent feature shape to E3 with academic SKUs and pricing. Includes desktop Office, Entra ID P1, Intune for Education.",
-        icon: "9",
-        tone: "primary",
-        value: "a3",
-        target: "start_choice"
-      },
-      {
-        label: "Microsoft 365 A5 (Education)",
-        sublabel: "Qualifying academic institution. Equivalent feature shape to E5 with academic SKUs and pricing. Includes Entra ID P2, full Defender XDR, Purview E5.",
-        icon: "A",
-        tone: "primary",
-        value: "a5",
-        target: "start_choice"
-      },
-      {
-        label: "Microsoft 365 G3 (Government)",
-        sublabel: "US Government — GCC / GCC High / DoD. Equivalent feature shape to E3. We'll ask which sovereign cloud next so the recommendation can flag feature-parity caveats.",
-        icon: "B",
-        tone: "primary",
-        value: "g3",
-        target: "gov_cloud"
-      },
-      {
-        label: "Microsoft 365 G5 (Government)",
-        sublabel: "US Government — GCC / GCC High / DoD. Equivalent feature shape to E5. We'll ask which sovereign cloud next so the recommendation can flag feature-parity caveats.",
-        icon: "C",
-        tone: "primary",
-        value: "g5",
-        target: "gov_cloud"
-      },
-      {
-        label: "Microsoft 365 E3 — Nonprofit Staff Pricing",
-        sublabel: "Validated nonprofit. Discounted E3 SKU; same entitlements as commercial E3. Nonprofit Business Premium grants and discounts also exist — check eligibility with Microsoft Nonprofits.",
-        icon: "D",
-        tone: "primary",
-        value: "npo_e3",
-        target: "start_choice"
-      },
-      {
-        label: "No M365 plan yet",
-        sublabel: "Brand-new or pre-purchase tenant — scoping what to buy. The recommendation will assume you start from Entra ID Free and tell you the full stack needed.",
-        icon: "?",
-        tone: "ghost",
-        value: "none",
-        target: "start_choice"
-      }
-    ]
-  },
   gov_cloud: {
     choice: true,
     step: { major: 1, label: "Government cloud", secondary: true },
@@ -183,12 +63,12 @@ export const TREE = {
     ],
     actions: [
       { label: "Continue → pick your government cloud", target: "gov_cloud", tone: "primary" },
-      { label: "← Back to tenant baseline", target: "start_tenant", tone: "secondary" }
+      { label: "← Back to who it's for", target: "start_choice", tone: "secondary" }
     ]
   },
   start_choice: {
     choice: true,
-    step: { major: 2, label: "Who it's for" },
+    step: { major: 1, label: "Who it's for" },
     question: "Who are you buying this license for?",
     help: "Pick the option that best describes the person. We'll use Microsoft Learn and m365maps.com to recommend the right license.",
     helpLink: { label: "Not sure what counts as an admin account? Read this first", target: "info_privileged_admins" },
@@ -333,7 +213,7 @@ export const TREE = {
     ]
   },
   start: {
-    step: { major: 3, sub: 1, subTotal: 2, label: "Service consumption" },
+    step: { major: 2, sub: 1, subTotal: 2, label: "Service consumption" },
     question: "Does this privileged admin account sign in to any Microsoft 365 user-facing service (Exchange mailbox, Teams, SharePoint, OneDrive, Office apps)?",
     help: "A properly dedicated privileged admin account should not be used to read mail, join Teams meetings, or open Office documents. If it does consume any of those services, it needs a service license — separate from any admin role — and you should consider splitting it back into a primary + privileged pair.",
     rationale: {
@@ -354,7 +234,7 @@ export const TREE = {
     no: "q_service_principal"
   },
   q_service_principal: {
-    step: { major: 3, sub: 2, subTotal: 2, label: "Service consumption" },
+    step: { major: 2, sub: 2, subTotal: 2, label: "Service consumption" },
     question: "Is this a non-interactive identity — service principal, managed identity, or workload identity with no human sign-in?",
     help: "Per Microsoft guidance, service principals and managed identities are typically excluded from user-targeted Conditional Access and don't consume user licenses. Use managed identities where possible.",
     rationale: {
@@ -375,7 +255,7 @@ export const TREE = {
     no: "q_copilot"
   },
   q_copilot: {
-    step: { major: 4, sub: 1, subTotal: 5, label: "Premium service features" },
+    step: { major: 3, sub: 1, subTotal: 5, label: "Premium service features" },
     question: "Will the privileged admin themselves USE Microsoft 365 Copilot — i.e., invoke Copilot in Word / Excel / PowerPoint / Outlook / Teams, run Microsoft 365 Copilot Chat work-based prompts (Entra-authenticated, tenant-grounded), build tenant-grounded Copilot Studio agents, or be assigned Microsoft Agent 365 governance for their own agent identities?",
     help: "M365 Copilot is one of the few admin scenarios where the per-user license is enforced on the admin's own account. Copilot in M365 apps and Copilot Chat work mode check for the M365 Copilot SKU on the signed-in user; without the license assigned, the admin sees only web-grounded Copilot Chat (free tier). Pure portal administration of Copilot deployment in the M365 admin center does NOT require Copilot on the admin — only actually using Copilot does. Note: Microsoft Security Copilot is a separate product on a different licensing model (SCU capacity, not per-user) — see the SOC-Copilot info card under Defender.",
     rationale: {
@@ -400,7 +280,7 @@ export const TREE = {
     no: "q_purview_e5"
   },
   q_purview_e5: {
-    step: { major: 4, sub: 2, subTotal: 5, label: "Premium service features" },
+    step: { major: 3, sub: 2, subTotal: 5, label: "Premium service features" },
     question: "Is the privileged admin themselves IN SCOPE — as a monitored user or test user — of any Microsoft Purview E5-tier policy (Insider Risk Management, Communication Compliance, Adaptive Protection, endpoint DLP, premium eDiscovery, auto-labeling, Records Management, Customer Lockbox, Customer Key, Information Barriers, Privileged Access Management for Office, or Audit Premium)?",
     help: "Important distinction: opening the Purview portal to manage policies / triage alerts / investigate incidents does NOT require a per-user license on the admin — that's gated by role-group permissions (Insider Risk Management, eDiscovery Manager, Compliance Administrator, etc.). The per-user E5 / E5 Compliance / Purview Suite license is only required for users whose activity is being monitored or whose mailbox / device / chat is being protected — including the admin if they're added as a test user in policy scope.",
     rationale: {
@@ -618,7 +498,7 @@ export const TREE = {
     no: "q_defender"
   },
   q_defender: {
-    step: { major: 4, sub: 3, subTotal: 5, label: "Premium service features" },
+    step: { major: 3, sub: 3, subTotal: 5, label: "Premium service features" },
     title: "Check whether the admin is personally protected by any Defender Suite component",
     question:
       "Is the admin's own mailbox, device, or identity covered by a Microsoft Defender for Office 365 P2, Defender for Endpoint P2, Defender for Identity, or Defender for Cloud Apps policy?",
@@ -758,7 +638,7 @@ export const TREE = {
     no: "q_intune_suite"
   },
   q_intune_suite: {
-    step: { major: 4, sub: 4, subTotal: 5, label: "Premium service features" },
+    step: { major: 3, sub: 4, subTotal: 5, label: "Premium service features" },
     question: "Will the privileged admin act as a Remote Help HELPER (providing remote-control / view-only support sessions from the Intune portal), OR are they themselves in scope of Endpoint Privilege Management / Microsoft Tunnel for MAM / Cloud PKI / Enterprise App Management / Advanced Endpoint Analytics?",
     help: "Unlike most admin portals, Remote Help is one of the few Microsoft portals that DOES enforce a per-user license check on the admin: Microsoft requires a Remote Help license assigned to BOTH the helper (admin) AND the sharer (end user) — this is one of the few admin scenarios where the admin's own account needs the add-on even though they aren't an end user of the protected workload. EPM, Tunnel for MAM, Cloud PKI, EAM, and Advanced Endpoint Analytics license the user / device being managed (not the admin who configures them), unless the admin's own device is also in scope.",
     rationale: {
@@ -780,7 +660,7 @@ export const TREE = {
     no: "q_teams_premium"
   },
   q_teams_premium: {
-    step: { major: 4, sub: 5, subTotal: 5, label: "Premium service features" },
+    step: { major: 3, sub: 5, subTotal: 5, label: "Premium service features" },
     question: "Will the privileged admin (a) host meetings using Teams Premium organizer features (advanced webinars, town halls premium, sensitivity-labeled meetings, branded meetings), (b) ATTEND meetings as a Teams Premium attendee (intelligent recap, live translation, AI notes/tasks under their own account), or (c) use Teams Premium ADMIN-ONLY features (advanced collaboration analytics, inactive teams/external domains insights, aggregated Teams Premium usage reporting in the Teams admin center)?",
     help: "Teams Premium is a per-user add-on with three license-check categories per the Microsoft Learn licensing page: organizer-based (license check on the meeting organizer), attendee-based (license check on each attendee receiving the feature), and admin-based (license check on the Teams admin's own account before they can see Advanced collaboration analytics and aggregated usage views in the Teams admin center). The Teams admin center page states explicitly: 'Customers must acquire and assign Teams Premium licenses to each user in their tenant for its use of Advanced collaboration analytics.' Plain Teams admin role access without a Teams Premium license assigned to the admin's own account hides the premium admin reports.",
     rationale: {
@@ -803,7 +683,7 @@ export const TREE = {
     no: "q_pim"
   },
   q_pim: {
-    step: { major: 5, sub: 1, subTotal: 4, label: "Premium identity features" },
+    step: { major: 4, sub: 1, subTotal: 4, label: "Premium identity features" },
     question: "Is the privileged admin themselves PIM-eligible / time-bound for any Entra ID, Azure, or PIM-for-Groups role, OR does the account approve PIM activations, review access for any PIM-managed scope, or get reviewed in any access review?",
     help: "PIM is the most common premium-tier trigger for privileged admins. Unlike Defender / Purview portal access (role-only), PIM enforces a per-user license check on EVERY user who is eligible, time-bound, an approver, a reviewer, or assigned to an access review. The Entra ID Governance licensing FAQ is explicit: 'Ensure that your directory has Microsoft Entra ID P2 or Microsoft Entra ID Governance licenses for the following categories of users: eligible / time-bound assignments to Entra or Azure roles, eligible / time-bound assignments as members or owners of PIM for Groups, users able to approve or reject activation requests, users assigned to an access review, users who perform access reviews.' When the P2 license is removed, eligible assignments are stripped from the user — enforcement is real.",
     rationale: {
@@ -827,7 +707,7 @@ export const TREE = {
     no: "q_identity_protection"
   },
   q_identity_protection: {
-    step: { major: 5, sub: 2, subTotal: 4, label: "Premium identity features" },
+    step: { major: 4, sub: 2, subTotal: 4, label: "Premium identity features" },
     question: "Is the privileged admin's own sign-in evaluated by Microsoft Entra ID Protection — i.e., their account is in the user-scope of a sign-in-risk or user-risk Conditional Access policy, the MFA-registration policy, or any user / sign-in risk policy with premium detections (atypical travel, password spray, malicious IP, leaked credentials, suspicious MFA approval, anomalous token)?",
     help: "Important distinction: a Security Reader / Security Operator / Security Admin / Conditional Access Admin / Global Reader can OPEN ID Protection reports and dismiss / confirm risks via their role — no per-user P2 license is needed on the admin to operate the portal. The per-user P2 license is required for every user whose sign-ins are being EVALUATED by risk policies (premium detections produce limited info on Free / P1; full info, risky-user / risky-sign-in drawer, notifications, and risk-based CA only on P2). If the admin's own account is in scope of those policies (most well-managed tenants put admins in scope), the admin needs P2.",
     rationale: {
@@ -851,7 +731,7 @@ export const TREE = {
     no: "q_id_governance"
   },
   q_id_governance: {
-    step: { major: 5, sub: 3, subTotal: 4, label: "Premium identity features" },
+    step: { major: 4, sub: 3, subTotal: 4, label: "Premium identity features" },
     question: "Will the privileged admin CONFIGURE Microsoft Entra ID Governance features (Entitlement Management access packages, Lifecycle Workflows, ML-assisted access reviews, PIM for Groups governance, account discovery) OR be in scope as a requestor / assignee / reviewer / sponsor / approver of any access package or lifecycle workflow?",
     help: "This is one of the rare admin scenarios where the per-user license is enforced on the configurer themselves, not just on users in scope. The Microsoft Entra ID Governance licensing FAQ is explicit: 'Users don't need to be assigned a Microsoft Entra ID Governance license, but there needs to be as many licenses to include all member users in scope of, or who CONFIGURES, the Identity Governance features.' The official license-count examples include '1 license for the Lifecycle Workflows Administrator' and '1 license for the group owner as reviewer'. Configurators, reviewers, approvers, sponsors, and end-users in scope ALL count toward the license total.",
     rationale: {
@@ -876,7 +756,7 @@ export const TREE = {
     no: "q_entra_suite"
   },
   q_entra_suite: {
-    step: { major: 5, sub: 4, subTotal: 4, label: "Premium identity features" },
+    step: { major: 4, sub: 4, subTotal: 4, label: "Premium identity features" },
     question: "Will the privileged admin themselves connect through Microsoft Entra Internet Access OR Microsoft Entra Private Access (their own device runs the Global Secure Access client and routes traffic through the GSA edge)? (Configuring GSA policies for other users, or issuing Verified ID credentials, does NOT trigger a license on the admin themselves.)",
     help: "Global Secure Access (Internet Access + Private Access) is licensed per user whose CLIENT routes through the GSA edge — the admin who configures GSA policies via the Entra portal does not need the license unless their own device is also a GSA client. Microsoft Entra Verified ID has NO special licensing requirements per the Verified ID FAQ: 'There are no special licensing requirements to issue verifiable credentials.' Verified ID is bundled in Entra Suite as a value-add but does not itself trigger a per-user license. So Entra Suite licensing for the admin is driven by whether the admin's own device is a GSA client, not by Verified ID issuance and not by GSA policy configuration.",
     rationale: {
@@ -898,7 +778,7 @@ export const TREE = {
     no: "q_break_glass"
   },
   q_break_glass: {
-    step: { major: 6, label: "Emergency access check" },
+    step: { major: 5, label: "Emergency access check" },
     question: "Is this a break-glass / emergency-access account that is explicitly excluded from Conditional Access, PIM, and risk policies?",
     help: "Microsoft recommends excluding emergency-access accounts from Conditional Access to avoid lockout. When excluded from PIM and Identity Protection, they don't trigger the P2 requirement.",
     rationale: {
@@ -921,7 +801,7 @@ export const TREE = {
 
   // ---------- Admin tree disambiguation questions ----------
   q_copilot_e7_choice: {
-    step: { major: 4, sub: 1, subTotal: 5, label: "Premium service features" },
+    step: { major: 3, sub: 1, subTotal: 5, label: "Premium service features" },
     question: "Will this user ALSO need Microsoft Entra Suite (Internet Access + Private Access + Verified ID) AND Agent 365 governance — all bundled in a single per-user SKU?",
     help: "Microsoft 365 E7 (Frontier Suite, generally available since May 1, 2026) bundles E5 + Copilot + Entra Suite + Agent 365 in one license. The Copilot add-on layered on E3/E5 is cheaper when you only need Copilot.",
     rationale: {
@@ -938,7 +818,7 @@ export const TREE = {
     no: "result_copilot_addon"
   },
   q_purview_e5_breadth: {
-    step: { major: 4, sub: 2, subTotal: 5, label: "Premium service features" },
+    step: { major: 3, sub: 2, subTotal: 5, label: "Premium service features" },
     question: "Does this user ALSO need Defender XDR / Defender for Endpoint P2 / Defender for Identity / Defender for Cloud Apps (any of the Defender Suite workloads)?",
     help: "M365 E5 bundles Purview E5 AND the Defender Suite. If you need both for the same user, full E5 is the single cheapest SKU. The E5 Compliance add-on covers ONLY Purview E5 and is cheaper when Defender XDR is not in scope.",
     rationale: {
@@ -955,7 +835,7 @@ export const TREE = {
     no: "result_e5_compliance_only"
   },
   q_defender_breadth: {
-    step: { major: 4, sub: 3, subTotal: 5, label: "Premium service features" },
+    step: { major: 3, sub: 3, subTotal: 5, label: "Premium service features" },
     question: "Does this user ALSO need Microsoft Purview E5 features (Insider Risk Management, Communication Compliance, premium eDiscovery, Audit Premium)?",
     help: "M365 E5 bundles the Defender Suite AND Purview E5. If you need both for the same user, full E5 is the single cheapest SKU. The Defender Suite add-on (formerly E5 Security) covers ONLY Defender — cheaper when Purview E5 isn't in scope.",
     rationale: {
@@ -972,7 +852,7 @@ export const TREE = {
     no: "result_defender_suite_only"
   },
   q_intune_breadth: {
-    step: { major: 4, sub: 4, subTotal: 5, label: "Premium service features" },
+    step: { major: 3, sub: 4, subTotal: 5, label: "Premium service features" },
     question: "Does this user need TWO OR MORE of the Intune premium features — Endpoint Privilege Management, Remote Help, Microsoft Tunnel for MAM, Cloud PKI, Enterprise App Management, or Advanced Endpoint Analytics?",
     help: "The Intune Suite bundles all six features and costs less than the sum of two standalone add-ons. If only ONE feature is in scope, the matching standalone add-on (EPM standalone, Remote Help standalone, etc.) is cheaper. Reminder for Remote Help: licensing applies to BOTH the helper (admin) and the sharer (end user) — a Remote Help / Intune Suite license must be assigned to the admin's own account if they will run support sessions.",
     rationale: {
@@ -995,7 +875,7 @@ export const TREE = {
   // specific feature pick so we can name the exact standalone SKU.
   q_intune_which_one: {
     choice: true,
-    step: { major: 4, sub: 5, subTotal: 5, label: "Premium service features" },
+    step: { major: 3, sub: 5, subTotal: 5, label: "Premium service features" },
     question: "Which Intune premium feature does this user need?",
     help: "Pick the one feature in scope. Each option maps to a specific Microsoft Intune standalone add-on SKU. If two or more apply to the same user, go back and answer 'Yes' to the previous question — the Intune Suite bundles all six.",
     choices: [
@@ -1045,7 +925,7 @@ export const TREE = {
     ]
   },
   q_p2_bundle_check: {
-    step: { major: 5, sub: 1, subTotal: 4, label: "Premium identity features" },
+    step: { major: 4, sub: 1, subTotal: 4, label: "Premium identity features" },
     title: "Check whether Entra ID P2 is already covered by another license",
     question: "Is one of the six P2-inclusive licenses already assigned to every user who will use PIM or Identity Protection?",
     sub: "Entra ID P2 is the gating license for PIM and Identity Protection. It is also bundled inside six other SKUs — so before you buy standalone P2, confirm whether the user is already covered.",
@@ -1276,31 +1156,88 @@ export const TREE = {
     no: "result_smb_basic"
   },
   q_frontline_eligibility: {
-    step: { major: 2, sub: 1, subTotal: 12, label: "Frontline · eligibility" },
-    question: "Does this user meet Microsoft's frontline-worker eligibility criteria (deskless / on-the-go / shared device / customer-facing) — and NOT operate as a headquarters information worker, IT admin, or developer?",
-    help: "Microsoft's frontline definition: workers who are 'on the go, often on mobile devices, and work directly with customers or the general public — they provide services, support, and sell products, or are directly involved in the manufacturing and distribution of products and services.' Information workers (HQ staff at a desk with a laptop) are NOT eligible for F SKUs.",
+    step: { major: 2, sub: 1, subTotal: 14, label: "Frontline · eligibility · role" },
+    question: "Does this user's PRIMARY work involve serving customers / the public directly — OR are they involved in services, support, selling products, manufacturing, or distribution?",
+    help: "First of THREE frontline-eligibility criteria. Microsoft's frontline definition opens with a role / industry criterion: workers who 'work directly with customers or the general public — they provide services, support, and sell products, or are directly involved in the manufacturing and distribution of products and services.' This question isolates that role / industry test. The next two questions cover the workplace pattern and the explicit exclusions.",
     rationale: {
-      why: "F1 / F3 list at a fraction of E-series pricing precisely because they're scoped to a workforce profile Microsoft polices. Misassigning F to a headquarters knowledge worker is a Product Terms compliance issue and gets flagged in Microsoft licensing reviews.",
-      yes: "the user clears Microsoft's frontline eligibility test — continue through the E-vs-F feature wizard to land on the right F SKU (plus any approved add-ons) or, if too many features push past F's ceiling, an E uplift.",
-      no: "do NOT license this user with F1 / F3. Drop into the information-worker tree to land on E3 / E3 + Copilot / E5 / E7 instead."
+      why: "Microsoft Learn frames frontline as a role / industry category before anything else: customer-facing service, support, sales, or manufacturing / distribution work. If the user's primary job is none of those (e.g. HQ knowledge work, IT admin, software development) they almost certainly do NOT belong on F.",
+      yes: "the role / industry criterion is met — continue to the workplace-pattern check (criterion 2 of 3).",
+      no: "this user's role does NOT match Microsoft's frontline category. Drop straight to the information-worker tree to land on E3 / E3 + Copilot / E5 / E7."
     },
     examples: [
-      "Yes example: Retail store associate using a shared iPad to look up product info, run a POS, and check the shift schedule in Teams.",
-      "Yes example: Hospital nurse on a shared workstation-on-wheels using Teams Shifts, Tasks, and a clinical app.",
-      "Yes example: Warehouse picker with a rugged handheld scanner using Teams Walkie Talkie and Shifts.",
-      "No example: HQ marketing manager with a dedicated laptop authoring decks in PowerPoint and managing a 50 GB mailbox — that's an information worker, not frontline.",
-      "No example: IT helpdesk staff with a personal PC running Outlook desktop and remote-support tools — not frontline."
+      "Yes example: Retail store associate at a POS interacting with shoppers, running returns, looking up product info.",
+      "Yes example: Hospital nurse, paramedic, or clinical aide providing patient care.",
+      "Yes example: Warehouse picker, factory-line operator, delivery driver, freight handler — manufacturing / distribution work.",
+      "Yes example: Hotel front-desk agent, restaurant server, barista, hospitality concierge, bank teller — service / support.",
+      "Yes example: Field service technician on a customer site installing or repairing equipment.",
+      "No example: HQ marketing manager authoring campaign decks and creative briefs all day.",
+      "No example: Backend engineer writing code; SRE running production infrastructure.",
+      "No example: Finance analyst building forecasts in Excel; HR generalist managing benefits and policies."
     ],
     techDocs: [
-      ["Understand frontline worker user types and licensing", "https://learn.microsoft.com/en-us/microsoft-365/frontline/flw-licensing-options?view=o365-worldwide"],
+      ["Understand frontline worker user types and licensing (Microsoft's definition + role criteria)", "https://learn.microsoft.com/en-us/microsoft-365/frontline/flw-licensing-options?view=o365-worldwide"],
       ["Microsoft 365 for frontline workers — overview", "https://learn.microsoft.com/en-us/microsoft-365/frontline/?view=o365-worldwide"],
-      ["Changing from a Microsoft 365 E plan to a Microsoft 365 F plan", "https://learn.microsoft.com/en-us/microsoft-365/frontline/switch-from-enterprise-to-frontline?view=o365-worldwide"],
-      ["Microsoft 365 Frontline — plans & pricing (F1 / F3 comparison)", "https://www.microsoft.com/en-us/microsoft-365/enterprise/frontline-plans-and-pricing"],
-      ["Microsoft 365 Enterprise — plans & pricing (E3 / E5 comparison for the uplift fallback)", "https://www.microsoft.com/en-us/microsoft-365/enterprise/microsoft365-plans-and-pricing"],
-      ["Modern Work Plan Comparison — Enterprise (May 2026 PDF: the authoritative per-feature E/F/Defender Suite/Purview Suite matrix)", "https://cdn-dynmedia-1.microsoft.com/is/content/microsoftcorp/microsoft/bade/documents/products-and-services/en-us/education/Modern-Work-Plan-Comparison-Enterprise-5-1-2026.pdf"],
-      ["Exchange Online service-description limits (mailbox / archive / Recoverable Items / message size / send & receive rates across every plan)", "https://learn.microsoft.com/en-us/office365/servicedescriptions/exchange-online-service-description/exchange-online-limits"],
-      ["Microsoft 365 — Licensing Resources and Documents (canonical hub: plan comparisons, service descriptions, Product Terms)", "https://www.microsoft.com/licensing/docs/view/Microsoft-365"],
-      ["Microsoft Product Terms — Microsoft 365 Online Services (frontline Use Rights & eligibility)", "https://www.microsoft.com/licensing/terms/productoffering/MicrosoftOffice365/EAEAS"]
+      ["Microsoft 365 Frontline — plans & pricing (F1 / F3 comparison)", "https://www.microsoft.com/en-us/microsoft-365/enterprise/frontline-plans-and-pricing"]
+    ],
+    frontline: {
+      no: { ineligible: true }
+    },
+    yes: "q_frontline_workplace",
+    no: "q_iw_security"
+  },
+  q_frontline_workplace: {
+    step: { major: 2, sub: 2, subTotal: 14, label: "Frontline · eligibility · workplace pattern" },
+    question: "Does this user typically work AWAY from a dedicated headquarters desk — on shop floors, customer sites, vehicles, hospital wards, retail floors, warehouses, kitchens, manufacturing lines — usually on mobile devices, shared kiosks, or rugged handhelds rather than a personal laptop / workstation?",
+    help: "Second of THREE frontline-eligibility criteria. Microsoft's frontline definition emphasizes the WORK PATTERN: 'workers who are on the go, often on mobile devices.' F1 and F3 are priced and feature-shaped around that pattern — Teams Walkie Talkie, Shifts, Tasks, shared-device sign-in, mobile / web Office. A user who SITS at a dedicated HQ desk with a personal laptop is typically NOT frontline even if their job involves customer interaction — they're a knowledge worker who happens to talk to customers.",
+    rationale: {
+      why: "F SKUs are scoped to a deskless / on-the-go / shared-device work pattern. Microsoft polices F misassignment to HQ desk workers during licensing reviews. A customer-facing user who works from an assigned desk with a dedicated laptop and a 50 GB mailbox is a knowledge worker on E, not a frontline worker on F.",
+      yes: "the workplace-pattern criterion is met — continue to the final exclusion check (criterion 3 of 3).",
+      no: "this user works primarily from a dedicated desk and doesn't match Microsoft's frontline pattern. Drop to the information-worker tree even though the role criterion was met."
+    },
+    examples: [
+      "Yes example: Store associate signing in to a shared iPad at the POS for their shift, then signing out at the end of shift.",
+      "Yes example: Nurse using a workstation-on-wheels and a hospital-issued mobile phone, no dedicated laptop.",
+      "Yes example: Field service technician working from a phone and rugged tablet, visiting different customer sites each day.",
+      "Yes example: Warehouse picker with a handheld scanner; truck driver with a delivery phone and Teams Walkie Talkie.",
+      "No example: HQ customer-success manager sitting at an assigned desk with a laptop and dual monitors all day.",
+      "No example: Call-center agent with a dedicated PC at a contact-center desk — typically licensed at E-tier; if it's a Microsoft-platform contact center, evaluate Digital Contact Center Platform separately.",
+      "No example: Branch-office banker with a dedicated workstation and personal Outlook desktop — knowledge worker on E, even though they meet customers."
+    ],
+    techDocs: [
+      ["Understand frontline worker user types and licensing (work-pattern definition)", "https://learn.microsoft.com/en-us/microsoft-365/frontline/flw-licensing-options?view=o365-worldwide"],
+      ["Changing from a Microsoft 365 E plan to a Microsoft 365 F plan (when re-licensing makes sense vs. when it doesn't)", "https://learn.microsoft.com/en-us/microsoft-365/frontline/switch-from-enterprise-to-frontline?view=o365-worldwide"],
+      ["Shared device sign-in for frontline workers", "https://learn.microsoft.com/en-us/microsoft-365/frontline/flw-shared-devices?view=o365-worldwide"]
+    ],
+    frontline: {
+      no: { ineligible: true }
+    },
+    yes: "q_frontline_exclusion",
+    no: "q_iw_security"
+  },
+  q_frontline_exclusion: {
+    step: { major: 2, sub: 3, subTotal: 14, label: "Frontline · eligibility · exclusions" },
+    question: "Is this user clearly NOT a headquarters information worker, IT administrator, or software developer?",
+    help: "Third of THREE frontline-eligibility criteria — the final exclusion gate. Microsoft explicitly EXCLUDES three categories from F licensing regardless of how mobile they are: (a) information workers (HQ knowledge workers authoring documents and analysis at a desk), (b) IT administrators (helpdesk, sysadmins, identity / security / Intune / Exchange admins), and (c) software developers. These users may TOUCH frontline tooling (e.g. an IT admin configuring Teams Shifts for store staff) but they themselves must be licensed at E-tier, not F. When unsure, default to NO — the compliance cost of mis-licensing F to an HQ user is far higher than the price difference of buying E.",
+    rationale: {
+      why: "Microsoft's frontline Use Rights explicitly exclude information workers, IT administrators, and software developers. Mis-licensing these categories with F is a Product Terms compliance issue that surfaces in Microsoft licensing reviews and audits — and it's the single most common F-misassignment finding.",
+      yes: "the user is NOT a HQ knowledge worker, IT admin, or developer — all three eligibility criteria are now met. Continue through the E-vs-F feature wizard to land on F1 / F3 (plus any approved add-ons) or, if too many features push past F's ceiling, an E uplift.",
+      no: "the user IS a HQ knowledge worker, IT admin, or developer — they must be licensed at E-tier. Drop to the information-worker tree to land on E3 / E3 + Copilot / E5 / E7."
+    },
+    examples: [
+      "Yes example: Retail store associate — not HQ, not IT, not developer. Continues to F.",
+      "Yes example: Hospital nurse — not HQ, not IT, not developer. Continues to F.",
+      "Yes example: Delivery driver, factory-line worker, warehouse picker — none are HQ / IT / developer. Continue to F.",
+      "Yes example: Hotel housekeeper, restaurant server, security guard — service workers, not HQ / IT / developer.",
+      "No example: HR generalist at HQ — information worker, must license at E (not F) regardless of mobility.",
+      "No example: IT helpdesk technician — IT admin. License at E and check the admin tree — they may also be a privileged admin needing Entra ID P2.",
+      "No example: Backend engineer or data engineer writing code — developer, license at E.",
+      "No example: Solution architect, consultant, or pre-sales engineer who travels but produces architecture docs and proposals — knowledge worker, license at E."
+    ],
+    techDocs: [
+      ["Understand frontline worker user types and licensing (definition + exclusions)", "https://learn.microsoft.com/en-us/microsoft-365/frontline/flw-licensing-options?view=o365-worldwide"],
+      ["Microsoft 365 Enterprise — plans & pricing (E3 / E5 alternatives when F doesn't fit)", "https://www.microsoft.com/en-us/microsoft-365/enterprise/microsoft365-plans-and-pricing"],
+      ["Microsoft Product Terms — Microsoft 365 Online Services (frontline Use Rights + exclusions)", "https://www.microsoft.com/licensing/terms/productoffering/MicrosoftOffice365/EAEAS"],
+      ["Microsoft 365 — Licensing Resources and Documents (canonical hub: plan comparisons, service descriptions, Product Terms)", "https://www.microsoft.com/licensing/docs/view/Microsoft-365"]
     ],
     frontline: {
       yes: { flag: { key: "eligible", value: true } },
@@ -1310,7 +1247,7 @@ export const TREE = {
     no: "q_iw_security"
   },
   q_frontline_desktop_apps: {
-    step: { major: 2, sub: 2, subTotal: 12, label: "Frontline · feature gap" },
+    step: { major: 2, sub: 4, subTotal: 14, label: "Frontline · feature gap" },
     question: "Does this user need the installed Microsoft 365 desktop apps (Word, Excel, PowerPoint, OneNote, Outlook, Access, Publisher) on a Windows or Mac PC?",
     help: "F1 and F3 do NOT include the desktop Office client apps — by design. F3 includes Office for the web and Office mobile apps; F1 is read-only for both. If this user authors documents on a desktop PC, that's an E-tier requirement and a hard fail for any F SKU.",
     rationale: {
@@ -1334,7 +1271,7 @@ export const TREE = {
     no: "q_frontline_screen_size"
   },
   q_frontline_screen_size: {
-    step: { major: 2, sub: 3, subTotal: 12, label: "Frontline · feature gap" },
+    step: { major: 2, sub: 5, subTotal: 14, label: "Frontline · feature gap" },
     question: "Will this user run the Microsoft 365 mobile apps on a device with a screen LARGER than 10.9 inches (iPad Pro 12.9″, Surface Pro, larger Android tablets, etc.)?",
     help: "F1 / F3 mobile-app commercial-use rights are explicitly capped at devices with integrated screens UNDER 10.9 inches. Larger tablets that run Office mobile apps cross into Office desktop licensing territory and require an E SKU.",
     rationale: {
@@ -1357,7 +1294,7 @@ export const TREE = {
     no: "q_frontline_mailbox"
   },
   q_frontline_mailbox: {
-    step: { major: 2, sub: 4, subTotal: 12, label: "Frontline · mailbox" },
+    step: { major: 2, sub: 6, subTotal: 14, label: "Frontline · mailbox" },
     question: "Does this user need their own personal Exchange Online mailbox (user@domain.com), as opposed to communicating only via shared mailboxes / Teams / Viva Engage?",
     help: "F1 has NO personal mailbox per the Exchange Online service-description limits — Microsoft provisions Exchange Online Kiosk-class plan only so the Teams calendar / free-busy works, and Microsoft recommends disabling Outlook on the web for F1 users. F3 includes a 2 GB Exchange Online mailbox (no archive mailbox; Recoverable Items quota 30 GB normal / 100 GB on hold) accessible via Outlook on the web and Outlook mobile.",
     rationale: {
@@ -1382,7 +1319,7 @@ export const TREE = {
     no: "q_frontline_archive_mailbox"
   },
   q_frontline_mailbox_size: {
-    step: { major: 2, sub: 5, subTotal: 12, label: "Frontline · mailbox" },
+    step: { major: 2, sub: 7, subTotal: 14, label: "Frontline · mailbox" },
     question: "Will this user's mailbox stay UNDER 2 GB?",
     help: "F3's mailbox is capped at 2 GB per the Exchange Online service-description limits (Prohibit Send/Receive at 2 GB, Prohibit Send at 1.98 GB, Warning at 1.96 GB). If the user receives more than 2 GB of mail (typical for managers / heavy email recipients), they need Exchange Online Plan 2 ($8 / user / month, 100 GB mailbox + 100 GB → 1.5 TB auto-expanding archive) layered over F3 — OR you should re-evaluate against E3 which already includes a 100 GB mailbox. Note: Exchange Online Protection (EOP) is the free email security service included in every M365 plan; what you actually buy to bump the mailbox is Exchange Online Plan 2. Message size limit is 150 MB Outlook / 112 MB OWA / 33 MB Outlook mobile regardless of plan.",
     rationale: {
@@ -1406,7 +1343,7 @@ export const TREE = {
     no: "q_frontline_archive_mailbox"
   },
   q_frontline_archive_mailbox: {
-    step: { major: 2, sub: 6, subTotal: 12, label: "Frontline · compliance" },
+    step: { major: 2, sub: 8, subTotal: 14, label: "Frontline · compliance" },
     question: "Does this user need an Exchange Online archive mailbox or delegate-access mailbox features (delegated calendars, send-on-behalf-of, shared-mailbox delegation)?",
     help: "F1 and F3 do NOT include an archive mailbox OR delegate access — both are E-tier features per the E-vs-F comparison and the Exchange Online service-description limits (Archive mailbox row: Frontline = 'Not available'; Kiosk = N/A; Plan 1 = 50 GB; Plan 2 = 1.5 TB auto-expanding from initial 100 GB). Adding Exchange Online Plan 2 ($8) on top of F3 brings the 100 GB → 1.5 TB auto-expanding archive plus delegate access. Recoverable Items quotas: 30 GB normal, 100 GB on hold (primary mailbox); 1.5 TB inside the auto-expanding archive when Plan 2 is in effect.",
     rationale: {
@@ -1431,7 +1368,7 @@ export const TREE = {
     no: "q_frontline_onedrive"
   },
   q_frontline_onedrive: {
-    step: { major: 2, sub: 7, subTotal: 12, label: "Frontline · storage" },
+    step: { major: 2, sub: 9, subTotal: 14, label: "Frontline · storage" },
     question: "Will this user need MORE than 2 GB of personal OneDrive storage?",
     help: "F1 and F3 are capped at 2 GB of OneDrive. There is no per-user OneDrive add-on for F SKUs that lifts the cap — Microsoft directs you to E3 (1+ TB OneDrive) if the cap is a blocker. Important workaround: most frontline workers can use SharePoint document libraries or Teams channel files instead of personal OneDrive.",
     rationale: {
@@ -1453,7 +1390,7 @@ export const TREE = {
     no: "q_frontline_teams_phone"
   },
   q_frontline_teams_phone: {
-    step: { major: 2, sub: 8, subTotal: 12, label: "Frontline · communications" },
+    step: { major: 2, sub: 10, subTotal: 14, label: "Frontline · communications" },
     question: "Does this user need Teams Phone (PSTN calling — dial public phone numbers from Teams)?",
     help: "F1 / F3 with Teams include chat, channels, meetings, and apps — but NOT Teams Phone (PSTN calling). Microsoft sells a dedicated frontline add-on: Teams Phone Standard for Frontline Workers (~$4 / user / month), authorised for F1 / F3 users specifically. Pair with a Calling Plan or Direct Routing for PSTN dial tone.",
     rationale: {
@@ -1476,7 +1413,7 @@ export const TREE = {
     no: "q_frontline_meetings"
   },
   q_frontline_meetings: {
-    step: { major: 2, sub: 9, subTotal: 12, label: "Frontline · communications" },
+    step: { major: 2, sub: 11, subTotal: 14, label: "Frontline · communications" },
     question: "Does this user need to HOST town halls, webinars, or large-audience structured meetings (not just join them)?",
     help: "Hosting town halls and webinars requires the Teams Enterprise add-on on top of F SKUs. Joining a town hall / webinar that someone else organised does NOT require the add-on. The Microsoft 365 + Teams 2025 packaging update introduced this layer.",
     rationale: {
@@ -1499,7 +1436,7 @@ export const TREE = {
     no: "q_frontline_defender_endpoint"
   },
   q_frontline_defender_endpoint: {
-    step: { major: 2, sub: 10, subTotal: 12, label: "Frontline · security" },
+    step: { major: 2, sub: 12, subTotal: 14, label: "Frontline · security" },
     question: "Does this user's device need Microsoft Defender for Endpoint (next-gen AV + attack-surface reduction + EDR)?",
     help: "F1 / F3 do NOT bundle Defender for Endpoint. Add Defender for Endpoint Plan 1 (~$3 / user / month) for next-gen AV + ASR + manual response; add Plan 2 (~$5.20) for EDR + automated investigation + threat hunting + vulnerability management. Microsoft also sells a frontline-specific 'Defender Suite FLW' bundle (Defender XDR for F1 / F3 users) that may be cheaper than stacking individual Defender add-ons — confirm availability and pricing with your Microsoft account team (it is not publicly listed).",
     rationale: {
@@ -1524,7 +1461,7 @@ export const TREE = {
     no: "q_frontline_defender_office"
   },
   q_frontline_defender_office: {
-    step: { major: 2, sub: 11, subTotal: 12, label: "Frontline · security" },
+    step: { major: 2, sub: 13, subTotal: 14, label: "Frontline · security" },
     question: "Does this user need Microsoft Defender for Office 365 Plan 2 (Threat Explorer, Attack Simulation Training, Threat Trackers, Campaign Views — i.e. SOC-grade email security)?",
     help: "F3 already includes Defender for Office 365 Plan 1 (Safe Links + Safe Attachments). F1 has no mailbox so Defender for Office doesn't apply. Plan 2 (+$5 over P1) layers SOC tooling on top.",
     rationale: {
@@ -1546,7 +1483,7 @@ export const TREE = {
     no: "q_frontline_purview"
   },
   q_frontline_purview: {
-    step: { major: 2, sub: 12, subTotal: 12, label: "Frontline · compliance & AI" },
+    step: { major: 2, sub: 14, subTotal: 14, label: "Frontline · compliance & AI" },
     question: "Does this user need Microsoft Purview E5 Compliance — full DLP across endpoints / SharePoint / OneDrive, Insider Risk Management, Communication Compliance, eDiscovery Premium, Customer Lockbox?",
     help: "F1 / F3 do NOT include Purview E5 features. You can layer the Microsoft 365 E5 Compliance add-on (~$12 / user / month) on top of F SKUs, but at that price point + F3 base + likely other add-ons, the math almost always favours uplifting to M365 E5 ($57) which bundles Purview E5 + Defender XDR + Entra ID P2 + Power BI Pro + Teams Phone. Microsoft also sells frontline-specific 'Purview Suite FLW' and combined 'Defender + Purview Suite FLW' bundles (Purview E5 features for F1 / F3 users) — these are not publicly priced; ask your Microsoft account team whether they apply before assuming an E5 uplift.",
     rationale: {
@@ -1570,7 +1507,7 @@ export const TREE = {
     no: "q_frontline_copilot"
   },
   q_frontline_copilot: {
-    step: { major: 2, sub: 12, subTotal: 12, label: "Frontline · compliance & AI", secondary: true },
+    step: { major: 2, sub: 14, subTotal: 14, label: "Frontline · compliance & AI", secondary: true },
     question: "Does this user need Microsoft 365 Copilot (AI in Office, Teams, and Copilot Chat)?",
     help: "Microsoft 365 Copilot lists at $30 / user / month as a per-user add-on. Microsoft has begun authorising Copilot for select frontline scenarios — verify availability for F1 / F3 with your account team before purchasing. Copilot for Frontline is being rolled out in 2025–2026 packaging updates.",
     rationale: {
@@ -2732,7 +2669,7 @@ export const TREE = {
 };
 
 // Total major phases of the assessment journey.
-export const TOTAL_MAJOR_STEPS = 6;
+export const TOTAL_MAJOR_STEPS = 5;
 
 // Default entry node for the assessment.
-export const START_NODE_ID = 'start_tenant';
+export const START_NODE_ID = 'start_choice';

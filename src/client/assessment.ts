@@ -19,21 +19,29 @@ import {
   ADDONS,
   BASE_SKUS,
   EXCHANGE_ONLINE_LIMITS,
-  FRONTLINE_PRICING_LAST_VERIFIED,
   MICROSOFT_365_ENTERPRISE_PRICING,
   MICROSOFT_365_FRONTLINE_PRICING,
   MICROSOFT_365_LICENSING_DOCS,
   MODERN_WORK_PLAN_COMPARISON,
+  PRICING_LAST_VERIFIED,
   formatPrice,
   type PriceItem,
-} from "../lib/frontline-pricing";
+} from "../lib/pricing";
 
 type Config = { tree: Tree; startId: string; totalSteps: number };
-type HistoryEntry = { id: string; label?: string };
+type SubAnswer = { name: string; answer: "yes" | "no" };
+type HistoryEntry = {
+  id: string;
+  label?: string;
+  /** Per-product Yes/No picks captured when the user answered this question
+   *  in interactive breakdown mode. Absent when the user committed in the
+   *  default "Show all & decide overall" mode (they decided in their head;
+   *  we didn't capture the sub-decisions). */
+  subAnswers?: SubAnswer[];
+};
 type State = {
   currentId: string;
   history: HistoryEntry[];
-  tenant?: string;
   profile?: string;
   version: string;
 };
@@ -88,6 +96,16 @@ class Assessment {
   private readonly cfg: Config;
   private readonly root: HTMLElement;
   private state: State;
+  /** Per-item Yes/No picks tracked while the user is in interactive
+   *  breakdown mode on a productBreakdown question. Reset on every
+   *  navigation (in `goto()` and `restart()`); restored from the popped
+   *  history entry in `back()` when that entry had captured sub-answers. */
+  private pendingSubAnswers: Record<string, "yes" | "no"> = {};
+  /** Whether the current productBreakdown question is being answered in
+   *  interactive mode (per-item Yes/No → computed overall). Defaults to
+   *  false (the user reads the cards and picks overall Yes/No themselves).
+   *  Per-question; resets on navigation. */
+  private interactiveBreakdown = false;
 
   constructor(root: HTMLElement, cfg: Config) {
     this.cfg = cfg;
@@ -125,8 +143,27 @@ class Assessment {
       console.warn("Unknown target:", targetId);
       return;
     }
-    this.state.history.push({ id: this.state.currentId, label });
+    const entry: HistoryEntry = { id: this.state.currentId, label };
+    // If the user committed in interactive mode on a productBreakdown
+    // question, attach their per-item picks to the history entry so the
+    // summary, trail, and PDF can show them. Items with scope
+    // `tenant-wide-not-scopeable` are excluded — they're informational
+    // only and don't drive the overall outcome.
+    const fromNode = this.cfg.tree[this.state.currentId];
+    if (this.interactiveBreakdown && fromNode?.productBreakdown?.length) {
+      const subAnswers: SubAnswer[] = fromNode.productBreakdown
+        .filter((i) => i.scope !== "tenant-wide-not-scopeable")
+        .map((i) => {
+          const a = this.pendingSubAnswers[i.name];
+          return a ? { name: i.name, answer: a } : null;
+        })
+        .filter((x): x is SubAnswer => x !== null);
+      if (subAnswers.length > 0) entry.subAnswers = subAnswers;
+    }
+    this.state.history.push(entry);
     this.state.currentId = targetId;
+    this.pendingSubAnswers = {};
+    this.interactiveBreakdown = false;
     this.captureContext();
     this.save();
     this.render();
@@ -145,7 +182,6 @@ class Assessment {
         (c) => c.target === this.state.currentId && c.label === lastEntry?.label
       ) ?? from.choices?.find((c) => c.target === this.state.currentId);
     if (!picked) return;
-    if (from === this.cfg.tree[this.cfg.startId]) this.state.tenant = picked.label;
     if (!this.state.profile && from === this.cfg.tree["start_choice"])
       this.state.profile = picked.label;
   }
@@ -154,6 +190,15 @@ class Assessment {
     const prev = this.state.history.pop();
     if (!prev) return;
     this.state.currentId = prev.id;
+    // If the question we're returning to was answered in interactive mode,
+    // restore the user's per-item picks so they can review or change them.
+    if (prev.subAnswers?.length) {
+      this.pendingSubAnswers = Object.fromEntries(prev.subAnswers.map((s) => [s.name, s.answer]));
+      this.interactiveBreakdown = true;
+    } else {
+      this.pendingSubAnswers = {};
+      this.interactiveBreakdown = false;
+    }
     this.save();
     this.render();
     this.scrollToTop();
@@ -161,6 +206,8 @@ class Assessment {
 
   private restart(): void {
     this.state = { currentId: this.cfg.startId, history: [], version: APP_VERSION };
+    this.pendingSubAnswers = {};
+    this.interactiveBreakdown = false;
     this.save();
     this.render();
     this.scrollToTop();
@@ -259,15 +306,13 @@ class Assessment {
   }
 
   private controlsHTML(): string {
-    const disabled = this.state.history.length === 0;
+    // On the very first step the user hasn't picked anything yet, so neither
+    // Back nor Restart has anything to act on — hide both to reduce noise.
+    if (this.state.history.length === 0) return "";
     return h(
       "div",
       { class: "assess__controls no-print" },
-      h(
-        "button",
-        { type: "button", class: "btn btn-ghost", "data-action": "back", disabled },
-        "← Back"
-      ),
+      h("button", { type: "button", class: "btn btn-ghost", "data-action": "back" }, "← Back"),
       h("button", { type: "button", class: "btn btn-ghost", "data-action": "restart" }, "↺ Restart")
     );
   }
@@ -347,23 +392,63 @@ class Assessment {
       when(node.help, (s) => h("p", { class: "question-card__help" }, escapeHTML(s))),
       each(node.paragraphs, (p) => h("p", { class: "question-card__para" }, escapeHTML(p))),
       this.rationaleHTML(node.rationale),
-      this.productBreakdownHTML(node.productBreakdown, node.breakdownIntro),
-      this.examplesHTML(node.examples),
-      h(
-        "div",
-        { class: "yesno" },
-        h(
-          "button",
-          { type: "button", class: "btn btn-primary", "data-yes": true },
-          node.productBreakdown?.length ? "Yes — at least one applies" : "Yes"
-        ),
-        h(
-          "button",
-          { type: "button", class: "btn btn-secondary", "data-no": true },
-          node.productBreakdown?.length ? "No — none apply" : "No"
-        )
+      this.productBreakdownHTML(
+        node.productBreakdown,
+        node.breakdownIntro,
+        node.productBreakdownAggregation ?? "any"
       ),
+      this.examplesHTML(node.examples),
+      this.yesNoButtonsHTML(node),
       this.footnotesHTML(node.techDocs)
+    );
+  }
+
+  /** Yes / No commit buttons. When the node has a productBreakdown and the
+   *  user is in interactive mode, the button labels and styling reflect the
+   *  live aggregation so the user can see which answer their sub-decisions
+   *  imply. Either button can still be clicked to commit (the user is in
+   *  charge); sub-answers are attached to the history entry on commit. */
+  private yesNoButtonsHTML(node: TreeNode): string {
+    const items = node.productBreakdown ?? [];
+    const hasBreakdown = items.length > 0;
+    const interactive = this.interactiveBreakdown && hasBreakdown;
+    const aggregation = node.productBreakdownAggregation ?? "any";
+    const aggregable = items.filter((i) => i.scope !== "tenant-wide-not-scopeable");
+    const yesCount = aggregable.filter((i) => this.pendingSubAnswers[i.name] === "yes").length;
+    const noCount = aggregable.filter((i) => this.pendingSubAnswers[i.name] === "no").length;
+    const totalCount = aggregable.length;
+    const answeredCount = yesCount + noCount;
+    // recommendation: "yes" | "no" | null (null = not enough info yet)
+    let recommendation: "yes" | "no" | null = null;
+    if (interactive && answeredCount > 0) {
+      if (aggregation === "any") {
+        if (yesCount > 0) recommendation = "yes";
+        else if (answeredCount === totalCount) recommendation = "no";
+      } else {
+        // "all" — every aggregable item must be Yes for overall Yes
+        if (noCount > 0) recommendation = "no";
+        else if (answeredCount === totalCount && yesCount === totalCount) recommendation = "yes";
+      }
+    }
+    const yesLabel = hasBreakdown
+      ? interactive && recommendation === "yes"
+        ? `Continue — Yes (${yesCount} of ${totalCount} apply)`
+        : "Yes — at least one applies"
+      : "Yes";
+    const noLabel = hasBreakdown
+      ? interactive && recommendation === "no"
+        ? aggregation === "all"
+          ? `Continue — No (${noCount} of ${totalCount} don't apply)`
+          : `Continue — No (none of ${totalCount} apply)`
+        : "No — none apply"
+      : "No";
+    const yesBtnClass = `btn btn-primary ${recommendation === "yes" ? "btn--recommended" : ""} ${interactive && recommendation && recommendation !== "yes" ? "btn--secondary-recommendation" : ""}`;
+    const noBtnClass = `btn btn-secondary ${recommendation === "no" ? "btn--recommended" : ""} ${interactive && recommendation && recommendation !== "no" ? "btn--secondary-recommendation" : ""}`;
+    return h(
+      "div",
+      { class: `yesno ${interactive ? "yesno--interactive" : ""}` },
+      h("button", { type: "button", class: yesBtnClass, "data-yes": true }, yesLabel),
+      h("button", { type: "button", class: noBtnClass, "data-no": true }, noLabel)
     );
   }
 
@@ -404,7 +489,6 @@ class Assessment {
             each(node.bullets, (b) => h("li", null, escapeHTML(b)))
           )
         : "",
-      this.tenantBannerHTML(),
       this.actionsHTML(node.actions),
       h(
         "div",
@@ -456,8 +540,13 @@ class Assessment {
     );
   }
 
-  private productBreakdownHTML(items?: ProductScopeItem[], intro?: string): string {
+  private productBreakdownHTML(
+    items?: ProductScopeItem[],
+    intro?: string,
+    aggregation: "any" | "all" = "any"
+  ): string {
     if (!items?.length) return "";
+    const interactive = this.interactiveBreakdown;
     const scopeLabel: Record<ProductScopeItem["scope"], string> = {
       "per-user": "Per-user licence",
       "per-device": "Per-device licence",
@@ -466,11 +555,28 @@ class Assessment {
       "tenant-wide-not-scopeable": "Tenant-wide · not scopeable *",
     };
     const hasNotScopeable = items.some((i) => i.scope === "tenant-wide-not-scopeable");
+    // Aggregable items drive the computed overall outcome in interactive mode.
+    // Tenant-wide-not-scopeable cards are informational only.
+    const aggregable = items.filter((i) => i.scope !== "tenant-wide-not-scopeable");
+    const answers = aggregable.map((i) => this.pendingSubAnswers[i.name]);
+    const yesCount = answers.filter((a) => a === "yes").length;
+    const noCount = answers.filter((a) => a === "no").length;
+    const answeredCount = yesCount + noCount;
+    const totalCount = aggregable.length;
     const rows = each(items, (item) => {
       const notScopeable = item.scope === "tenant-wide-not-scopeable";
+      const itemAnswer = this.pendingSubAnswers[item.name];
+      // In interactive mode, auto-expand all cards so the user can answer
+      // them in order without manually opening each one.
+      const detailsAttrs: Record<string, string | number | boolean> = {
+        class: "scope-item",
+        "data-scope": item.scope,
+      };
+      if (interactive) detailsAttrs.open = true;
+      if (interactive && itemAnswer) detailsAttrs["data-answered"] = itemAnswer;
       return h(
         "details",
-        { class: "scope-item", "data-scope": item.scope },
+        detailsAttrs,
         h(
           "summary",
           null,
@@ -480,11 +586,72 @@ class Assessment {
             "span",
             { class: `scope-badge scope-badge--${item.scope}` },
             escapeHTML(scopeLabel[item.scope])
-          )
+          ),
+          interactive && itemAnswer
+            ? h(
+                "span",
+                {
+                  class: `scope-item__answer-pill scope-item__answer-pill--${itemAnswer}`,
+                  "aria-label": `Your answer: ${itemAnswer === "yes" ? "Yes, applies" : "No, doesn't apply"}`,
+                },
+                itemAnswer === "yes" ? "✓ Yes" : "✗ No"
+              )
+            : ""
         ),
         h(
           "div",
           { class: "scope-item__body" },
+          // Per-item Yes/No decision row (interactive mode, scopeable items only).
+          interactive && !notScopeable
+            ? h(
+                "div",
+                {
+                  class: "scope-item__decide",
+                  role: "group",
+                  "aria-label": `Does ${item.name} apply to this user?`,
+                },
+                h("span", { class: "scope-item__decide-label" }, "Does this apply to this user?"),
+                h(
+                  "div",
+                  { class: "scope-item__decide-buttons" },
+                  h(
+                    "button",
+                    {
+                      type: "button",
+                      class: `scope-decide-btn scope-decide-btn--yes ${itemAnswer === "yes" ? "scope-decide-btn--active" : ""}`,
+                      "data-subitem-name": item.name,
+                      "data-subitem-answer": "yes",
+                      "aria-pressed": itemAnswer === "yes",
+                    },
+                    itemAnswer === "yes" ? "✓ Yes — applies" : "Yes — applies"
+                  ),
+                  h(
+                    "button",
+                    {
+                      type: "button",
+                      class: `scope-decide-btn scope-decide-btn--no ${itemAnswer === "no" ? "scope-decide-btn--active" : ""}`,
+                      "data-subitem-name": item.name,
+                      "data-subitem-answer": "no",
+                      "aria-pressed": itemAnswer === "no",
+                    },
+                    itemAnswer === "no" ? "✗ No — doesn't apply" : "No — doesn't apply"
+                  ),
+                  itemAnswer
+                    ? h(
+                        "button",
+                        {
+                          type: "button",
+                          class: "scope-decide-btn scope-decide-btn--clear",
+                          "data-subitem-name": item.name,
+                          "data-subitem-answer": "clear",
+                          "aria-label": `Clear answer for ${item.name}`,
+                        },
+                        "↺ Clear"
+                      )
+                    : ""
+                )
+              )
+            : "",
           notScopeable
             ? h(
                 "p",
@@ -623,7 +790,10 @@ class Assessment {
     });
     return h(
       "section",
-      { class: "scope-breakdown", "aria-label": "Per-product scope breakdown" },
+      {
+        class: `scope-breakdown ${interactive ? "scope-breakdown--interactive" : ""}`,
+        "aria-label": "Per-product scope breakdown",
+      },
       h(
         "div",
         { class: "scope-breakdown__head" },
@@ -635,6 +805,82 @@ class Assessment {
             intro ??
               "Each product below is its own mini-card. Open any card to see how that feature is scoped (per-user, per-device, or tenant-wide), what 'in scope' means in plain language, examples, and the Microsoft source. Answer Yes below if at least one applies to this user."
           )
+        ),
+        // Mode toggle — interactive vs. show-all. Default is show-all (current
+        // behavior). In interactive mode, per-item Yes/No buttons appear on each
+        // card and drive the overall computed Yes/No recommendation; the picks
+        // are captured in the summary + PDF. In show-all mode, only the overall
+        // answer is captured (the user decided in their head).
+        h(
+          "div",
+          {
+            class: "scope-breakdown__mode no-print",
+            role: "group",
+            "aria-label": "How would you like to answer?",
+          },
+          h(
+            "span",
+            { class: "scope-breakdown__mode-label" },
+            h("strong", null, "How would you like to answer? "),
+            "Pick a mode below."
+          ),
+          h(
+            "div",
+            { class: "scope-breakdown__mode-options" },
+            h(
+              "button",
+              {
+                type: "button",
+                class: `scope-mode-btn ${!interactive ? "scope-mode-btn--active" : ""}`,
+                "data-breakdown-mode": "show-all",
+                "aria-pressed": !interactive,
+              },
+              h("span", { class: "scope-mode-btn__icon", "aria-hidden": "true" }, "📖"),
+              h(
+                "span",
+                { class: "scope-mode-btn__body" },
+                h("span", { class: "scope-mode-btn__title" }, "Show all & decide overall"),
+                h(
+                  "span",
+                  { class: "scope-mode-btn__hint" },
+                  "Read the expandable cards yourself, then pick Yes / No below. The final summary will show only the overall answer."
+                )
+              )
+            ),
+            h(
+              "button",
+              {
+                type: "button",
+                class: `scope-mode-btn ${interactive ? "scope-mode-btn--active" : ""}`,
+                "data-breakdown-mode": "interactive",
+                "aria-pressed": interactive,
+              },
+              h("span", { class: "scope-mode-btn__icon", "aria-hidden": "true" }, "✏️"),
+              h(
+                "span",
+                { class: "scope-mode-btn__body" },
+                h("span", { class: "scope-mode-btn__title" }, "Walk through interactively"),
+                h(
+                  "span",
+                  { class: "scope-mode-btn__hint" },
+                  "Answer Yes / No on each card; we compute the overall and capture every pick in the summary."
+                )
+              )
+            )
+          ),
+          interactive
+            ? h(
+                "p",
+                { class: "scope-breakdown__mode-status" },
+                this.aggregationStatusHTML(
+                  answeredCount,
+                  totalCount,
+                  yesCount,
+                  noCount,
+                  aggregation
+                )
+              )
+            : ""
         ),
         hasNotScopeable
           ? h(
@@ -655,6 +901,39 @@ class Assessment {
       ),
       h("div", { class: "scope-breakdown__list" }, rows)
     );
+  }
+
+  /** Plain-language status line shown in interactive mode: progress + computed
+   *  overall recommendation based on the aggregation rule. */
+  private aggregationStatusHTML(
+    answered: number,
+    total: number,
+    yes: number,
+    no: number,
+    aggregation: "any" | "all"
+  ): string {
+    if (total === 0) return "";
+    if (answered === 0) {
+      return `Answer each card above. We'll compute the overall ${aggregation === "all" ? "(all must apply)" : "(any applies)"} as you go.`;
+    }
+    const remaining = total - answered;
+    if (aggregation === "any") {
+      if (yes > 0) {
+        return `Computed overall: <strong class="scope-status--yes">Yes</strong> — ${yes} of ${total} applies${remaining > 0 ? `, ${remaining} not yet answered` : ""}.`;
+      }
+      if (remaining === 0) {
+        return `Computed overall: <strong class="scope-status--no">No</strong> — none of ${total} apply.`;
+      }
+      return `So far ${no} of ${total} don't apply, ${remaining} not yet answered.`;
+    }
+    // "all" — every aggregable item must be Yes for overall Yes
+    if (no > 0) {
+      return `Computed overall: <strong class="scope-status--no">No</strong> — ${no} card${no === 1 ? "" : "s"} don't apply (need all ${total} to qualify).`;
+    }
+    if (remaining === 0 && yes === total) {
+      return `Computed overall: <strong class="scope-status--yes">Yes</strong> — all ${total} apply.`;
+    }
+    return `So far ${yes} of ${total} apply, ${remaining} not yet answered.`;
   }
 
   private footnotesHTML(docs: DocLink[] | undefined): string {
@@ -769,18 +1048,6 @@ class Assessment {
           );
     });
     return h("div", { class: "btn-row no-print" }, btns);
-  }
-
-  private tenantBannerHTML(): string {
-    if (!this.state.tenant) return "";
-    const profilePart = this.state.profile
-      ? ` · <strong>Profile:</strong> ${escapeHTML(this.state.profile)}`
-      : "";
-    return h(
-      "div",
-      { class: "callout" },
-      `<strong>Tenant baseline:</strong> ${escapeHTML(this.state.tenant)}${profilePart}`
-    );
   }
 
   // ---------- Frontline wizard (computed result) ----------
@@ -1064,7 +1331,7 @@ class Assessment {
           "p",
           null,
           h("strong", null, "AI-assisted recommendation. "),
-          `Computed from your wizard answers using Microsoft public list prices (last verified ${FRONTLINE_PRICING_LAST_VERIFIED}). Always confirm CSP / EA / partner-channel pricing with your Microsoft account team.`
+          `Computed from your wizard answers using Microsoft public list prices (last verified ${PRICING_LAST_VERIFIED}). Always confirm CSP / EA / partner-channel pricing with your Microsoft account team.`
         ),
         h(
           "p",
@@ -1171,7 +1438,21 @@ class Assessment {
         "li",
         null,
         h("span", { class: "trail__q" }, escapeHTML(truncate(q, 90))),
-        when(entry.label, (a) => h("span", { class: "trail__a" }, escapeHTML(a)))
+        when(entry.label, (a) => h("span", { class: "trail__a" }, escapeHTML(a))),
+        entry.subAnswers?.length
+          ? h(
+              "ul",
+              { class: "trail__subanswers", "aria-label": "Per-product answers" },
+              each(entry.subAnswers, (s) =>
+                h(
+                  "li",
+                  { class: `trail__suba trail__suba--${s.answer}` },
+                  h("span", { class: "trail__suba-name" }, escapeHTML(s.name)),
+                  h("span", { class: "trail__suba-answer" }, s.answer === "yes" ? "✓ Yes" : "✗ No")
+                )
+              )
+            )
+          : ""
       );
     });
     return h(
@@ -1217,6 +1498,40 @@ class Assessment {
       this.bind();
       return;
     }
+    // Productbreakdown mode toggle ("Show all" vs "Walk through interactively").
+    // Toggling away from interactive preserves the user's picks, so flipping
+    // back doesn't lose work; toggling INTO interactive starts from the
+    // current pendingSubAnswers (empty for a fresh question).
+    const modeBtn = t.closest<HTMLElement>("[data-breakdown-mode]");
+    if (modeBtn) {
+      const mode = modeBtn.dataset.breakdownMode;
+      const next = mode === "interactive";
+      if (next !== this.interactiveBreakdown) {
+        this.interactiveBreakdown = next;
+        this.render();
+      } else {
+        this.bind();
+      }
+      return;
+    }
+    // Per-item Yes/No (or Clear) decision inside a productBreakdown card.
+    const subItem = t.closest<HTMLElement>("[data-subitem-name]");
+    if (subItem) {
+      const name = subItem.dataset.subitemName;
+      const answer = subItem.dataset.subitemAnswer;
+      if (name) {
+        if (answer === "clear") {
+          delete this.pendingSubAnswers[name];
+        } else if (answer === "yes" || answer === "no") {
+          this.pendingSubAnswers[name] = answer;
+        }
+        // Re-render so the live aggregation and styling reflect the new pick.
+        this.render();
+      } else {
+        this.bind();
+      }
+      return;
+    }
     const node = this.cfg.tree[this.state.currentId];
     if (t.matches("[data-yes]") && node?.yes) {
       this.goto(node.yes, "Yes");
@@ -1257,17 +1572,21 @@ class Assessment {
   private buildSummary(node?: TreeNode): string {
     if (!node) return "";
     const trail = this.state.history
-      .map(
-        (h) =>
-          `  - ${this.cfg.tree[h.id]?.question ?? this.cfg.tree[h.id]?.title ?? h.id} → ${h.label ?? ""}`
-      )
+      .map((entry) => {
+        const q = this.cfg.tree[entry.id]?.question ?? this.cfg.tree[entry.id]?.title ?? entry.id;
+        const main = `  - ${q} → ${entry.label ?? ""}`;
+        if (!entry.subAnswers?.length) return main;
+        const subLines = entry.subAnswers.map(
+          (s) => `      • ${s.name}: ${s.answer === "yes" ? "Yes" : "No"}`
+        );
+        return [main, ...subLines].join("\n");
+      })
       .join("\n");
     const frontlineBlock = node.computed === "frontline" ? this.buildFrontlineSummaryBlock() : "";
     const lines: (string | false)[] = [
       "M365 Profiles recommendation",
       "===========================",
       "",
-      `Tenant baseline: ${this.state.tenant ?? "(not specified)"}`,
       `Profile:         ${this.state.profile ?? "(not specified)"}`,
       "",
       `Recommendation: ${node.title ?? "(see details)"}`,
@@ -1297,7 +1616,7 @@ class Assessment {
       "---------------------------------------------",
       `Recommended posture:  ${rec.baseSku.name}${rec.addons.length > 0 ? ` + ${rec.addons.length} add-on${rec.addons.length === 1 ? "" : "s"}` : ""}`,
       `Total list price:     ${formatPrice(rec.monthlyTotal)} / user / month (USD, annual commitment)`,
-      `Pricing last verified: ${FRONTLINE_PRICING_LAST_VERIFIED}`,
+      `Pricing last verified: ${PRICING_LAST_VERIFIED}`,
       `Canonical sources:`,
       `  - ${MICROSOFT_365_FRONTLINE_PRICING.label}`,
       `      ${MICROSOFT_365_FRONTLINE_PRICING.url}`,
@@ -1451,16 +1770,13 @@ class Assessment {
       await navigator.clipboard.writeText(txt);
       this.toast(successMsg);
     } catch {
-      const ta = document.createElement("textarea");
-      ta.value = txt;
-      document.body.appendChild(ta);
-      ta.select();
-      try {
-        document.execCommand("copy");
-      } finally {
-        ta.remove();
-      }
-      this.toast(successMsg);
+      // Modern browsers all ship the async Clipboard API. The legacy
+      // textarea + document.execCommand("copy") fallback was removed —
+      // execCommand is deprecated and unreliable under HTTPS / Permissions
+      // Policy. If the user is on a browser that blocks the Clipboard API
+      // (e.g. an aggressive policy on a managed device) we surface a clear
+      // error rather than failing silently.
+      this.toast("Copy failed — your browser blocked clipboard access.");
     }
   }
 
@@ -1475,7 +1791,6 @@ class Assessment {
       const extraParagraphs =
         node.computed === "frontline" ? this.buildFrontlineSummaryBlock().split("\n") : [];
       await buildHandoutPDF({
-        tenant: this.state.tenant,
         profile: this.state.profile,
         title: node.title ?? "Recommendation",
         sub: node.sub,
@@ -1484,7 +1799,11 @@ class Assessment {
         docs: docsOf(node),
         trail: this.state.history.map((entry) => {
           const n = this.cfg.tree[entry.id];
-          return { q: n?.question ?? n?.title ?? entry.id, a: entry.label ?? "" };
+          return {
+            q: n?.question ?? n?.title ?? entry.id,
+            a: entry.label ?? "",
+            subAnswers: entry.subAnswers,
+          };
         }),
       });
       this.toast("PDF downloaded.");

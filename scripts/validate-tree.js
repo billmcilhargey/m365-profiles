@@ -8,7 +8,7 @@ const EXIT_OK = 0;
 const EXIT_BROKEN_WIRING = 1;
 const EXIT_TREE_NOT_FOUND = 2;
 
-const ENTRY_NODE_CANDIDATES = [START_NODE_ID, "start_tenant", "start_choice"];
+const ENTRY_NODE_CANDIDATES = [START_NODE_ID, "start_choice"];
 
 function nodeKind(node) {
   if (node.choice) return "choice";
