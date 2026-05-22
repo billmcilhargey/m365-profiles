@@ -71,16 +71,10 @@ export function renderOgImageSvg(spec: OgImageSpec): string {
   const sublineStartY = headlineEndY + 70;
 
   const headlineTspans = headlineLines
-    .map(
-      (line, i) =>
-        `<tspan x="80" y="${headlineStartY + i * headlineLineH}">${line}</tspan>`
-    )
+    .map((line, i) => `<tspan x="80" y="${headlineStartY + i * headlineLineH}">${line}</tspan>`)
     .join("");
   const sublineTspans = sublineLines
-    .map(
-      (line, i) =>
-        `<tspan x="80" y="${sublineStartY + i * 36}">${line}</tspan>`
-    )
+    .map((line, i) => `<tspan x="80" y="${sublineStartY + i * 36}">${line}</tspan>`)
     .join("");
 
   const brandName = escapeXml(BRAND.name);

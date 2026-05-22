@@ -2,13 +2,7 @@
 import Base from "@layouts/Base.astro";
 import { pageTitle } from "@lib/site";
 import { withBase } from "@lib/paths";
-import {
-  TREE,
-  PROFILES,
-  OUTCOMES,
-  buildProfileOutcomeMatrix,
-  type Profile,
-} from "@lib/tree";
+import { TREE, PROFILES, OUTCOMES, buildProfileOutcomeMatrix, type Profile } from "@lib/tree";
 
 const assessmentHref = withBase("/assessment");
 const referenceHref = withBase("/reference");
@@ -63,8 +57,8 @@ const description =
         <h1>Eight profiles, one tree</h1>
         <p class="lede">
           The decision tree starts by asking which Microsoft 365 identity profile fits the account.
-          Below is a map of how those profiles connect to the premium capabilities they can land
-          on, plus jump-in links into the assessment.
+          Below is a map of how those profiles connect to the premium capabilities they can land on,
+          plus jump-in links into the assessment.
         </p>
       </header>
 
@@ -73,8 +67,8 @@ const description =
         <div class="map__head">
           <h2 id="map-heading">Profile × capability map</h2>
           <p>
-            Each cell shows whether the profile's decision path can land on that premium
-            capability. Click a dot to jump to that recommendation in the
+            Each cell shows whether the profile's decision path can land on that premium capability.
+            Click a dot to jump to that recommendation in the
             <a href={referenceHref}>reference catalog</a>.
           </p>
         </div>
@@ -150,8 +144,7 @@ const description =
           <span class="dot" aria-hidden="true">●</span> reachable
           <span class="dot dot--off" aria-hidden="true">·</span> not on this profile's path
           <span class="matrix__legend-sep" aria-hidden="true">·</span>
-          Hover a column header for the full capability name; hover a cell for the matching
-          recommendation(s).
+          Hover a column header for the full capability name; hover a cell for the matching recommendation(s).
         </p>
       </section>
 
@@ -192,7 +185,9 @@ const description =
                     ) : (
                       !warn &&
                       profile.results.length > 0 && (
-                        <p class="chip-empty">Baseline SKU recommendation only — no premium add-ons on this path.</p>
+                        <p class="chip-empty">
+                          Baseline SKU recommendation only — no premium add-ons on this path.
+                        </p>
                       )
                     )}
                     <div class="profile-row__cta">

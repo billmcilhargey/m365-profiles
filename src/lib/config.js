@@ -100,7 +100,7 @@ export const CONFIG = Object.freeze({
         headline: "Methodology, sources & honest limits.",
         subline: "Source-first · Cited · Not official Microsoft guidance",
       }),
-      "404": Object.freeze({
+      404: Object.freeze({
         eyebrow: "404",
         headline: "Page not found.",
         subline: "The page you requested doesn't exist on this site.",

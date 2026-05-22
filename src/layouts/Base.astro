@@ -77,9 +77,7 @@ const ogImagePath = ogImageProp
     : ogImageDefault;
 // og:image must be absolute per the Open Graph spec.
 const siteOrigin = makeSiteOrigin(Astro.site);
-const ogImageUrl = ogImagePath.startsWith("http")
-  ? ogImagePath
-  : `${siteOrigin}${ogImagePath}`;
+const ogImageUrl = ogImagePath.startsWith("http") ? ogImagePath : `${siteOrigin}${ogImagePath}`;
 const versionUrl = `${baseTrim}/version.json`;
 const manifestUrl = `${baseTrim}/manifest.webmanifest`;
 
@@ -103,7 +101,10 @@ const appleTouchIconUrl = `${baseTrim}/icons/apple-touch-180.svg`;
 // Derive a BreadcrumbList from the URL path on every non-home page. Pages
 // can override with a `breadcrumbs` prop.
 function autoBreadcrumbs(pathname: string): { name: string; href: string }[] {
-  const parts = pathname.replace(/^\/+|\/+$/g, "").split("/").filter(Boolean);
+  const parts = pathname
+    .replace(/^\/+|\/+$/g, "")
+    .split("/")
+    .filter(Boolean);
   // Skip the leading base-path segment when present (e.g. "m365-profiles").
   const baseSeg = baseTrim.replace(/^\/+/, "");
   const relevant = baseSeg && parts[0] === baseSeg ? parts.slice(1) : parts;
@@ -112,9 +113,7 @@ function autoBreadcrumbs(pathname: string): { name: string; href: string }[] {
   let acc = baseTrim;
   for (const seg of relevant) {
     acc += `/${seg}`;
-    const niceName = seg
-      .replace(/[-_]+/g, " ")
-      .replace(/\b\w/g, (c) => c.toUpperCase());
+    const niceName = seg.replace(/[-_]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
     crumbs.push({
       name: niceName,
       href: `${siteOrigin}${acc}`,
@@ -123,7 +122,8 @@ function autoBreadcrumbs(pathname: string): { name: string; href: string }[] {
   return crumbs;
 }
 
-const crumbs = breadcrumbsProp ?? (CONFIG.seo.emitBreadcrumbs ? autoBreadcrumbs(Astro.url.pathname) : []);
+const crumbs =
+  breadcrumbsProp ?? (CONFIG.seo.emitBreadcrumbs ? autoBreadcrumbs(Astro.url.pathname) : []);
 
 // JSON-LD structured data for search engines and AI crawlers.
 const jsonLdGraph: Record<string, unknown>[] = [
@@ -185,7 +185,11 @@ const jsonLd = { "@context": "https://schema.org", "@graph": jsonLdGraph };
     <meta name="googlebot" content={robots} />
     <meta name="format-detection" content="telephone=no, address=no, email=no" />
     <meta name="theme-color" content={BRAND.blue} media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content={CONFIG.seo.themeColorDark} media="(prefers-color-scheme: dark)" />
+    <meta
+      name="theme-color"
+      content={CONFIG.seo.themeColorDark}
+      media="(prefers-color-scheme: dark)"
+    />
     <meta name="color-scheme" content="light dark" />
     <meta name="generator" content={Astro.generator} />
     <meta name="app-version" content={APP_VERSION} />
@@ -201,15 +205,15 @@ const jsonLd = { "@context": "https://schema.org", "@graph": jsonLdGraph };
     <meta name="msapplication-config" content="none" />
 
     <link rel="canonical" href={canonical} />
-    {CONFIG.seo.emitHreflang && (
-      <>
-        <link rel="alternate" hreflang={CONFIG.language} href={canonical} />
-        <link rel="alternate" hreflang="x-default" href={canonical} />
-      </>
-    )}
-    {CONFIG.social.profiles.map((url) => (
-      <link rel="me" href={url} />
-    ))}
+    {
+      CONFIG.seo.emitHreflang && (
+        <>
+          <link rel="alternate" hreflang={CONFIG.language} href={canonical} />
+          <link rel="alternate" hreflang="x-default" href={canonical} />
+        </>
+      )
+    }
+    {CONFIG.social.profiles.map((url) => <link rel="me" href={url} />)}
 
     <meta property="og:title" content={resolvedOgTitle} />
     <meta property="og:description" content={resolvedOgDescription} />
@@ -228,15 +232,13 @@ const jsonLd = { "@context": "https://schema.org", "@graph": jsonLdGraph };
     <meta name="twitter:description" content={resolvedOgDescription} />
     <meta name="twitter:image" content={ogImageUrl} />
     <meta name="twitter:image:alt" content={ogImageAlt} />
-    {CONFIG.social.twitterSite && (
-      <meta name="twitter:site" content={CONFIG.social.twitterSite} />
-    )}
-    {CONFIG.social.twitterCreator && (
-      <meta name="twitter:creator" content={CONFIG.social.twitterCreator} />
-    )}
-    {CONFIG.social.fbAppId && (
-      <meta property="fb:app_id" content={CONFIG.social.fbAppId} />
-    )}
+    {CONFIG.social.twitterSite && <meta name="twitter:site" content={CONFIG.social.twitterSite} />}
+    {
+      CONFIG.social.twitterCreator && (
+        <meta name="twitter:creator" content={CONFIG.social.twitterCreator} />
+      )
+    }
+    {CONFIG.social.fbAppId && <meta property="fb:app_id" content={CONFIG.social.fbAppId} />}
 
     <meta http-equiv="Content-Security-Policy" content={CSP_META} />
     <meta name="referrer" content={REFERRER_POLICY} />
@@ -249,7 +251,7 @@ const jsonLd = { "@context": "https://schema.org", "@graph": jsonLdGraph };
     <link rel="sitemap" href={`${baseTrim}/sitemap-index.xml`} />
     <link rel="manifest" href={manifestUrl} />
 
-    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
     <script is:inline define:vars={{ themeKey: STORAGE_KEYS.theme }}>
       (function () {

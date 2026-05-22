@@ -155,7 +155,7 @@ const isActive = (href: string) => {
   }
 </style>
 
-<script define:vars={{ themeKey: STORAGE_KEYS.theme }}>
+<script is:inline define:vars={{ themeKey: STORAGE_KEYS.theme }}>
   const btn = document.getElementById("theme-toggle");
   btn?.addEventListener("click", () => {
     let cur = document.documentElement.getAttribute("data-theme");

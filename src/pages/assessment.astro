@@ -45,7 +45,7 @@ const description =
   </section>
 
   <!-- SSR-rendered tree data — consumed by the client controller. -->
-  <script id="tree-data" type="application/json" set:html={JSON.stringify(treeConfig)} />
+  <script is:inline id="tree-data" type="application/json" set:html={JSON.stringify(treeConfig)} />
 
   <script>
     import "@client/assessment.ts";

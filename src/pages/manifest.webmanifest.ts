@@ -60,4 +60,3 @@ export const GET: APIRoute = () => {
     headers: { "Content-Type": "application/manifest+json; charset=utf-8" },
   });
 };
-

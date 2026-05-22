@@ -4,16 +4,7 @@
 import { APP_VERSION } from "../lib/version";
 import { STORAGE_KEYS } from "../lib/site";
 import { each, escapeHTML, h, when } from "../lib/dom";
-import type {
-  Action,
-  Choice,
-  DocLink,
-  Rationale,
-  StepMeta,
-  Tone,
-  Tree,
-  TreeNode,
-} from "../lib/tree";
+import type { Action, DocLink, Rationale, StepMeta, Tone, Tree, TreeNode } from "../lib/tree";
 
 type Config = { tree: Tree; startId: string; totalSteps: number };
 type HistoryEntry = { id: string; label?: string };

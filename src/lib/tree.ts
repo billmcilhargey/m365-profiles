@@ -248,7 +248,8 @@ export const OUTCOMES: Outcome[] = [
 const OUTCOME_PATTERNS: Record<string, RegExp> = {
   p2: /\bentra (id )?p2\b|\bp2\b|privileged identity management|\bpim\b|identity protection/i,
   governance: /entra (id )?governance|lifecycle workflows|entitlement management/i,
-  entra_suite: /entra suite|global secure access|\bgsa\b|verified id|internet access|private access/i,
+  entra_suite:
+    /entra suite|global secure access|\bgsa\b|verified id|internet access|private access/i,
   defender:
     /defender xdr|defender suite|defender for identity|defender for cloud apps|defender for endpoint p2|defender for office p2/i,
   purview:
